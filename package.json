@@ -1,7 +1,7 @@
 {
-  "name": "@kanmii/parcel-react-template",
+  "name": "@kanmii/react-typescript-parcel-starter",
   "version": "0.0.1",
-  "main": "index.js",
+  "main": "dist/index.html",
   "license": "MIT",
   "scripts": {
     "dev": "env-cmd -e dev parcel src/index.html",
