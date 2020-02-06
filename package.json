@@ -17,6 +17,7 @@
     "classnames": "^2.2.6",
     "react": "^16.12.0",
     "react-dom": "^16.12.0",
+    "react-inlinesvg": "^1.2.0",
     "react-loadable": "^5.5.0"
   },
   "devDependencies": {
@@ -48,6 +49,9 @@
     "jest-resolve": "^25.1.0",
     "jest-watch-typeahead": "^0.4.2",
     "parcel-bundler": "^1.12.4",
+    "postcss-custom-properties": "^9.0.2",
+    "postcss-import": "^12.0.1",
+    "postcss-preset-env": "^6.7.0",
     "prettier": "^1.19.1",
     "react-app-polyfill": "^1.0.6",
     "rimraf": "^3.0.1",
