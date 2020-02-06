@@ -1,37 +1,23 @@
-body {
-  overflow-x: hidden;
-  overflow-y: scroll;
-  height: 100%;
-  box-sizing: border-box;
-}
-
-.plus-overlay {
-  display: none;
-  position: fixed;
-  z-index: 8;
-  width: 100vw;
-  height: 100vh;
-  background: 0 0;
-  top: 0;
-  left: 0;
-}
-
 .header {
-  position: fixed;
-  top: 0;
-  z-index: 800;
-  margin: 0;
   height: 60px;
   box-shadow: 0 1px 4px rgba(38, 44, 49, 0.4);
-  width: 100vw;
 }
 
 .logo {
   height: 50px;
+  animation: app-logo 1.5s ease-out 0s alternate infinite;
 }
 
 .main {
-  clear: both;
-  max-width: 100vw;
-  overflow: hidden;
+  padding: 70px 2px 0 2px;
+}
+
+@keyframes app-logo {
+  0% {
+    transform: rotate(0);
+  }
+
+  100% {
+    transform: rotate(0);
+  }
 }

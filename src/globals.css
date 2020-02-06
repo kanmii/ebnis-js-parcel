@@ -1,1 +1,17 @@
 @import "bulma/css/bulma.css";
+@import "./tailwind.css";
+
+html,
+body {
+  overflow-x: initial;
+  overflow-y: initial;
+}
+
+#root {
+  position: relative;
+  overflow-x: hidden;
+  overflow-y: auto;
+  height: 100%;
+  box-sizing: border-box;
+  width: 100%;
+}
