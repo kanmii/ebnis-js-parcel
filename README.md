@@ -10,3 +10,6 @@ yarn test:c // coverage
 
 ## Production
 yarn build
+
+## Test production build
+yarn build-serve-local

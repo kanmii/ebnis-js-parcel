@@ -9,7 +9,8 @@
     "test": "env-cmd -e test yarn jest --runInBand ",
     "test:w": "yarn test --watch",
     "test:wc": "rimraf coverage && yarn test --watch --coverage",
-    "test:c": "rimraf coverage && yarn test --coverage"
+    "test:c": "rimraf coverage && yarn test --coverage",
+    "build-serve-local": "yarn build && yarn serve dist"
   },
   "dependencies": {
     "bulma": "^0.8.0",
@@ -50,6 +51,7 @@
     "prettier": "^1.19.1",
     "react-app-polyfill": "^1.0.6",
     "rimraf": "^3.0.1",
+    "serve": "^11.3.0",
     "tailwindcss": "^1.2.0",
     "typescript": "^3.7.5",
     "workbox-window": "^5.0.0"
