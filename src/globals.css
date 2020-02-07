@@ -1,10 +1,20 @@
 @import "bulma/css/bulma.css";
 @import "./tailwind.css";
 
+:root {
+  --header-height: 60px;
+  --header-z-index: 1;
+}
+
 html,
 body {
-  overflow-x: initial;
-  overflow-y: initial;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+body {
+  padding-top: calc(var(--header-height) + 10px);
 }
 
 #root {
@@ -12,6 +22,5 @@ body {
   overflow-x: hidden;
   overflow-y: auto;
   height: 100%;
-  box-sizing: border-box;
   width: 100%;
 }

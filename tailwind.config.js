@@ -2,7 +2,7 @@
 const { colors } = require("tailwindcss/defaultTheme");
 
 module.exports = {
-  important: true,
+  // important: true,
   theme: {
     extend: {},
     colors: {

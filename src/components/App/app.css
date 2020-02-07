@@ -1,23 +1,27 @@
 .header {
-  height: 60px;
   box-shadow: 0 1px 4px rgba(38, 44, 49, 0.4);
+  height: var(--header-height);
+  /* z-index: var(--header-z-index); */
 }
 
 .logo {
-  height: 50px;
-  animation: app-logo 1.5s ease-out 0s alternate infinite;
+  height: calc(var(--header-height) - 5px);
+  animation: app-logo-spin infinite 10s linear;
 }
 
 .main {
-  padding: 70px 2px 0 2px;
+  /* padding: calc(var(--header-height) + 10px) 2px 0 2px; */
 }
 
-@keyframes app-logo {
+@keyframes app-logo-spin {
   0% {
-    transform: rotate(0);
+    transform: rotate(0deg);
   }
-
   100% {
-    transform: rotate(0);
+    transform: rotate(360deg);
   }
+}
+
+.a {
+  height: calc(100vh * 0.8);
 }

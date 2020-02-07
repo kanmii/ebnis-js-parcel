@@ -34,6 +34,7 @@ module.exports = {
     "<rootDir>/dist/",
     "<rootDir>/jest\\.config\\.js",
     "<rootDir>/coverage/",
+    "<rootDir>/.cache/",
   ],
   globals: {
     __PATH_PREFIX__: "",

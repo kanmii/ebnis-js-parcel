@@ -15,11 +15,11 @@ export function App() {
 
   return (
     <>
-      <header className="fixed top-0 w-full m-0 header">
+      <header className="fixed top-0 flex items-center w-full m-0 bg-white header">
         <SVG src={logo} className="logo" />
       </header>
 
-      <section className="relative overflow-hidden main">
+      <section className="main">
         {showNotification && (
           <div
             className={makeClassNames({
@@ -69,6 +69,10 @@ export function App() {
         >
           -
         </button>
+
+        <div className="text-center a">a</div>
+        <div className="text-center a">b</div>
+        <div className="text-center a">b</div>
       </section>
     </>
   );

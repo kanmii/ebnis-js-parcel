@@ -4,7 +4,7 @@
   "main": "dist/index.html",
   "license": "MIT",
   "scripts": {
-    "dev": "env-cmd -e dev parcel src/index.html",
+    "dev": "env-cmd -e dev parcel src/index.html --cache-dir .cache",
     "build": "rimraf dist && env-cmd -e prod parcel build src/index.html",
     "test": "env-cmd -e test yarn jest --runInBand ",
     "test:w": "yarn test --watch",
