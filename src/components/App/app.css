@@ -1,16 +1,12 @@
 .header {
   box-shadow: 0 1px 4px rgba(38, 44, 49, 0.4);
   height: var(--header-height);
-  /* z-index: var(--header-z-index); */
+  z-index: var(--header-z-index);
 }
 
 .logo {
   height: calc(var(--header-height) - 5px);
   animation: app-logo-spin infinite 10s linear;
-}
-
-.main {
-  /* padding: calc(var(--header-height) + 10px) 2px 0 2px; */
 }
 
 @keyframes app-logo-spin {
