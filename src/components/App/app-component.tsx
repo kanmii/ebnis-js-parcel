@@ -1,53 +1,89 @@
-import React, { useState } from "react";
-import SVG from "react-inlinesvg";
+import React, { useState, useEffect } from "react";
 import makeClassNames from "classnames";
-import logo from "./logo.svg";
-import "./app.css";
+import "./app.styles.scss";
 import {
   notificationDomId,
   incrementBtnDomId,
-  decrementBtnDomId
+  decrementBtnDomId,
 } from "./app.dom";
+import Header from "../Header/header.component";
 
 export function App() {
-  const [showNotification, setShowNotification] = useState(false);
-  const [clickCount, setClickCount] = useState(0);
+  const [state, setState] = useState<State>({
+    showNotification: false,
+    clickCount: 0,
+    dataFetch: {
+      value: "noRequest",
+    },
+  });
+
+  useEffect(() => {
+    (async function fetchData() {
+      try {
+        const data = await import("../../sample-fetch-data.json");
+
+        setState((oldState) => {
+          return {
+            ...oldState,
+            dataFetch: {
+              value: "success",
+              data: process.env.NODE_ENV === "test" ? data.default : data,
+            },
+          };
+        });
+      } catch (error) {
+        setState((oldState) => {
+          return {
+            ...oldState,
+            dataFetch: {
+              value: "error",
+              error: "Failed to fetch data",
+            },
+          };
+        });
+      }
+    })();
+  }, []);
+
+  const {
+    showNotification, //
+    clickCount,
+    dataFetch,
+  } = state;
 
   return (
     <>
-      <header className="fixed top-0 flex items-center w-full m-0 bg-white header">
-        <SVG src={logo} className="logo" />
-      </header>
+      <Header />
 
-      <section className="w-11/12 mx-auto my-0">
-        {showNotification && (
+      {showNotification && (
+        <div
+          className={makeClassNames({
+            notification: true,
+            "notification--info": clickCount > 0,
+            "notification--warning": clickCount === 0,
+            "notification--error": clickCount < 0,
+          })}
+          id={notificationDomId}
+        >
           <div
-            className={makeClassNames({
-              notification: true,
-              "is-primary": clickCount > 0,
-              "is-warning": clickCount === 0,
-              "is-danger": clickCount < 0
-            })}
-            id={notificationDomId}
-          >
-            <button
-              className="delete"
-              onClick={() => {
-                setShowNotification(false);
-              }}
-            />
-            {clickCount}
-          </div>
-        )}
+            className="notification__delete"
+            onClick={() => {
+              setState({ ...state, showNotification: false });
+            }}
+          />
+          {clickCount}
+        </div>
+      )}
 
+      <div className="buttons">
         <button
-          className="mr-2 button"
+          className="button"
           onClick={() => {
             const nextCount = clickCount + 1;
-            setClickCount(nextCount);
+            setState({ ...state, clickCount: nextCount });
 
             if (!showNotification) {
-              setShowNotification(true);
+              setState({ ...state, showNotification: true });
             }
           }}
           id={incrementBtnDomId}
@@ -59,21 +95,74 @@ export function App() {
           className="button"
           onClick={() => {
             const nextCount = clickCount - 1;
-            setClickCount(nextCount);
+            setState({ ...state, clickCount: nextCount });
 
             if (!showNotification) {
-              setShowNotification(true);
+              setState({ ...state, showNotification: true });
             }
           }}
           id={decrementBtnDomId}
         >
           -
         </button>
+      </div>
 
-        <div className="text-center a">a</div>
-        <div className="text-center a">b</div>
-        <div className="text-center a">b</div>
-      </section>
+      <Data request={dataFetch} />
     </>
   );
 }
+
+function Data({ request }: { request: DataFetch }) {
+  switch (request.value) {
+    case "noRequest":
+      return <div>Waiting to request data...</div>;
+    case "requesting":
+      return <div>Requesting data....</div>;
+    case "error":
+      return <div>Failed to fetch data</div>;
+    case "success": {
+      const { data } = request;
+
+      return (
+        <>
+          {data.map((d, index) => {
+            index += 1;
+
+            return (
+              <div key={index} className="content">
+                <div>
+                  <div>Message {index}:</div>
+                  {d}
+                </div>
+              </div>
+            );
+          })}
+        </>
+      );
+    }
+  }
+}
+
+export default App;
+
+interface State {
+  readonly showNotification: boolean;
+  readonly clickCount: number;
+  readonly dataFetch: DataFetch;
+}
+
+type DataFetch =
+  | {
+      value: "noRequest";
+    }
+  | {
+      value: "requesting";
+    }
+  | {
+      value: "success";
+      data: string[];
+    }
+  | {
+      value: "error";
+      error: string;
+    };

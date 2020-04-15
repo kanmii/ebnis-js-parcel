@@ -1,15 +1,35 @@
 # Parcel React Typescript starter
 
 ## Development
-yarn dev
+
+### Copy environment file
+`cp .env-cmdrc.example.js .env-cmdrc.js`
+
+### To find out available commands:
+`yarn start`
+
+### Start the development server
+
+`yarn start dev`
 
 ## Testing
-yarn test
-yarn test:w // watch
-yarn test:c // coverage
+
+`yarn start test`
+
+#### Test watch
+
+`yarn start test.w`
+
+#### Test coverage
+
+`yarn start test.c`
 
 ## Production
-yarn build
 
-## Test production build
-yarn build-serve-local
+### Build
+
+`yarn start build`
+
+### Deploy
+
+`yarn start build.deploy`

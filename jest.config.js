@@ -8,7 +8,7 @@ module.exports = {
   ],
   setupFilesAfterEnv: ["<rootDir>/config/jest/setupTests.js"],
   testRegex: "src/__tests__/.+?\\.test\\.tsx?$",
-  testEnvironment: "jest-environment-jsdom-fourteen",
+  testEnvironment: "jest-environment-jsdom-sixteen",
   transform: {
     "^.+\\.[jt]sx?$": "<rootDir>/node_modules/babel-jest",
     "^.+\\.css$": "<rootDir>/config/jest/cssTransform.js",
@@ -35,11 +35,12 @@ module.exports = {
     "<rootDir>/jest\\.config\\.js",
     "<rootDir>/coverage/",
     "<rootDir>/.cache/",
+    "<rootDir>/public/",
+    "<rootDir>/.netlify/",
   ],
   globals: {
     __PATH_PREFIX__: "",
   },
   testURL: "http://localhost",
-  extraGlobals: ["Date"],
   roots: ["<rootDir>/src"],
 };

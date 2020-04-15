@@ -1,24 +1,38 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { ComponentType } from "react";
-import { render, cleanup } from "@testing-library/react";
+import { render, cleanup, waitForElement } from "@testing-library/react";
 import { App } from "../components/App/app-component";
 import {
   notificationDomId,
   incrementBtnDomId,
-  decrementBtnDomId
+  decrementBtnDomId,
 } from "../components/App/app.dom";
 
 afterEach(() => {
   cleanup();
 });
 
-it("renders", () => {
+it("renders", async () => {
   const { ui } = makeComp();
 
   /**
    * When component is rendered
    */
   render(ui);
+
+  /**
+   * Then fetched data should not be rendered
+   */
+  expect(document.getElementsByClassName("content").length).toBe(0);
+
+  /**
+   * But after a while, fetched data should be visible
+   */
+  const dataEls = await waitForElement(() => {
+    return document.getElementsByClassName("content");
+  });
+
+  expect(dataEls.length).not.toBe(0);
 
   /**
    * Then notification should not be visible
@@ -35,18 +49,18 @@ it("renders", () => {
   decrementNode.click();
 
   /**
-   * Then notification should show error
+   * Then notification should show warning
    */
   const notificationNode = document.getElementById(
     notificationDomId
   ) as HTMLElement;
 
-  expect(notificationNode.classList).toContain("is-danger");
+  expect(notificationNode.classList).toContain("notification--warning");
 
   /**
-   * And notification should show value of -1
+   * And notification should show value of 0
    */
-  expect(notificationNode.textContent).toBe("-1");
+  expect(notificationNode.textContent).toBe("0");
 
   /**
    * When decrement button is clicked again
@@ -54,10 +68,10 @@ it("renders", () => {
   decrementNode.click();
 
   /**
-   * Then notification should still show error and value as -2
+   * Then notification should show error and value as -1
    */
-  expect(notificationNode.classList).toContain("is-danger");
-  expect(notificationNode.textContent).toBe("-2");
+  expect(notificationNode.classList).toContain("notification--error");
+  expect(notificationNode.textContent).toBe("-1");
 
   /**
    * When increment button is clicked
@@ -68,20 +82,9 @@ it("renders", () => {
   incrementNode.click();
 
   /**
-   * Then notification should still show error and value as -1
+   * Then notification should warning and value as 0
    */
-  expect(notificationNode.classList).toContain("is-danger");
-  expect(notificationNode.textContent).toBe("-1");
-
-  /**
-   * When increment button is clicked again
-   */
-  incrementNode.click();
-
-  /**
-   * Then notification should show now warning and value as 0
-   */
-  expect(notificationNode.classList).toContain("is-warning");
+  expect(notificationNode.classList).toContain("notification--warning");
   expect(notificationNode.textContent).toBe("0");
 
   /**
@@ -90,16 +93,21 @@ it("renders", () => {
   incrementNode.click();
 
   /**
-   * Then notification should show now primary and value as 1
+   * Then notification should show info and value as 1
    */
-  expect(notificationNode.classList).toContain("is-primary");
+  expect(notificationNode.classList).toContain("notification--info");
   expect(notificationNode.textContent).toBe("1");
+
+  /**
+   * When increment button is clicked again
+   */
+  incrementNode.click();
 
   /**
    * When notification dismiss button is clicked
    */
   (notificationNode
-    .getElementsByClassName("delete")
+    .getElementsByClassName("notification__delete")
     .item(0) as HTMLElement).click();
 
   /**
@@ -113,11 +121,10 @@ it("renders", () => {
   incrementNode.click();
 
   /**
-   * Then notification should show now primary and value as 2
+   * Then notification should show info and value as 1
    */
-  expect(
-    (document.getElementById(notificationDomId) as HTMLElement).textContent
-  ).toBe("2");
+  expect(notificationNode.classList).toContain("notification--info");
+  expect(notificationNode.textContent).toBe("2");
 });
 
 ////////////////////////// HELPER FUNCTIONS ///////////////////////////
@@ -126,6 +133,6 @@ const AppP = App as ComponentType<Partial<{}>>;
 
 function makeComp({ props = {} }: { props?: Partial<{}> } = {}) {
   return {
-    ui: <AppP {...props} />
+    ui: <AppP {...props} />,
   };
 }

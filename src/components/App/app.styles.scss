@@ -1,0 +1,39 @@
+.buttons {
+  text-align: center;
+  margin-top: 20px;
+
+  .button {
+    background-color: #fff;
+    border-color: #dbdbdb;
+    color: #363636;
+
+    &:hover {
+      border-color: #b5b5b5;
+      color: #363636;
+    }
+
+    &:active {
+      border-color: #4a4a4a;
+      color: #363636;
+    }
+
+    &:focus {
+      border-color: #3273dc;
+      color: #363636;
+    }
+  }
+
+  & > .button {
+    margin-right: 15px;
+  }
+}
+
+.content {
+  height: calc(100vh * 0.8);
+  border: 1px solid #c7c7c7;
+  margin-top: 20px;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

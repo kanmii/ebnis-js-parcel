@@ -4,39 +4,28 @@
   "main": "dist/index.html",
   "license": "MIT",
   "scripts": {
-    "dev": "env-cmd -e dev parcel src/index.html --cache-dir .cache",
-    "build": "rimraf dist && env-cmd -e prod parcel build src/index.html",
-    "test": "env-cmd -e test yarn jest --runInBand ",
-    "test:w": "yarn test --watch",
-    "test:wc": "rimraf coverage && yarn test --watch --coverage",
-    "test:c": "rimraf coverage && yarn test --coverage",
-    "build-serve-local": "yarn build && yarn serve dist"
+    "start": "nps",
+    "test": "nps test"
   },
   "dependencies": {
-    "bulma": "^0.8.0",
     "classnames": "^2.2.6",
+    "core-js": "^3.6.5",
     "react": "^16.12.0",
     "react-dom": "^16.12.0",
     "react-inlinesvg": "^1.2.0",
-    "react-loadable": "^5.5.0"
+    "regenerator-runtime": "^0.13.5"
   },
   "devDependencies": {
-    "@testing-library/jest-dom": "^5.1.1",
     "@testing-library/react": "^9.4.0",
-    "@types/classnames": "^2.2.9",
+    "@types/classnames": "^2.2.10",
     "@types/jest": "^25.1.1",
     "@types/node": "^13.7.0",
     "@types/react": "^16.9.19",
     "@types/react-dom": "^16.9.5",
-    "@types/react-loadable": "^5.5.3",
-    "@types/react-router-dom": "^5.1.3",
     "@typescript-eslint/eslint-plugin": "^2.19.0",
     "@typescript-eslint/parser": "^2.19.0",
-    "autoprefixer": "^9.7.4",
     "babel-jest": "^25.1.0",
-    "babel-loader": "^8.0.6",
-    "babel-preset-env": "^1.7.0",
-    "babel-preset-react-app": "^9.1.1",
+    "babel-preset-react-app": "^9.1.2",
     "env-cmd": "^10.0.1",
     "eslint": "^6.8.0",
     "eslint-config-prettier": "^6.10.0",
@@ -45,22 +34,35 @@
     "eslint-plugin-react-hooks": "^2.3.0",
     "identity-obj-proxy": "^3.0.0",
     "jest": "^25.1.0",
-    "jest-environment-jsdom-fourteen": "^1.0.1",
+    "jest-environment-jsdom-sixteen": "^1.0.3",
     "jest-resolve": "^25.1.0",
     "jest-watch-typeahead": "^0.4.2",
+    "netlify": "^4.0.5",
+    "nps": "^5.9.12",
     "parcel-bundler": "^1.12.4",
-    "postcss-custom-properties": "^9.0.2",
-    "postcss-import": "^12.0.1",
-    "postcss-preset-env": "^6.7.0",
     "prettier": "^1.19.1",
     "react-app-polyfill": "^1.0.6",
     "rimraf": "^3.0.1",
+    "sass": "^1.26.3",
     "serve": "^11.3.0",
-    "tailwindcss": "^1.2.0",
+    "shelljs": "^0.8.3",
     "typescript": "^3.7.5",
+    "workbox-build": "^5.1.2",
     "workbox-window": "^5.0.0"
   },
   "eslintConfig": {
     "extends": "react-app"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
   }
 }
