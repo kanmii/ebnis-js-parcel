@@ -1,4 +1,4 @@
-# Parcel React Typescript starter
+# Ebnis App (front end)
 
 ## Development
 

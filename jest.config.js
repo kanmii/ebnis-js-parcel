@@ -2,6 +2,9 @@ module.exports = {
   collectCoverageFrom: [
     "src/**/*.ts*",
     "!src/__tests__/**",
+    "!src/graphql/**",
+    "!src/utils/**",
+    "!src/register-service-worker.*",
   ],
   setupFiles: [
     "react-app-polyfill/jsdom",

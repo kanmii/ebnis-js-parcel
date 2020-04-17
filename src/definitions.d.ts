@@ -4,6 +4,9 @@
 /// <reference types="react" />
 /// <reference types="react-dom" />
 
+declare module "@kanmii/socket";
+declare module "@kanmii/socket-apollo-link";
+
 declare namespace NodeJS {
   interface ProcessEnv {
     readonly NODE_ENV: "development" | "production" | "test";

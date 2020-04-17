@@ -1,6 +1,6 @@
 {
-  "name": "@kanmii/react-typescript-parcel-starter",
-  "version": "0.0.1",
+  "name": "ebnis",
+  "version": "3.0.0",
   "main": "dist/index.html",
   "license": "MIT",
   "scripts": {
@@ -8,24 +8,46 @@
     "test": "nps test"
   },
   "dependencies": {
+    "@apollo/react-hooks": "^3.1.5",
+    "@kanmii/socket": "^0.2.2",
+    "@kanmii/socket-apollo-link": "^0.2.3",
+    "apollo-cache-inmemory": "^1.6.5",
+    "apollo-cache-persist": "^0.1.1",
+    "apollo-client": "^2.6.8",
+    "apollo-link": "^1.2.14",
+    "apollo-link-error": "^1.1.13",
+    "apollo-link-http": "^1.5.17",
     "classnames": "^2.2.6",
     "core-js": "^3.6.5",
+    "date-fns": "^2.12.0",
+    "fuzzysort": "^1.1.4",
+    "graphql": "14.5.8",
+    "graphql-tag": "^2.10.3",
+    "immer": "^6.0.3",
+    "lodash": "^4.17.15",
+    "phoenix": "^1.4.16",
     "react": "^16.12.0",
     "react-dom": "^16.12.0",
     "react-inlinesvg": "^1.2.0",
-    "regenerator-runtime": "^0.13.5"
+    "react-router-dom": "^5.1.2",
+    "regenerator-runtime": "^0.13.5",
+    "zen-observable-ts": "^0.8.21"
   },
   "devDependencies": {
     "@testing-library/react": "^9.4.0",
     "@types/classnames": "^2.2.10",
     "@types/jest": "^25.1.1",
     "@types/node": "^13.7.0",
+    "@types/phoenix": "^1.4.4",
     "@types/react": "^16.9.19",
     "@types/react-dom": "^16.9.5",
+    "@types/react-router-dom": "^5.1.4",
     "@typescript-eslint/eslint-plugin": "^2.19.0",
     "@typescript-eslint/parser": "^2.19.0",
+    "apollo": "^2.27.0",
     "babel-jest": "^25.1.0",
     "babel-preset-react-app": "^9.1.2",
+    "cypress": "^4.4.0",
     "env-cmd": "^10.0.1",
     "eslint": "^6.8.0",
     "eslint-config-prettier": "^6.10.0",
@@ -38,6 +60,7 @@
     "jest-resolve": "^25.1.0",
     "jest-watch-typeahead": "^0.4.2",
     "netlify": "^4.0.5",
+    "node-fetch": "^2.6.0",
     "nps": "^5.9.12",
     "parcel-bundler": "^1.12.4",
     "prettier": "^1.19.1",
@@ -46,6 +69,7 @@
     "sass": "^1.26.3",
     "serve": "^11.3.0",
     "shelljs": "^0.8.3",
+    "start-server-and-test": "^1.11.0",
     "typescript": "^3.7.5",
     "workbox-build": "^5.1.2",
     "workbox-window": "^5.0.0"
@@ -64,5 +88,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "resolutions": {
+    "graphql": "14.5.8"
   }
 }

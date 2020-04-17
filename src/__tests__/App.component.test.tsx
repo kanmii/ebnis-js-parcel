@@ -23,7 +23,7 @@ it("renders", async () => {
   /**
    * Then fetched data should not be rendered
    */
-  expect(document.getElementsByClassName("content").length).toBe(0);
+  expect(document.getElementsByClassName("content")).toHaveLength(0);
 
   /**
    * But after a while, fetched data should be visible
@@ -32,7 +32,7 @@ it("renders", async () => {
     return document.getElementsByClassName("content");
   });
 
-  expect(dataEls.length).not.toBe(0);
+  expect(dataEls).not.toHaveLength(0);
 
   /**
    * Then notification should not be visible
