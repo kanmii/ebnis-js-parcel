@@ -7,7 +7,7 @@ import { E2EWindowObject } from "../../utils/types";
 import AppInner from "./app-inner.component";
 import Loading from "../Loading/loading.component";
 
-export function App1() {
+export function App() {
   const obj = buildClientCache({
     appHydrated: true,
   }) as E2EWindowObject;
@@ -43,7 +43,7 @@ export function App1() {
 }
 
 // istanbul ignore next:
-export default App1;
+export default App;
 
 interface State {
   readonly renderChildren: boolean;

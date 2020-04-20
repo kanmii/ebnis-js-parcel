@@ -65,6 +65,7 @@
     "node-fetch": "^2.6.0",
     "nps": "^5.9.12",
     "parcel-bundler": "^1.12.4",
+    "postcss": "^7.0.27",
     "prettier": "^1.19.1",
     "react-app-polyfill": "^1.0.6",
     "rimraf": "^3.0.1",
