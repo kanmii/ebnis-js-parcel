@@ -39,8 +39,8 @@ module.exports = {
       run: "server-test ",
     },
     typeCheck: {
-      default: "tsc --noEmit --project .",
-      cypress: "tsc --noEmit --project ./cypress",
+      default: "tsc --project .",
+      cypress: "tsc --project ./cypress",
     },
     lint: "eslint . --ext .js,.jsx,.ts,.tsx",
     gqlTypes: {
@@ -120,7 +120,7 @@ module.exports = {
     const fetch = require("node-fetch");
     const exec = require("child_process").exec;
 
-    shell.rm(" -rf ./src/graphql/apollo-types");
+    shell.rm("-rf", "src/graphql/apollo-types");
     const endpoint = process.env.API_URL;
 
     exec(

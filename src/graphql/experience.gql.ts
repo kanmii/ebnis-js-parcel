@@ -1,32 +1,9 @@
-import { useMutation } from "@apollo/react-hooks";
 import gql from "graphql-tag";
 import {
   ENTRY_FRAGMENT,
   DATA_OBJECT_FRAGMENT,
   ENTRY_CONNECTION_FRAGMENT,
 } from "./entry.gql";
-import { UpdateExperienceFragment } from "./apollo-types/UpdateExperienceFragment";
-import { UpdateExperienceInput } from "./apollo-types/globalTypes";
-import { CommonError } from "../utils/types";
-import { writeUpdatedExperienceToCache } from "../apollo/write-updated-experiences-to-cache";
-import {
-  MutationFunctionOptions,
-  MutationResult,
-  ExecutionResult,
-  MutationFunction,
-} from "@apollo/react-common";
-import {
-  UpdateExperiencesOnline,
-  UpdateExperiencesOnlineVariables,
-} from "./apollo-types/UpdateExperiencesOnline";
-import {
-  CreateExperiences,
-  CreateExperiencesVariables,
-} from "./apollo-types/CreateExperiences";
-import {
-  DeleteExperiences,
-  DeleteExperiencesVariables,
-} from "./apollo-types/DeleteExperiences";
 
 export const DEFINITION_FRAGMENT = gql`
   fragment DataDefinitionFragment on DataDefinition {
@@ -372,7 +349,7 @@ const UPDATE_EXPERIENCE_SOME_SUCCESS_FRAGMENT = gql`
   ${UPDATE_EXPERIENCE_FRAGMENT}
 `;
 
-const UPDATE_EXPERIENCES_ONLINE_MUTATION = gql`
+export const UPDATE_EXPERIENCES_ONLINE_MUTATION = gql`
   mutation UpdateExperiencesOnline($input: [UpdateExperienceInput!]!) {
     updateExperiences(input: $input) {
       __typename
@@ -398,79 +375,7 @@ const UPDATE_EXPERIENCES_ONLINE_MUTATION = gql`
   ${UPDATE_EXPERIENCE_SOME_SUCCESS_FRAGMENT}
 `;
 
-export function useUpdateExperiencesOnlineMutation(): UseUpdateExperiencesOnlineMutation {
-  return useMutation(UPDATE_EXPERIENCES_ONLINE_MUTATION);
-}
-
-export async function updateExperiencesOnlineEffectHelperFunc(
-  input: UpdateExperienceInput[],
-  updateExperiencesOnline: UpdateExperiencesOnlineMutationFn,
-  onUpdateSuccess: (arg: UpdateExperienceFragment) => void,
-  onError: (error?: CommonError) => void,
-  onDone?: () => void
-) {
-  try {
-    const response = await updateExperiencesOnline({
-      variables: {
-        input,
-      },
-
-      update: writeUpdatedExperienceToCache(onDone),
-    });
-
-    const validResponse =
-      response && response.data && response.data.updateExperiences;
-
-    if (!validResponse) {
-      onError();
-      return;
-    }
-
-    if (validResponse.__typename === "UpdateExperiencesAllFail") {
-      onError(validResponse.error);
-    } else {
-      const updateResult = validResponse.experiences[0];
-
-      if (updateResult.__typename === "UpdateExperienceErrors") {
-        onError(updateResult.errors.error);
-      } else {
-        const { experience } = updateResult;
-        onUpdateSuccess(experience);
-      }
-    }
-  } catch (errors) {
-    onError(errors);
-  }
-}
-
-export type UpdateExperiencesOnlineMutationFn = MutationFunction<
-  UpdateExperiencesOnline,
-  UpdateExperiencesOnlineVariables
->;
-
-export type UpdateExperiencesOnlineMutationResult = ExecutionResult<
-  UpdateExperiencesOnline
->;
-
-// used to type check test mock calls
-export type UpdateExperiencesOnlineMutationFnOptions = MutationFunctionOptions<
-  UpdateExperiencesOnline,
-  UpdateExperiencesOnlineVariables
->;
-
-export type UseUpdateExperiencesOnlineMutation = [
-  UpdateExperiencesOnlineMutationFn,
-  MutationResult<UpdateExperiencesOnline>
-];
-
-// component's props should extend this
-export interface UpdateExperiencesOnlineComponentProps {
-  updateExperiencesOnline: UpdateExperiencesOnlineMutationFn;
-}
-
 ////////////////////////// END UPDATE EXPERIENCES SECTION //////////////////
-
-////////////////////////// START CREATE EXPERIENCES SECTION ////////////////////
 
 export const CREATE_EXPERIENCES_MUTATION = gql`
   mutation CreateExperiences(
@@ -510,41 +415,6 @@ export const CREATE_EXPERIENCES_MUTATION = gql`
   ${CREATE_ENTRY_ERROR_FRAGMENT}
 `;
 
-
-export function useCreateExperiencesMutation(): UseCreateExperiencesMutation {
-  return useMutation(CREATE_EXPERIENCES_MUTATION);
-}
-
-type CreateExperiencesMutationFn = MutationFunction<
-  CreateExperiences,
-  CreateExperiencesVariables
->;
-
-// used to type check test mock resolved value
-export type CreateExperiencesMutationResult = ExecutionResult<
-  CreateExperiences
->;
-
-// used to type check test mock calls
-export type CreateExperiencesMutationFnOptions = MutationFunctionOptions<
-  CreateExperiences,
-  CreateExperiencesVariables
->;
-
-type UseCreateExperiencesMutation = [
-  CreateExperiencesMutationFn,
-  MutationResult<CreateExperiences>,
-];
-
-// component's props should extend this
-export interface CreateExperiencesComponentProps {
-  createExperiences: CreateExperiencesMutationFn;
-}
-
-////////////////////////// END CREATE EXPERIENCES SECTION ///////////////
-
-////////////////////////// DELETE EXPERIENCES SECTION ///////////////
-
 export const DELETE_EXPERIENCES_MUTATION = gql`
   mutation DeleteExperiences($input: [ID!]!) {
     deleteExperiences(input: $input) {
@@ -569,35 +439,3 @@ export const DELETE_EXPERIENCES_MUTATION = gql`
     }
   }
 `;
-
-export function useDeleteExperiencesMutation(): UseDeleteExperiencesMutation {
-  return useMutation(DELETE_EXPERIENCES_MUTATION);
-}
-
-export type DeleteExperiencesMutationFn = MutationFunction<
-  DeleteExperiences,
-  DeleteExperiencesVariables
->;
-
-// used to type check test fake mutation function return value e.g. {data: {result: {}}}
-export type DeleteExperiencesMutationResult = ExecutionResult<
-  DeleteExperiences
->;
-
-// used to type check test fake function calls arguments
-export type DeleteExperiencesMutationFnOptions = MutationFunctionOptions<
-  DeleteExperiences,
-  DeleteExperiencesVariables
->;
-
-export type UseDeleteExperiencesMutation = [
-  DeleteExperiencesMutationFn,
-  MutationResult<DeleteExperiences>,
-];
-
-// component's props should extend this
-export interface DeleteExperiencesComponentProps {
-  deleteExperiences: DeleteExperiencesMutationFn;
-}
-
-////////////////////////// END DELETE EXPERIENCES SECTION ////////////

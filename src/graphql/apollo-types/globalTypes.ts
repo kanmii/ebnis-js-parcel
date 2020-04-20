@@ -60,6 +60,14 @@ export interface CreateExperienceInput {
   updatedAt?: any | null;
 }
 
+/**
+ * Variables for login in User
+ */
+export interface LoginInput {
+  email: string;
+  password: string;
+}
+
 export interface PaginationInput {
   after?: number | null;
   before?: number | null;
@@ -70,7 +78,7 @@ export interface PaginationInput {
 /**
  * Variables for creating User and credential
  */
-export interface Registration {
+export interface RegisterUserInput {
   email: string;
   name: string;
   password: string;

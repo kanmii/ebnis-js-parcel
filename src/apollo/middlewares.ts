@@ -2,6 +2,7 @@
 import { ApolloLink } from "apollo-link";
 import { onError } from "apollo-link-error";
 import { getToken } from "../utils/user";
+import { doNotLog } from "../logger";
 
 export type MakeSocketLinkFn = (arg: {
   token: string | null;
@@ -113,11 +114,4 @@ export function middlewareErrorLink(link: ApolloLink) {
 function getNow() {
   const n = new Date();
   return `${n.getHours()}:${n.getMinutes()}:${n.getSeconds()}:${n.getMilliseconds()}`;
-}
-
-export function doNotLog() {
-  return (
-    !window.____ebnis.logApolloQueries &&
-    (process.env.NODE_ENV === "production" || process.env.NO_LOG === "true")
-  );
 }

@@ -18,11 +18,11 @@
     "noEmitHelpers": true,
     "importHelpers": true,
     "noUnusedParameters": false,
-    "skipLibCheck": false,
     "esModuleInterop": true,
     "strict": true,
     "resolveJsonModule": true,
-    "isolatedModules": true
+    "isolatedModules": true,
+    "skipLibCheck": true
   },
   "include": ["src"],
   "exclude": ["node_modules", "public", ".cache"]

@@ -13,7 +13,7 @@ module.exports = {
   testRegex: "src/__tests__/.+?\\.test\\.tsx?$",
   testEnvironment: "jest-environment-jsdom-sixteen",
   transform: {
-    "^.+\\.[jt]sx?$": "<rootDir>/node_modules/babel-jest",
+    "^.+\\.tsx?$": "<rootDir>/node_modules/babel-jest",
     "^.+\\.css$": "<rootDir>/config/jest/cssTransform.js",
     "^(?!.*\\.(js|jsx|ts|tsx|css|json)$)":
       "<rootDir>/config/jest/fileTransform.js",

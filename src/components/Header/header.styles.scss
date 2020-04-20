@@ -1,4 +1,4 @@
-.header {
+.app-header {
   --blur-radius: 4px;
   box-shadow: 0 1px var(--blur-radius) rgba(38, 44, 49, 0.4);
   height: var(--header-height);
@@ -10,18 +10,8 @@
   width: 100%;
   background-color: white;
   margin: 0;
-}
 
-.logo {
-  height: calc(var(--header-height) - 5px);
-  animation: app-logo-spin infinite 10s linear;
-}
-
-@keyframes app-logo-spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
+  .logo {
+    height: calc(var(--header-height) - 5px);
   }
 }
