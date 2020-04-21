@@ -34,14 +34,6 @@
   },
   "overrides": [
     {
-      "files": ["cypress/**/*.spec.ts"],
-      "rules": {
-        "jest/expect-expect": "off",
-        "jest/valid-expect-in-promise": "off",
-        "jest/valid-expect": "off"
-      }
-    },
-    {
       "files": ["**/*.tsx"],
       "rules": {
         "react/prop-types": "off"

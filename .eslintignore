@@ -1,5 +1,3 @@
 node_modules
 coverage
-public
-# sw-append*.js
-cypress/**/examples/**
+dist

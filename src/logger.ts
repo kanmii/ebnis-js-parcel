@@ -2,7 +2,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any*/
 import { Reducer, useEffect } from "react";
 import lodashIsEqual from "lodash/isEqual";
-import { doNotLog } from "./state/apollo-middlewares";
 
 const isDevEnv = process.env.NODE_ENV === "development";
 const isTestEnv = process.env.NODE_ENV === "test";
@@ -14,7 +13,7 @@ export const logger = async (prefix: keyof Console, tag: any, ...data: any) => {
       tag,
       "\n",
       ...data,
-      "\n     =======logging ends======\n",
+      "\n     =======logging ends======\n"
     );
   }
 };
@@ -23,21 +22,19 @@ export function wrapReducer<State, Action>(
   prevState: State,
   action: Action,
   reducer: Reducer<State, Action>,
-  shouldWrap?: boolean,
+  shouldWrap?: boolean
 ) {
   if (shouldWrap === false && doNotLog()) {
     return reducer(prevState, action);
   }
 
   if (shouldWrap === true || isDevEnv) {
-    const envAction = objectForEnv(action);
-
     console.log(
       "\nprevious state = \n\t",
       objectForEnv(prevState),
 
       "\n\n\nupdate with = \n\t",
-      envAction,
+      objectForEnv(action)
     );
 
     const nextState = reducer(prevState, action);
@@ -46,11 +43,8 @@ export function wrapReducer<State, Action>(
       "\nnext state = \n\t",
       objectForEnv(nextState),
 
-      "\n\n\nupdate with = \n\t",
-      envAction,
-
       "\n\n\nDifferences = \n\t",
-      objectForEnv(deepObjectDifference(nextState, prevState)),
+      objectForEnv(deepObjectDifference(nextState, prevState))
     );
 
     return nextState;
@@ -60,10 +54,13 @@ export function wrapReducer<State, Action>(
 }
 
 function deepObjectDifference(
-  compareObject: KStringAny,
-  baseObject: KStringAny,
+  compareObject: { [k: string]: any },
+  baseObject: { [k: string]: any }
 ) {
-  function differences(newObject: KStringAny, baseObjectDiff: KStringAny) {
+  function differences(
+    newObject: { [k: string]: any },
+    baseObjectDiff: { [k: string]: any }
+  ) {
     return Object.entries(newObject).reduce((acc, [key, value]) => {
       const baseValue = baseObjectDiff[key];
 
@@ -71,34 +68,14 @@ function deepObjectDifference(
         acc[key] =
           isPlainObject(baseValue) && isPlainObject(value)
             ? differences(value, baseValue)
-            : Array.isArray(value) && Array.isArray(baseValue)
-            ? diffArray(value, baseValue, differences)
             : value;
       }
 
       return acc;
-    }, {} as KStringAny);
+    }, {} as { [k: string]: any });
   }
 
   return differences(compareObject, baseObject);
-}
-
-function diffArray(
-  value: any[],
-  baseValue: any[],
-  diffFn: (a: KStringAny, b: KStringAny) => KStringAny,
-) {
-  return value.reduce((acc, x, index) => {
-    const y = baseValue[index];
-
-    if (!y) {
-      acc.push(x);
-      return acc;
-    }
-
-    acc.push(diffFn(x, y));
-    return acc;
-  }, [] as any[]);
 }
 
 function isPlainObject(obj: object) {
@@ -119,6 +96,9 @@ export function useLogger(data: any, tag = "") {
   });
 }
 
-interface KStringAny {
-  [k: string]: any;
+export function doNotLog() {
+  return (
+    !window.____ebnis.logApolloQueries &&
+    (process.env.NODE_ENV === "production" || process.env.NO_LOG === "true")
+  );
 }

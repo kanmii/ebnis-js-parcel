@@ -1,13 +1,19 @@
 /* eslint-disable @typescript-eslint/no-var-requires*/
-module.exports = {
-  plugins: [
-    require("postcss-import"),
-    require("postcss-extend-rule"),
-    require("postcss-advanced-variables"),
-    require("postcss-property-lookup"),
-    require("postcss-preset-env")({ stage: 1 }),
-    require("tailwindcss"),
-    require("postcss-custom-properties"),
-    require("postcss-nested"),
+
+const purgecss = require("@fullhuman/postcss-purgecss")({
+  content: [
+    "./public/index.html", //
+    "./src/**/*.tsx",
   ],
+  defaultExtractor: (content) => content.match(/[\w-/:]+(?<!:)/g) || [],
+});
+
+const plugins = [];
+
+if (process.env.NODE_ENV === "production") {
+  plugins.push(purgecss);
+}
+
+module.exports = {
+  plugins,
 };

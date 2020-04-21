@@ -1,3 +1,5 @@
+@import "../../node_modules/bulma/bulma.sass";
+
 :root {
   --app-color: #5faac7;
   --modal-content-width: 450px;
@@ -14,54 +16,58 @@
   --btn-border-neutral-color: #afafaf;
   --light-blue-border: #d0e6ef;
   --close-width: 50px;
+  --header-height: 60px;
+  --header-z-index: 1;
 }
 
 html,
-body,
-#___gatsby,
-#___gatsby > div,
-#global-router {
-  /* we don't want any of these to scroll */
-  overflow: hidden !important;
-  height: 100% !important;
-  width: 100% !important;
+body {
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
 
-  /* others */
+body {
+  padding-top: calc(var(--header-height) + 10px);
+}
+
+.app-header {
+  --blur-radius: 4px;
+  box-shadow: 0 1px var(--blur-radius) rgba(38, 44, 49, 0.4);
+  height: var(--header-height);
+  z-index: var(--header-z-index);
+  position: fixed;
+  top: 0;
+  left: 0;
+  display: flex;
+  width: 100%;
+  background-color: white;
   margin: 0;
-  padding: 0;
-  font-family: "Open Sans", Helvetica, Arial, sans-serif;
+
+  .logo {
+    height: calc(var(--header-height) - 5px);
+  }
 }
 
-::-webkit-scrollbar {
-  -webkit-appearance: none;
-  width: 2px;
-  height: 2px;
+.modal-card,
+.modal-content {
+  max-height: initial;
+  max-width: var(--modal-content-width);
 }
 
-.bulma {
-  @import "../../node_modules/bulma/bulma.sass";
+.modal-background {
+  pointer-events: none;
+}
 
-  .modal-card,
-  .modal-content {
-    max-height: initial;
-    max-width: var(--modal-content-width);
-  }
+.field.error {
+  color: var(--error-text-color);
 
-  .modal-background {
-    pointer-events: none;
-  }
-
-  .field.error {
+  label {
     color: var(--error-text-color);
+  }
 
-    label {
-      color: var(--error-text-color);
-    }
-
-    input {
-      color: var(--error-text-color);
-      border-color: var(--error-text-color);
-    }
+  input {
+    color: var(--error-text-color);
+    border-color: var(--error-text-color);
   }
 }
 
@@ -72,17 +78,6 @@ ul {
 
 li {
   list-style-type: none;
-}
-
-/*! purgecss start ignore */
-.ui.label,
-.ui.labels .label {
-  color: white;
-}
-/*! purgecss end ignore */
-
-.ui.dropdown .scrolling.menu {
-  width: 100% !important;
 }
 
 .visually-hidden {

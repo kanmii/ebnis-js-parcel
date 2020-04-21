@@ -1,279 +1,267 @@
 import React, {
+  useEffect,
   useReducer,
-  Dispatch,
-  useMemo,
-  useLayoutEffect,
+  useCallback,
+  MouseEvent,
   useContext,
 } from "react";
-import Card from "semantic-ui-react/dist/commonjs/views/Card";
-import Button from "semantic-ui-react/dist/commonjs/elements/Button";
-import Form from "semantic-ui-react/dist/commonjs/collections/Form";
-import Icon from "semantic-ui-react/dist/commonjs/elements/Icon";
-import Message from "semantic-ui-react/dist/commonjs/collections/Message";
-import Input from "semantic-ui-react/dist/commonjs/elements/Input";
-import { Formik, FastField, FieldProps, FormikProps, Field } from "formik";
+import Header from "../Header/header.component";
 import "./login.styles.scss";
 import {
-  ValidationSchema,
+  Props,
+  effectFunctions,
   reducer,
+  initState,
+  StateValue,
+  FieldError,
   ActionType,
-  IStateMachine,
-  Action,
-  initialState,
+  CallerProps,
 } from "./login.utils";
-import { LoginUser as FormValues } from "../../graphql/apollo-types/globalTypes";
-import { refreshToHome } from "../../refresh-to-app";
-import { PasswordInput } from "../PasswordInput/password-input.component";
-import { isConnected } from "../../state/connections";
-import { noop } from "../../constants";
-import { LoginMutationFn } from "../../graphql/login.mutation";
-import { LoginMutation_login } from "../../graphql/apollo-types/LoginMutation";
-import { SidebarHeader } from "../SidebarHeader/sidebar-header.component";
-import { ToOtherAuthLink } from "../ToOtherAuthLink";
-import { EXPERIENCES_URL, LOGOUT_URL } from "../../routes";
-import { storeUser, getLoggedOutUser, logoutUser } from "../../state/users";
-import { useUser } from "../use-user";
-import { makeScrollIntoViewId } from "../scroll-into-view";
+import FormCtrlError from "../FormCtrlError/form-ctrl-error.component";
 import {
-  LoginMutation,
-  LoginMutationVariables,
-} from "../../graphql/apollo-types/LoginMutation";
-import { LOGIN_MUTATION } from "../../graphql/login.mutation";
-import { useMutation } from "@apollo/react-hooks";
-import { scrollIntoView } from "../scroll-into-view";
-import { LocationContext } from "../Layout/layout.utils";
+  emailInputId,
+  passwordInputId,
+  passwordErrorId,
+  emailErrorId,
+  submitId,
+  resetId,
+  notificationId,
+} from "./login.dom";
+import {
+  useLoginMutation, //
+} from "../../utils/user.gql.types";
+import makeClassNames from "classnames";
+import {
+  warningClassName,
+  errorClassName, //
+} from "../../utils/utils.dom";
+import { EbnisAppContext } from "../../utils/app-context";
 
-const scrollToTopId = makeScrollIntoViewId("login");
+export function Login(props: Props) {
+  const [stateMachine, dispatch] = useReducer(reducer, undefined, initState);
 
-export function Login() {
-  const { navigate, pathname } = useContext(LocationContext);
-  const [login] = useMutation<LoginMutation, LoginMutationVariables>(
-    LOGIN_MUTATION,
-  );
+  const {
+    states: {
+      submission: submissionState,
+      form: {
+        // validity: formValidity,
+        fields: {
+          email: emailState, //
+          password: passwordState,
+        },
+      },
+    },
+    effects: { general: generalEffects },
+  } = stateMachine;
 
-  const [state, dispatch] = useReducer(reducer, initialState);
-
-  const user = useUser();
-
-  const { otherErrors, formErrors, serverFieldErrors, networkError } = state;
-
-  useLayoutEffect(() => {
-    if (pathname === LOGOUT_URL) {
-      logoutUser();
+  useEffect(() => {
+    if (generalEffects.value !== StateValue.hasEffects) {
       return;
     }
 
-    if (user) {
-      navigate(EXPERIENCES_URL);
+    for (const { key, ownArgs } of generalEffects.hasEffects.context.effects) {
+      effectFunctions[key](
+        /* eslint-disable-next-line @typescript-eslint/no-explicit-any*/
+        ownArgs as any,
+        props,
+        { dispatch }
+      );
     }
-  }, [pathname, user, navigate]);
 
-  const initialFormValues = useMemo(() => {
-    const loggedOutUser = getLoggedOutUser();
+    /* eslint-disable-next-line react-hooks/exhaustive-deps*/
+  }, [generalEffects]);
 
-    return loggedOutUser ? loggedOutUser : { email: "" };
+  const onSubmit = useCallback((e: MouseEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    dispatch({
+      type: ActionType.SUBMISSION,
+    });
   }, []);
 
-  function renderForm({
-    dirty,
-    isSubmitting,
-    values,
-    ...formikBag
-  }: FormikProps<FormValues>) {
-    return (
-      // .routes-sign-up-route .main .card
-      <Card id={scrollToTopId}>
-        <Errors
-          errors={{ otherErrors, formErrors, serverFieldErrors, networkError }}
-          dispatch={dispatch}
-        />
+  const onCloseNotification = useCallback(() => {
+    dispatch({
+      type: ActionType.CLOSE_SUBMIT_NOTIFICATION,
+    });
+  }, []);
 
-        <Card.Content>
-          <Form
-            onSubmit={async function onSubmit() {
-              dispatch([ActionType.CLEAR_ALL_ERRORS]);
+  let emailValue = "";
+  let emailErrors: null | FieldError = null;
 
-              if (!isConnected()) {
-                scrollIntoView(scrollToTopId, {
-                  behavior: "smooth",
-                });
+  if (emailState.states.value === StateValue.changed) {
+    const {
+      context: { formValue },
+      states,
+    } = emailState.states.changed;
 
-                formikBag.setSubmitting(false);
+    emailValue = formValue;
 
-                dispatch([ActionType.OTHER_ERRORS, "You are not connected"]);
+    if (states.value === StateValue.invalid) {
+      emailErrors = states.invalid.context.errors;
+    }
+  }
 
-                return;
-              }
+  let passwordValue = "";
+  let passwordErrors: null | FieldError = null;
 
-              formikBag.setSubmitting(true);
+  if (passwordState.states.value === StateValue.changed) {
+    const {
+      context: { formValue },
+      states,
+    } = passwordState.states.changed;
 
-              const errors = await formikBag.validateForm(values);
+    passwordValue = formValue;
 
-              if (errors.email || errors.password) {
-                scrollIntoView(scrollToTopId, {
-                  behavior: "smooth",
-                });
+    if (states.value === StateValue.invalid) {
+      passwordErrors = states.invalid.context.errors;
+    }
+  }
 
-                formikBag.setSubmitting(false);
+  let warningText = "";
 
-                dispatch([ActionType.FORM_ERRORS, errors]);
+  if (submissionState.value === StateValue.warning) {
+    warningText = submissionState.warning.context.warning;
+  }
 
-                return;
-              }
+  let errorText = "";
+  if (submissionState.value === StateValue.commonErrors) {
+    errorText = submissionState.commonErrors.context.errors;
+  }
 
-              try {
-                const result = await (login as LoginMutationFn)({
-                  variables: {
-                    login: values,
-                  },
-                });
+  return (
+    <>
+      <Header />
 
-                const user = (result &&
-                  result.data &&
-                  result.data.login) as LoginMutation_login;
+      <div className="login-component">
+        <form onSubmit={onSubmit} className="form">
+          <div className="form__caption">Login with email</div>
 
-                storeUser(user);
-                refreshToHome();
-              } catch (error) {
-                scrollIntoView(scrollToTopId, {
-                  behavior: "smooth",
-                });
-
-                formikBag.setSubmitting(false);
-
-                dispatch([ActionType.SERVER_ERRORS, error]);
-              }
-            }}
-          >
-            <FastField name="email" component={EmailInput} />
-
-            <Field
-              name="password"
-              render={(f: FieldProps<FormValues>) => (
-                <PasswordInput
-                  {...f}
-                  dispatch={dispatch}
-                  pwdType={state.pwdType}
-                  id="login-password"
-                />
-              )}
-            />
-
-            <Button
-              id="login-submit"
-              name="login-submit"
-              disabled={!dirty || isSubmitting}
-              loading={isSubmitting}
-              type="submit"
-              fluid={true}
-              basic={true}
+          {(warningText || errorText) && (
+            <div
+              id={notificationId}
+              className={makeClassNames({
+                notification: true,
+                [warningClassName]: !!warningText,
+                [errorClassName]: !!errorText,
+              })}
             >
-              <Icon name="checkmark" /> Submit
-            </Button>
-          </Form>
-        </Card.Content>
+              <button className="delete" onClick={onCloseNotification} />
+              {warningText || errorText}
+            </div>
+          )}
 
-        <Card.Content extra={true}>
-          <ToOtherAuthLink
-            pathname={pathname}
-            className="to-sign-up-button"
-            name="to-sign-up"
-            isSubmitting={isSubmitting}
-          />
-        </Card.Content>
-      </Card>
-    );
-  }
+          <div className="field">
+            <label htmlFor={emailInputId} className="label form__label">
+              Email
+            </label>
 
-  return (
-    <div className="components-login">
-      <SidebarHeader title="Login to Ebnis" />
+            <div className="control">
+              <input
+                className="input is-rounded"
+                type="text"
+                id={emailInputId}
+                value={emailValue}
+                onChange={(e) => {
+                  const node = e.currentTarget;
+                  dispatch({
+                    type: ActionType.FORM_CHANGED,
+                    value: node.value,
+                    fieldName: "email",
+                  });
+                }}
+              />
+            </div>
 
-      <div className="main" id={scrollToTopId}>
-        <Formik
-          initialValues={{
-            email: initialFormValues.email,
-            password: "",
-          }}
-          onSubmit={noop}
-          render={renderForm}
-          validationSchema={ValidationSchema}
-          validateOnChange={false}
-        />
+            {emailErrors && (
+              <FormCtrlError id={emailErrorId}>
+                {emailErrors.map(([errorLabel, errorText], index) => {
+                  return (
+                    <div key={index}>
+                      <span>{errorLabel} </span>
+                      <span>{errorText}</span>
+                    </div>
+                  );
+                })}
+              </FormCtrlError>
+            )}
+          </div>
+
+          <div className="field">
+            <label htmlFor={passwordInputId} className="label form__label">
+              Password
+            </label>
+
+            <div className="control">
+              <input
+                className="input is-rounded"
+                type="password"
+                id={passwordInputId}
+                value={passwordValue}
+                onChange={(e) => {
+                  const node = e.currentTarget;
+                  dispatch({
+                    type: ActionType.FORM_CHANGED,
+                    value: node.value,
+                    fieldName: "password",
+                  });
+                }}
+              />
+            </div>
+
+            {passwordErrors && (
+              <FormCtrlError id={passwordErrorId}>
+                {passwordErrors.map(([errorLabel, errorText], index) => {
+                  return (
+                    <div key={index}>
+                      <span>{errorLabel} </span>
+                      <span>{errorText}</span>
+                    </div>
+                  );
+                })}
+              </FormCtrlError>
+            )}
+          </div>
+
+          <div className="form__submit">
+            <button
+              type="submit"
+              id={submitId}
+              className="button is-rounded is-primary"
+            >
+              Login
+            </button>
+          </div>
+
+          <div className="form__submit">
+            <button
+              id={resetId}
+              type="button"
+              className="button is-rounded is-warning"
+              onClick={() => {
+                dispatch({
+                  type: ActionType.RESET_FORM_FIELDS,
+                });
+              }}
+            >
+              Reset
+            </button>
+          </div>
+
+          <div className="other-auth">
+            <div>Don&apos;t have an account?</div>
+            <a className="other-auth__other-link">Sign Up</a>
+          </div>
+        </form>
       </div>
-    </div>
+    </>
   );
 }
 
-function EmailInput(props: FieldProps<FormValues>) {
-  const { field } = props;
+// istanbul ignore next:
+export default (props: CallerProps) => {
+  const [login] = useLoginMutation();
+  const {
+    persistor, //
+  } = useContext(EbnisAppContext);
 
-  return (
-    <Form.Field>
-      <label htmlFor="email">Email</label>
-      <Input {...field} type="email" autoComplete="off" id="login-email" />
-    </Form.Field>
-  );
-}
-
-function Errors(props: {
-  errors: Pick<
-    IStateMachine,
-    "formErrors" | "networkError" | "otherErrors" | "serverFieldErrors"
-  >;
-  dispatch: Dispatch<Action>;
-}) {
-  const { errors, dispatch } = props;
-
-  const { otherErrors, formErrors, serverFieldErrors, networkError } = errors;
-
-  let content = null;
-  let id = "";
-
-  if (otherErrors) {
-    id = "other-errors";
-    content = otherErrors;
-  } else if (serverFieldErrors) {
-    id = "server-field-errors";
-    content = serverFieldErrors;
-  } else if (networkError) {
-    id = "network-error";
-    content = networkError;
-  } else if (formErrors) {
-    id = "form-errors";
-    const { email, password } = formErrors;
-
-    content = (
-      <>
-        <span>Errors in fields: </span>
-
-        {email && (
-          <div className="field-error">
-            <span>Email: </span>
-            <span>{email}</span>
-          </div>
-        )}
-
-        {password && (
-          <div className="field-error">
-            <span>Password: </span>
-            <span>{password}</span>
-          </div>
-        )}
-      </>
-    );
-  }
-
-  return content ? (
-    <Card.Content extra={true} id={id}>
-      <Message
-        error={true}
-        onDismiss={function onDismiss() {
-          dispatch([ActionType.CLEAR_ALL_ERRORS]);
-        }}
-      >
-        <Message.Content>{content}</Message.Content>
-      </Message>
-    </Card.Content>
-  ) : null;
-}
+  return <Login {...props} login={login} persistor={persistor} />;
+};

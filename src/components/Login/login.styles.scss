@@ -1,18 +1,36 @@
-@import "../../styles/extensions";
+.login-component {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 
-.components-login {
-  @extend %route-main;
+  .form {
+    max-width: 310px;
 
-  .main {
-    @extend %auth-root-styles;
-    @extend %app-main;
+    &__caption {
+      margin-bottom: 30px;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    &__label {
+      padding-left: 10px;
+    }
+
+    &__submit {
+      text-align: center;
+
+      + .form__submit {
+        margin-top: 20px;
+      }
+    }
   }
 
-  .to-sign-up-button {
-    @extend %auth-redirect-btn;
+  .other-auth {
+    margin-top: 80px;
+    text-align: center;
   }
 
-  .field-error {
-    margin-left: 20px;
+  .other-auth__other-link {
+    font-weight: 800;
   }
 }
