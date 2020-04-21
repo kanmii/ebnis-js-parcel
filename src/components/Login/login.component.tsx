@@ -261,7 +261,8 @@ export default (props: CallerProps) => {
   const [login] = useLoginMutation();
   const {
     persistor, //
+    cache,
   } = useContext(EbnisAppContext);
 
-  return <Login {...props} login={login} persistor={persistor} />;
+  return <Login {...props} login={login} persistor={persistor} cache={cache} />;
 };

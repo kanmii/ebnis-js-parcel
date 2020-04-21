@@ -12,6 +12,7 @@ import {
   LOGIN_URL,
   MY_URL,
 } from "../../utils/urls";
+import AuthenticationRequired from "../AuthenticationRequired/authentication-required.component";
 
 const Login = lazy(() => import("../Login/login.component"));
 const My = lazy(() => import("../My/my.component"));
@@ -34,9 +35,14 @@ export function AppInner({ obj }: { obj: E2EWindowObject }) {
           <Suspense fallback={<Loading />}>
             <WithEmitter observable={observable}>
               <Switch>
-                <Route exact={true} path={MY_URL} component={My} />
+                <AuthenticationRequired
+                  exact={true}
+                  path={MY_URL}
+                  component={My}
+                />
                 <Route exact={true} path={ROOT_URL} component={Login} />
                 <Route exact={true} path={LOGIN_URL} component={Login} />
+                <Route component={Login} />
               </Switch>
             </WithEmitter>
           </Suspense>

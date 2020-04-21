@@ -12,11 +12,12 @@ import {
 import { scrollIntoView } from "../../utils/scroll-into-view";
 import { LoginMutationComponentProps } from "../../utils/user.gql.types";
 import { isConnected } from "../../utils/connections";
-import { AppPersistor } from "../../utils/app-context";
+import { EbnisContextProps } from "../../utils/app-context";
 import { windowReplaceUrl } from "../../utils/global-window";
 import {
   MY_URL, //
 } from "../../utils/urls";
+import { manageUserAuthentication } from "../../utils/manage-user-auth";
 
 export enum ActionType {
   SUBMISSION = "@login/submission",
@@ -115,6 +116,7 @@ const loginEffect: DefLoginEffect["func"] = async (
   const {
     login, //
     persistor,
+    cache,
   } = props;
 
   const {
@@ -160,6 +162,11 @@ const loginEffect: DefLoginEffect["func"] = async (
 
       return;
     } else {
+      const {
+        user, //
+      } = validResponse;
+
+      manageUserAuthentication(cache, user);
       await persistor.persist();
       windowReplaceUrl(MY_URL);
     }
@@ -573,9 +580,9 @@ export interface CallerProps {
   callerProp: boolean;
 }
 
-export interface Props extends CallerProps, LoginMutationComponentProps {
-  persistor: AppPersistor;
-}
+export type Props = CallerProps &
+  LoginMutationComponentProps &
+  Pick<EbnisContextProps, "persistor" | "cache">;
 
 export interface EffectArgs {
   dispatch: Dispatch<Action>;

@@ -1,4 +1,4 @@
-/* global importScripts, workbox, idbKeyval */
+/* global importScripts, workbox */
 importScripts("%workboxPath%/workbox-sw.js");
 
 workbox.setConfig({
