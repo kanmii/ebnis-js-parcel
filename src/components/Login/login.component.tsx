@@ -38,7 +38,7 @@ import {
   errorClassName, //
 } from "../../utils/utils.dom";
 import { EbnisAppContext } from "../../utils/app-context";
-import { setDocumentTitle } from "../../utils/global-window";
+import { setUpRoutePage } from "../../utils/global-window";
 
 export function Login(props: Props) {
   const [stateMachine, dispatch] = useReducer(reducer, undefined, initState);
@@ -75,7 +75,10 @@ export function Login(props: Props) {
   }, [generalEffects]);
 
   useLayoutEffect(() => {
-    setDocumentTitle(LOGIN_PAGE_TITLE);
+    setUpRoutePage({
+      title: LOGIN_PAGE_TITLE,
+      rootClassName: "login-component",
+    });
   }, []);
 
   const onSubmit = useCallback((e: MouseEvent<HTMLFormElement>) => {
@@ -138,127 +141,125 @@ export function Login(props: Props) {
     <>
       <Header />
 
-      <div className="login-component">
-        <form onSubmit={onSubmit} className="form">
-          <div className="form__caption">Login with email</div>
+      <form onSubmit={onSubmit} className="form">
+        <div className="form__caption">Login with email</div>
 
-          {(warningText || errorText) && (
-            <div
-              id={notificationId}
-              className={makeClassNames({
-                notification: true,
-                [warningClassName]: !!warningText,
-                [errorClassName]: !!errorText,
-              })}
-            >
-              <button className="delete" onClick={onCloseNotification} />
-              {warningText || errorText}
-            </div>
-          )}
-
-          <div className="field">
-            <label htmlFor={emailInputId} className="label form__label">
-              Email
-            </label>
-
-            <div className="control">
-              <input
-                className="input is-rounded"
-                type="text"
-                id={emailInputId}
-                value={emailValue}
-                onChange={e => {
-                  const node = e.currentTarget;
-                  dispatch({
-                    type: ActionType.FORM_CHANGED,
-                    value: node.value,
-                    fieldName: "email",
-                  });
-                }}
-              />
-            </div>
-
-            {emailErrors && (
-              <FormCtrlError id={emailErrorId}>
-                {emailErrors.map(([errorLabel, errorText], index) => {
-                  return (
-                    <div key={index}>
-                      <span>{errorLabel} </span>
-                      <span>{errorText}</span>
-                    </div>
-                  );
-                })}
-              </FormCtrlError>
-            )}
+        {(warningText || errorText) && (
+          <div
+            id={notificationId}
+            className={makeClassNames({
+              notification: true,
+              [warningClassName]: !!warningText,
+              [errorClassName]: !!errorText,
+            })}
+          >
+            <button className="delete" onClick={onCloseNotification} />
+            {warningText || errorText}
           </div>
+        )}
 
-          <div className="field">
-            <label htmlFor={passwordInputId} className="label form__label">
-              Password
-            </label>
+        <div className="field">
+          <label htmlFor={emailInputId} className="label form__label">
+            Email
+          </label>
 
-            <div className="control">
-              <input
-                className="input is-rounded"
-                type="password"
-                id={passwordInputId}
-                value={passwordValue}
-                onChange={e => {
-                  const node = e.currentTarget;
-                  dispatch({
-                    type: ActionType.FORM_CHANGED,
-                    value: node.value,
-                    fieldName: "password",
-                  });
-                }}
-              />
-            </div>
-
-            {passwordErrors && (
-              <FormCtrlError id={passwordErrorId}>
-                {passwordErrors.map(([errorLabel, errorText], index) => {
-                  return (
-                    <div key={index}>
-                      <span>{errorLabel} </span>
-                      <span>{errorText}</span>
-                    </div>
-                  );
-                })}
-              </FormCtrlError>
-            )}
-          </div>
-
-          <div className="form__submit">
-            <button
-              type="submit"
-              id={submitId}
-              className="button is-rounded is-primary"
-            >
-              Login
-            </button>
-          </div>
-
-          <div className="form__submit">
-            <button
-              id={resetId}
-              type="button"
-              className="button is-rounded is-warning"
-              onClick={() => {
+          <div className="control">
+            <input
+              className="input is-rounded"
+              type="text"
+              id={emailInputId}
+              value={emailValue}
+              onChange={e => {
+                const node = e.currentTarget;
                 dispatch({
-                  type: ActionType.RESET_FORM_FIELDS,
+                  type: ActionType.FORM_CHANGED,
+                  value: node.value,
+                  fieldName: "email",
                 });
               }}
-            >
-              Reset
-            </button>
+            />
           </div>
 
-          <div className="other-auth">
-            <div>Don&apos;t have an account?</div>
-            <a className="other-auth__other-link">Sign Up</a>
+          {emailErrors && (
+            <FormCtrlError id={emailErrorId}>
+              {emailErrors.map(([errorLabel, errorText], index) => {
+                return (
+                  <div key={index}>
+                    <span>{errorLabel} </span>
+                    <span>{errorText}</span>
+                  </div>
+                );
+              })}
+            </FormCtrlError>
+          )}
+        </div>
+
+        <div className="field">
+          <label htmlFor={passwordInputId} className="label form__label">
+            Password
+          </label>
+
+          <div className="control">
+            <input
+              className="input is-rounded"
+              type="password"
+              id={passwordInputId}
+              value={passwordValue}
+              onChange={e => {
+                const node = e.currentTarget;
+                dispatch({
+                  type: ActionType.FORM_CHANGED,
+                  value: node.value,
+                  fieldName: "password",
+                });
+              }}
+            />
           </div>
-        </form>
-      </div>
+
+          {passwordErrors && (
+            <FormCtrlError id={passwordErrorId}>
+              {passwordErrors.map(([errorLabel, errorText], index) => {
+                return (
+                  <div key={index}>
+                    <span>{errorLabel} </span>
+                    <span>{errorText}</span>
+                  </div>
+                );
+              })}
+            </FormCtrlError>
+          )}
+        </div>
+
+        <div className="form__submit">
+          <button
+            type="submit"
+            id={submitId}
+            className="button is-rounded is-primary"
+          >
+            Login
+          </button>
+        </div>
+
+        <div className="form__submit">
+          <button
+            id={resetId}
+            type="button"
+            className="button is-rounded is-warning"
+            onClick={() => {
+              dispatch({
+                type: ActionType.RESET_FORM_FIELDS,
+              });
+            }}
+          >
+            Reset
+          </button>
+        </div>
+
+        <div className="other-auth">
+          <div>Don&apos;t have an account?</div>
+          <a className="other-auth__other-link">Sign Up</a>
+        </div>
+      </form>
     </>
   );
 }
