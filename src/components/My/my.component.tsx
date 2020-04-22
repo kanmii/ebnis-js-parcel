@@ -4,18 +4,24 @@ import Header from "../Header/header.component";
 import {
   MY_TITLE, //
 } from "./my.dom";
-import { setDocumentTitle } from "../../utils/global-window";
+import { setUpRoutePage } from "../../utils/global-window";
+import "./my.styles.scss";
 
 export function My() {
   useLayoutEffect(() => {
-    setDocumentTitle(MY_TITLE);
+    setUpRoutePage({
+      title: MY_TITLE,
+      rootClassName: "my-component",
+    });
   }, []);
 
   return (
     <>
       <Header appLogo={logo} />
 
-      <div>my my</div>
+      <div className="new-experience-trigger">
+        <span>+</span>
+      </div>
     </>
   );
 }
