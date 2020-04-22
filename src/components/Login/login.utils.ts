@@ -49,7 +49,7 @@ export const reducer: Reducer<StateMachine, Action> = (state, action) =>
     state,
     action,
     (prevState, { type, ...payload }) => {
-      return immer(prevState, (proxy) => {
+      return immer(prevState, proxy => {
         proxy.effects.general.value = StateValue.noEffect;
         delete proxy.effects.general[StateValue.hasEffects];
 
@@ -75,7 +75,7 @@ export const reducer: Reducer<StateMachine, Action> = (state, action) =>
             break;
         }
       });
-    }
+    },
 
     // true
   );
@@ -111,7 +111,7 @@ type DefScrollToTopEffect = EffectDefinition<"scrollToTopEffect", {}>;
 const loginEffect: DefLoginEffect["func"] = async (
   ownArgs, //
   props,
-  effectArgs
+  effectArgs,
 ) => {
   const {
     login, //
@@ -226,7 +226,7 @@ export function initState(): StateMachine {
 
 function handleFormChangedAction(
   proxy: DraftState,
-  payload: FormChangedPayload
+  payload: FormChangedPayload,
 ) {
   const { value: text, fieldName } = payload;
   const {
@@ -368,7 +368,7 @@ function validateForm(proxy: DraftState): FormInput {
 function validateFormPutFieldErrorHelper(
   submissionErrorState: SubmissionCommonErrors,
   fieldState: ChangedState["changed"]["states"],
-  errors: FieldError
+  errors: FieldError,
 ) {
   submissionErrorState.value = StateValue.commonErrors;
 
@@ -389,7 +389,7 @@ function validateFormPutFieldErrorHelper(
 
 function handleOnCommonErrorAction(
   proxy: DraftState,
-  payload: StringyErrorPayload
+  payload: StringyErrorPayload,
 ) {
   const errors = parseStringError(payload.error);
 
@@ -597,7 +597,7 @@ interface EffectDefinition<
   func?: (
     ownArgs: OwnArgs,
     effectArgs: Props,
-    lastArgs: EffectArgs
+    lastArgs: EffectArgs,
   ) => void | Promise<void | (() => void)> | (() => void);
 }
 

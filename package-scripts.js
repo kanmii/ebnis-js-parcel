@@ -35,7 +35,7 @@ module.exports = {
     serviceWorker: `node -e 'require("./package-scripts").serviceWorker()'`,
     netlify: `node -e 'require("./package-scripts").netlify()'`,
     cy: {
-      open: "env-cmd -e e2e-dev cypress open",
+      open: "env-cmd -e e2eDev cypress open",
       run: "server-test ",
     },
     typeCheck: {

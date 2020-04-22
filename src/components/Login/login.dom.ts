@@ -6,3 +6,4 @@ export const passwordErrorId = `${domPrefix}-pwd-error`;
 export const submitId = `${domPrefix}-submit`;
 export const resetId = `${domPrefix}-reset`;
 export const notificationId = `${domPrefix}-notification`;
+export const LOGIN_PAGE_TITLE = "Login";

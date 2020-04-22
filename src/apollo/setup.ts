@@ -32,7 +32,7 @@ export function buildClientCache(
     resolvers,
     newE2eTest,
     appHydrated,
-  }: BuildClientCache = {} as BuildClientCache
+  }: BuildClientCache = {} as BuildClientCache,
 ) {
   // use cypress version of cache if it has been set by cypress
   const globalVars = getOrMakeGlobals(newE2eTest);
@@ -40,6 +40,7 @@ export function buildClientCache(
 
   // cache has been set by e2e test
   if (cache) {
+    // e2e test is now serving our app
     if (appHydrated) {
       storeConnectionStatus(true);
     }
@@ -61,12 +62,12 @@ export function buildClientCache(
 
   persistor = makePersistor(cache, persistor);
 
-  const makeSocketLink: MakeSocketLinkFn = (makeSocketLinkArgs) => {
+  const makeSocketLink: MakeSocketLinkFn = makeSocketLinkArgs => {
     const absintheSocket = AbsintheSocket.create(
       getSocket({
         uri,
         ...makeSocketLinkArgs,
-      })
+      }),
     );
 
     return createAbsintheSocketLink(absintheSocket);
@@ -101,7 +102,7 @@ export function buildClientCache(
 
 function makePersistor(
   appCache: InMemoryCache,
-  persistor?: CachePersistor<{}>
+  persistor?: CachePersistor<{}>,
 ) {
   persistor = persistor
     ? persistor
@@ -116,7 +117,7 @@ function makePersistor(
 }
 
 export async function restoreCacheOrPurgeStorage(
-  persistor: CachePersistor<{}>
+  persistor: CachePersistor<{}>,
 ) {
   if (persistor === getGlobalsFromCypress().persistor) {
     return persistor;
@@ -140,7 +141,7 @@ export async function restoreCacheOrPurgeStorage(
 
 export const resetClientAndPersistor = async (
   appClient: ApolloClient<{}>,
-  appPersistor: CachePersistor<{}>
+  appPersistor: CachePersistor<{}>,
 ) => {
   await appPersistor.pause(); // Pause automatic persistence.
   await appPersistor.purge(); // Delete everything in the storage provider.
@@ -153,6 +154,7 @@ interface BuildClientCache {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   resolvers?: any;
   newE2eTest?: boolean;
+  // this will be set in react app to show we are not in e2e test
   appHydrated?: boolean;
 }
 
@@ -202,7 +204,7 @@ function addToGlobals(args: {
   const keys: (keyof typeof args)[] = ["client", "cache", "persistor"];
   const globals = window.Cypress ? getGlobalsFromCypress() : window.____ebnis;
 
-  keys.forEach((key) => {
+  keys.forEach(key => {
     /* eslint-disable-next-line @typescript-eslint/no-explicit-any*/
     (globals as any)[key] = args[key];
   });

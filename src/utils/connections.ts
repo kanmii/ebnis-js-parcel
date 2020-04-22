@@ -20,7 +20,7 @@ export function resetConnectionObject() {
 
 export function storeConnectionStatus(
   isConnected: boolean,
-  mode: "auto" | "manual" = "auto"
+  mode: "auto" | "manual" = "auto",
 ) {
   const prevConnectionStatus = getConnectionStatus();
 

@@ -4,6 +4,7 @@ import React, {
   useCallback,
   MouseEvent,
   useContext,
+  useLayoutEffect,
 } from "react";
 import Header from "../Header/header.component";
 import "./login.styles.scss";
@@ -26,6 +27,7 @@ import {
   submitId,
   resetId,
   notificationId,
+  LOGIN_PAGE_TITLE,
 } from "./login.dom";
 import {
   useLoginMutation, //
@@ -36,6 +38,7 @@ import {
   errorClassName, //
 } from "../../utils/utils.dom";
 import { EbnisAppContext } from "../../utils/app-context";
+import { setDocumentTitle } from "../../utils/global-window";
 
 export function Login(props: Props) {
   const [stateMachine, dispatch] = useReducer(reducer, undefined, initState);
@@ -64,12 +67,16 @@ export function Login(props: Props) {
         /* eslint-disable-next-line @typescript-eslint/no-explicit-any*/
         ownArgs as any,
         props,
-        { dispatch }
+        { dispatch },
       );
     }
 
     /* eslint-disable-next-line react-hooks/exhaustive-deps*/
   }, [generalEffects]);
+
+  useLayoutEffect(() => {
+    setDocumentTitle(LOGIN_PAGE_TITLE);
+  }, []);
 
   const onSubmit = useCallback((e: MouseEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -160,7 +167,7 @@ export function Login(props: Props) {
                 type="text"
                 id={emailInputId}
                 value={emailValue}
-                onChange={(e) => {
+                onChange={e => {
                   const node = e.currentTarget;
                   dispatch({
                     type: ActionType.FORM_CHANGED,
@@ -196,7 +203,7 @@ export function Login(props: Props) {
                 type="password"
                 id={passwordInputId}
                 value={passwordValue}
-                onChange={(e) => {
+                onChange={e => {
                   const node = e.currentTarget;
                   dispatch({
                     type: ActionType.FORM_CHANGED,
