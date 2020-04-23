@@ -24,7 +24,10 @@ import {
   CreateExperiences_createExperiences_CreateExperienceErrors_errors_dataDefinitions,
 } from "../../graphql/apollo-types/CreateExperiences";
 import { createExperiencesManualUpdate } from "../../apollo/create-experiences-manual-update";
-import { scrollIntoViewDomId } from "./new-experience.dom";
+import {
+  scrollIntoViewDomId,
+  makeDefinitionContainerDomId,
+} from "./new-experience.dom";
 import { CreateExperienceOfflineMutationComponentProps } from "./new-experience.resolvers";
 import { EXPERIENCE_DETAIL_URL } from "../../utils/urls";
 import { windowChangeUrl, ChangeUrlType } from "../../utils/global-window";
@@ -97,27 +100,31 @@ export const reducer: Reducer<StateMachine, Action> = (state, action) =>
             break;
 
           case ActionType.ADD_DEFINITION:
-            proxy.states.form.fields.dataDefinitions.push(
-              makeDataDefinitionFormField(),
+            handleAddDefinitionAction(
+              proxy,
+              payload as ChangeDefinitionFieldPayload,
             );
             break;
 
           case ActionType.REMOVE_DEFINITION:
-            proxy.states.form.fields.dataDefinitions.splice(
-              (payload as RemoveDefinitionPayload).index,
-              1,
+            handleRemoveDefinitionAction(
+              proxy,
+              payload as ChangeDefinitionFieldPayload,
             );
             break;
 
           case ActionType.DOWN_DEFINITION:
             handleDownDefinitionAction(
               proxy,
-              payload as RemoveDefinitionPayload,
+              payload as ChangeDefinitionFieldPayload,
             );
             break;
 
           case ActionType.UP_DEFINITION:
-            handleUpDefinitionAction(proxy, payload as RemoveDefinitionPayload);
+            handleUpDefinitionAction(
+              proxy,
+              payload as ChangeDefinitionFieldPayload,
+            );
             break;
 
           case ActionType.TOGGLE_DESCRIPTION:
@@ -255,8 +262,9 @@ export const effectFunctions = {
 
 ////////////////////////// STATE UPDATE SECTION /////////////////
 
-function makeDataDefinitionFormField() {
+function makeDataDefinitionFormField(index: number): DataDefinitionFormField {
   return {
+    index,
     id: uuid(),
     name: {
       states: {
@@ -272,6 +280,8 @@ function makeDataDefinitionFormField() {
 }
 
 export function initState(): StateMachine {
+  const definitionElProperties = makeDataDefinitionFormField(0);
+
   return {
     effects: {
       general: {
@@ -296,7 +306,9 @@ export function initState(): StateMachine {
               },
             },
           },
-          dataDefinitions: [makeDataDefinitionFormField()],
+          dataDefinitions: {
+            [definitionElProperties.id]: definitionElProperties,
+          },
         },
       },
     },
@@ -326,7 +338,15 @@ function handleFormChangedAction(
         .states as ChangedState;
     }
   } else {
-    const field = fields.dataDefinitions[payload.index][fieldName];
+    const { index } = payload;
+
+    const defAttrs = definitionFieldsMapToList(fields.dataDefinitions).find(
+      (def) => {
+        return def.index === index;
+      },
+    ) as DataDefinitionFormField;
+
+    const field = defAttrs[fieldName];
     state = (field as FormField).states as ChangedState;
   }
 
@@ -445,64 +465,65 @@ function validateForm(proxy: DraftState): FormValues {
       case "dataDefinitions":
         {
           const namesValuesMap: { [nameValue: string]: true } = {};
+          const defsList = definitionFieldsMapToList(
+            fieldState as DataDefinitionFieldsMap,
+          );
 
-          (fieldState as DataDefinitionFormField[]).forEach(
-            ({ name: nameState, type: typeState }, index) => {
-              let hasValidValue = false;
-              const dataDefinitions = input.dataDefinitions || [];
+          defsList.forEach(({ name: nameState, type: typeState }, index) => {
+            let hasValidValue = false;
+            const dataDefinitions = input.dataDefinitions || [];
 
-              const dataDefinition =
-                dataDefinitions[index] || ({} as CreateDataDefinition);
+            const dataDefinition =
+              dataDefinitions[index] || ({} as CreateDataDefinition);
 
-              const [nameValue, nameUpdated] = validateFormStringValuesHelper(
-                proxy,
-                "field name",
-                nameState.states,
-              );
+            const [nameValue, nameUpdated] = validateFormStringValuesHelper(
+              proxy,
+              "field name",
+              nameState.states,
+            );
 
-              if (nameUpdated) {
-                formUpdated = true;
-              }
+            if (nameUpdated) {
+              formUpdated = true;
+            }
 
-              if (nameValue) {
-                formUpdated = true;
+            if (nameValue) {
+              formUpdated = true;
 
-                if (namesValuesMap[nameValue]) {
-                  putFormFieldErrorHelper(
-                    nameState.states,
-                    [["field name", "has already been taken"]],
-                    proxy,
-                  );
-                } else {
-                  namesValuesMap[nameValue] = true;
-                  dataDefinition.name = nameValue;
-                  hasValidValue = true;
-                }
-              }
-
-              const [typeValue, isTypeUpdated] = validateFormStringValuesHelper(
-                proxy,
-                "data type",
-                typeState.states,
-                `${EMPTY_ERROR_TEXT}, please select one from dropdown`,
-              );
-
-              if (typeValue) {
-                dataDefinition.type = typeValue as DataTypes;
-                formUpdated = true;
+              if (namesValuesMap[nameValue]) {
+                putFormFieldErrorHelper(
+                  nameState.states,
+                  [["field name", "has already been taken"]],
+                  proxy,
+                );
+              } else {
+                namesValuesMap[nameValue] = true;
+                dataDefinition.name = nameValue;
                 hasValidValue = true;
               }
+            }
 
-              if (isTypeUpdated) {
-                formUpdated = true;
-              }
+            const [typeValue, isTypeUpdated] = validateFormStringValuesHelper(
+              proxy,
+              "data type",
+              typeState.states,
+              `${EMPTY_ERROR_TEXT}, please select one from dropdown`,
+            );
 
-              if (hasValidValue) {
-                dataDefinitions[index] = dataDefinition;
-                input.dataDefinitions = dataDefinitions;
-              }
-            },
-          );
+            if (typeValue) {
+              dataDefinition.type = typeValue as DataTypes;
+              formUpdated = true;
+              hasValidValue = true;
+            }
+
+            if (isTypeUpdated) {
+              formUpdated = true;
+            }
+
+            if (hasValidValue) {
+              dataDefinitions[index] = dataDefinition;
+              input.dataDefinitions = dataDefinitions;
+            }
+          });
         }
         break;
     }
@@ -655,11 +676,16 @@ function handleResetFormFieldsAction(proxy: DraftState) {
         break;
 
       case "dataDefinitions":
-        (fieldState as DataDefinitionFormField[]).forEach(({ name, type }) => {
-          clearFieldInvalidState(name);
-          clearFieldInvalidState(type);
-        });
+        {
+          const defsList = definitionFieldsMapToList(
+            fieldState as DataDefinitionFieldsMap,
+          );
 
+          defsList.forEach(({ name, type }) => {
+            clearFieldInvalidState(name);
+            clearFieldInvalidState(type);
+          });
+        }
         break;
     }
   });
@@ -683,26 +709,132 @@ function clearFieldInvalidState(formField: FormField) {
   }
 }
 
+function definitionFieldsMapToList(defs: DataDefinitionFieldsMap) {
+  return Object.values(defs);
+}
+
+function definitionFieldsListToMap(
+  defs: Draft<DataDefinitionFormField[]>,
+): DataDefinitionFieldsMap {
+  return defs.reduce((acc, def, index) => {
+    def.index = index;
+    acc[def.id] = def;
+    return acc;
+  }, {} as DataDefinitionFieldsMap);
+}
+
+function handleAddDefinitionAction(
+  proxy: DraftState,
+  payload: ChangeDefinitionFieldPayload,
+) {
+  const fields = proxy.states.form.fields;
+  const defsList = definitionFieldsMapToList(fields.dataDefinitions);
+  const { index } = payload.data;
+  const nextIndex = index + 1;
+  const definitionElProperties = makeDataDefinitionFormField(nextIndex);
+
+  defsList.splice(nextIndex, 0, definitionElProperties);
+
+  proxy.states.form.fields.dataDefinitions = definitionFieldsListToMap(
+    defsList,
+  );
+
+  const effects = getGeneralEffects(proxy);
+  effects.push({
+    key: "scrollToViewEffect",
+    ownArgs: {
+      id: makeDefinitionContainerDomId(definitionElProperties.id),
+    },
+  });
+}
+
+function handleRemoveDefinitionAction(
+  proxy: DraftState,
+  payload: ChangeDefinitionFieldPayload,
+) {
+  const fields = proxy.states.form.fields;
+  const defsList = definitionFieldsMapToList(fields.dataDefinitions);
+  const { index } = payload.data;
+  defsList.splice(index, 1);
+  proxy.states.form.fields.dataDefinitions = definitionFieldsListToMap(
+    defsList,
+  );
+
+  const len = defsList.length;
+  const lastIndex = len - 1;
+  let defToScrollToId = defsList[lastIndex].id;
+
+  if (len !== index) {
+    defToScrollToId = defsList[index].id;
+  }
+
+  const effects = getGeneralEffects(proxy);
+  effects.push({
+    key: "scrollToViewEffect",
+    ownArgs: {
+      id: makeDefinitionContainerDomId(defToScrollToId),
+    },
+  });
+}
+
 function handleDownDefinitionAction(
   proxy: DraftState,
-  payload: RemoveDefinitionPayload,
+  payload: ChangeDefinitionFieldPayload,
 ) {
-  const definitions = proxy.states.form.fields.dataDefinitions;
-  const { index } = payload as RemoveDefinitionPayload;
-  const definition = definitions[index + 1];
-  definitions[index + 1] = definitions[index];
-  definitions[index] = definition;
+  const fields = proxy.states.form.fields;
+  const defsList = definitionFieldsMapToList(fields.dataDefinitions);
+  const { index } = payload.data;
+  const nextIndex = index + 1;
+
+  const downDefinition = defsList[index];
+  defsList[index] = defsList[nextIndex];
+  defsList[nextIndex] = downDefinition;
+
+  proxy.states.form.fields.dataDefinitions = definitionFieldsListToMap(
+    defsList,
+  );
+
+  proxy.states.form.fields.dataDefinitions = definitionFieldsListToMap(
+    defsList,
+  );
+
+  const effects = getGeneralEffects(proxy);
+  effects.push({
+    key: "scrollToViewEffect",
+    ownArgs: {
+      id: makeDefinitionContainerDomId(downDefinition.id),
+    },
+  });
 }
 
 function handleUpDefinitionAction(
   proxy: DraftState,
-  payload: RemoveDefinitionPayload,
+  payload: ChangeDefinitionFieldPayload,
 ) {
-  const definitions = proxy.states.form.fields.dataDefinitions;
-  const { index } = payload as RemoveDefinitionPayload;
-  const definition = definitions[index - 1];
-  definitions[index - 1] = definitions[index];
-  definitions[index] = definition;
+  const fields = proxy.states.form.fields;
+  const defsList = definitionFieldsMapToList(fields.dataDefinitions);
+  const { index } = payload.data;
+  const prevIndex = index - 1;
+
+  const upDefinition = defsList[index];
+  defsList[index] = defsList[prevIndex];
+  defsList[prevIndex] = upDefinition;
+
+  proxy.states.form.fields.dataDefinitions = definitionFieldsListToMap(
+    defsList,
+  );
+
+  proxy.states.form.fields.dataDefinitions = definitionFieldsListToMap(
+    defsList,
+  );
+
+  const effects = getGeneralEffects(proxy);
+  effects.push({
+    key: "scrollToViewEffect",
+    ownArgs: {
+      id: makeDefinitionContainerDomId(upDefinition.id),
+    },
+  });
 }
 
 function handleToggleDescriptionAction(proxy: DraftState) {
@@ -825,18 +957,18 @@ export type Action =
   | {
       type: ActionType.TOGGLE_DESCRIPTION;
     }
-  | {
+  | ({
       type: ActionType.ADD_DEFINITION;
-    }
+    } & ChangeDefinitionFieldPayload)
   | ({
       type: ActionType.DOWN_DEFINITION;
-    } & RemoveDefinitionPayload)
+    } & ChangeDefinitionFieldPayload)
   | ({
       type: ActionType.UP_DEFINITION;
-    } & RemoveDefinitionPayload)
+    } & ChangeDefinitionFieldPayload)
   | ({
       type: ActionType.REMOVE_DEFINITION;
-    } & RemoveDefinitionPayload)
+    } & ChangeDefinitionFieldPayload)
   | {
       type: ActionType.CLOSE_SUBMIT_NOTIFICATION;
     }
@@ -860,8 +992,8 @@ interface ServerErrorsPayload {
   errors: CreateExperiences_createExperiences_CreateExperienceErrors_errors;
 }
 
-interface RemoveDefinitionPayload {
-  index: number;
+interface ChangeDefinitionFieldPayload {
+  data: DataDefinitionFormField;
 }
 
 type FormChangedPayload =
@@ -878,7 +1010,7 @@ interface DefinitionChangedPayload {
   key: "def";
   index: number;
   value: DataTypes | string;
-  fieldName: keyof DataDefinitionFormField;
+  fieldName: keyof DataDefinitionFieldsMap;
 }
 
 ////////////////////////// TYPES SECTION ////////////////////
@@ -910,7 +1042,7 @@ export interface StateMachine {
       readonly fields: {
         readonly title: FormField;
         readonly description: DescriptionFormField;
-        readonly dataDefinitions: DataDefinitionFormField[];
+        readonly dataDefinitions: DataDefinitionFieldsMap;
       };
     };
   };
@@ -958,7 +1090,12 @@ interface DescriptionFormFieldActive {
   readonly active: FormField;
 }
 
+interface DataDefinitionFieldsMap {
+  [dataDefinitionDomId: string]: DataDefinitionFormField;
+}
+
 interface DataDefinitionFormField {
+  readonly index: number;
   readonly id: string;
   readonly name: FormField;
   readonly type: FormField<DataTypes>;

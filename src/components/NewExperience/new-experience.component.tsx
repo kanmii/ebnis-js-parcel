@@ -133,7 +133,8 @@ export function NewExperience(props: Props) {
     }
   }
 
-  const definitionsLen = dataDefinitionsStates.length;
+  const dataDefinitionsAttributesList = Object.entries(dataDefinitionsStates);
+  const definitionsLen = dataDefinitionsAttributesList.length;
 
   return (
     <form
@@ -264,62 +265,114 @@ export function NewExperience(props: Props) {
           </div>
 
           <div className="data-definitions">
-            {dataDefinitionsStates.map(
-              ({ id, name: nameState, type: typeState }, index) => {
-                let nameValue = "";
-                let nameErrors: null | FieldError = null;
-                if (nameState.states.value === StateValue.changed) {
-                  const {
-                    states,
-                    context: { formValue },
-                  } = nameState.states.changed;
-                  nameValue = formValue;
+            {dataDefinitionsAttributesList.map(([id, definitionProperties]) => {
+              const {
+                index,
+                name: nameState,
+                type: typeState,
+              } = definitionProperties;
 
-                  if (states.value === StateValue.invalid) {
-                    nameErrors = states.invalid.context.errors;
-                  }
+              let nameValue = "";
+              let nameErrors: null | FieldError = null;
+              if (nameState.states.value === StateValue.changed) {
+                const {
+                  states,
+                  context: { formValue },
+                } = nameState.states.changed;
+                nameValue = formValue;
+
+                if (states.value === StateValue.invalid) {
+                  nameErrors = states.invalid.context.errors;
                 }
+              }
 
-                let typeValue = "" as DataTypes;
-                let typeErrors: null | FieldError = null;
-                if (typeState.states.value === StateValue.changed) {
-                  const {
-                    states,
-                    context: { formValue },
-                  } = typeState.states.changed;
-                  typeValue = formValue;
+              let typeValue = "" as DataTypes;
+              let typeErrors: null | FieldError = null;
+              if (typeState.states.value === StateValue.changed) {
+                const {
+                  states,
+                  context: { formValue },
+                } = typeState.states.changed;
+                typeValue = formValue;
 
-                  if (states.value === StateValue.invalid) {
-                    typeErrors = states.invalid.context.errors;
-                  }
+                if (states.value === StateValue.invalid) {
+                  typeErrors = states.invalid.context.errors;
                 }
+              }
 
-                return (
-                  <div
-                    key={id}
-                    className="data-definition"
-                    id={makeDefinitionContainerDomId(id)}
-                  >
-                    <div className="field form__field">
-                      <label
-                        htmlFor={definitionNameInputDomId + id}
+              return (
+                <div
+                  key={id}
+                  className="data-definition"
+                  id={makeDefinitionContainerDomId(id)}
+                >
+                  <div className="field form__field">
+                    <label
+                      htmlFor={definitionNameInputDomId + id}
+                      className={makeClassNames({
+                        form__label: true,
+                        "form__field--errors": !!nameErrors,
+                      })}
+                    >
+                      Field name
+                    </label>
+
+                    <div className="control">
+                      <input
+                        type="text"
                         className={makeClassNames({
-                          form__label: true,
-                          "form__field--errors": !!nameErrors,
+                          "input form__control is-rounded": true,
+                          [definitionNameFormControlSelector]: true,
                         })}
-                      >
-                        Field name
-                      </label>
+                        id={definitionNameInputDomId + id}
+                        value={nameValue}
+                        onChange={(e) => {
+                          const node = e.currentTarget;
+                          dispatch({
+                            type: ActionType.FORM_CHANGED,
+                            key: "def",
+                            index,
+                            value: node.value,
+                            fieldName: "name",
+                          });
+                        }}
+                      />
+                    </div>
 
-                      <div className="control">
-                        <input
-                          type="text"
+                    {nameErrors && (
+                      <FormCtrlError className={fieldErrorSelector}>
+                        {nameErrors.map(([errorLabel, errorText], index) => {
+                          return (
+                            <div key={index}>
+                              <span>{errorLabel} </span>
+                              <span>{errorText}</span>
+                            </div>
+                          );
+                        })}
+                      </FormCtrlError>
+                    )}
+                  </div>
+
+                  <div className="field form__field">
+                    <label
+                      htmlFor={definitionTypeInputDomId + id}
+                      className={makeClassNames({
+                        form__label: true,
+                        "form__field--errors": !!typeErrors,
+                      })}
+                    >
+                      Data type
+                    </label>
+
+                    <div className="control">
+                      <div className="select is-rounded">
+                        <select
                           className={makeClassNames({
-                            "input form__control is-rounded": true,
-                            [definitionNameFormControlSelector]: true,
+                            "form__control form__control--select": true,
+                            [definitionTpeFormControlSelector]: true,
                           })}
-                          id={definitionNameInputDomId + id}
-                          value={nameValue}
+                          id={definitionTypeInputDomId + id}
+                          value={typeValue}
                           onChange={(e) => {
                             const node = e.currentTarget;
                             dispatch({
@@ -327,163 +380,116 @@ export function NewExperience(props: Props) {
                               key: "def",
                               index,
                               value: node.value,
-                              fieldName: "name",
+                              fieldName: "type",
                             });
                           }}
-                        />
-                      </div>
+                        >
+                          <option value="">Click to select</option>
 
-                      {nameErrors && (
-                        <FormCtrlError className={fieldErrorSelector}>
-                          {nameErrors.map(([errorLabel, errorText], index) => {
+                          {fieldTypeKeys.map((fieldType) => {
                             return (
-                              <div key={index}>
-                                <span>{errorLabel} </span>
-                                <span>{errorText}</span>
-                              </div>
+                              <option
+                                key={fieldType}
+                                value={fieldType}
+                                id={makeDefinitionTypeOptionDomId(fieldType)}
+                              >
+                                {fieldType}
+                              </option>
                             );
                           })}
-                        </FormCtrlError>
-                      )}
+                        </select>
+                      </div>
                     </div>
 
-                    <div className="field form__field">
-                      <label
-                        htmlFor={definitionTypeInputDomId + id}
-                        className={makeClassNames({
-                          form__label: true,
-                          "form__field--errors": !!typeErrors,
+                    {typeErrors && (
+                      <FormCtrlError className={fieldErrorSelector}>
+                        {typeErrors.map(([errorLabel, errorText], index) => {
+                          return (
+                            <div key={index}>
+                              <span>{errorLabel} </span>
+                              <span>{errorText}</span>
+                            </div>
+                          );
                         })}
-                      >
-                        Data type
-                      </label>
+                      </FormCtrlError>
+                    )}
+                  </div>
 
-                      <div className="control">
-                        <div className="select is-rounded">
-                          <select
-                            className={makeClassNames({
-                              "form__control form__control--select": true,
-                              [definitionTpeFormControlSelector]: true,
-                            })}
-                            id={definitionTypeInputDomId + id}
-                            value={typeValue}
-                            onChange={(e) => {
-                              const node = e.currentTarget;
-                              dispatch({
-                                type: ActionType.FORM_CHANGED,
-                                key: "def",
-                                index,
-                                value: node.value,
-                                fieldName: "type",
-                              });
-                            }}
-                          >
-                            <option value="">Click to select</option>
+                  <div className="data-definition-controls">
+                    <button
+                      type="button"
+                      className={`button is-rounded data-definition-control ${addDefinitionSelector}`}
+                      onClick={() => {
+                        dispatch({
+                          type: ActionType.ADD_DEFINITION,
+                          data: definitionProperties,
+                        });
+                      }}
+                    >
+                      <span className="icon is-small">
+                        <i className="fas fa-plus"></i>
+                      </span>
+                    </button>
 
-                            {fieldTypeKeys.map((fieldType) => {
-                              return (
-                                <option
-                                  key={fieldType}
-                                  value={fieldType}
-                                  id={makeDefinitionTypeOptionDomId(fieldType)}
-                                >
-                                  {fieldType}
-                                </option>
-                              );
-                            })}
-                          </select>
-                        </div>
-                      </div>
-
-                      {typeErrors && (
-                        <FormCtrlError className={fieldErrorSelector}>
-                          {typeErrors.map(([errorLabel, errorText], index) => {
-                            return (
-                              <div key={index}>
-                                <span>{errorLabel} </span>
-                                <span>{errorText}</span>
-                              </div>
-                            );
-                          })}
-                        </FormCtrlError>
-                      )}
-                    </div>
-
-                    <div className="data-definition-controls">
+                    {definitionsLen !== 1 && (
                       <button
                         type="button"
-                        className={`button is-rounded data-definition-control ${addDefinitionSelector}`}
+                        className={`button is-rounded data-definition-control ${removeDefinitionSelector}`}
                         onClick={() => {
                           dispatch({
-                            type: ActionType.ADD_DEFINITION,
+                            type: ActionType.REMOVE_DEFINITION,
+                            data: definitionProperties,
                           });
                         }}
                       >
                         <span className="icon is-small">
-                          <i className="fas fa-plus"></i>
+                          <i className="fas fa-minus"></i>
                         </span>
                       </button>
+                    )}
 
-                      {definitionsLen !== 1 && (
-                        <button
-                          type="button"
-                          className={`button is-rounded data-definition-control ${removeDefinitionSelector}`}
-                          onClick={() => {
-                            dispatch({
-                              type: ActionType.REMOVE_DEFINITION,
-                              index,
-                            });
-                          }}
-                        >
-                          <span className="icon is-small">
-                            <i className="fas fa-minus"></i>
-                          </span>
-                        </button>
-                      )}
+                    {index !== 0 && (
+                      <button
+                        type="button"
+                        className={`button is-rounded data-definition-control ${moveUpDefinitionSelector}`}
+                        onClick={() => {
+                          dispatch({
+                            type: ActionType.UP_DEFINITION,
+                            data: definitionProperties,
+                          });
+                        }}
+                      >
+                        <span className="icon is-small">
+                          <i className="fas fa-chevron-up"></i>
+                        </span>
+                      </button>
+                    )}
 
-                      {index !== 0 && (
-                        <button
-                          type="button"
-                          className={`button is-rounded data-definition-control ${moveUpDefinitionSelector}`}
-                          onClick={() => {
-                            dispatch({
-                              type: ActionType.UP_DEFINITION,
-                              index,
-                            });
-                          }}
-                        >
-                          <span className="icon is-small">
-                            <i className="fas fa-chevron-up"></i>
-                          </span>
-                        </button>
-                      )}
-
-                      {definitionsLen > 1 && index + 1 !== definitionsLen && (
-                        <button
-                          type="button"
-                          className={makeClassNames({
-                            "button is-rounded": true,
-                            "data-definition-control": true,
-                            "data-definition-control--down": true,
-                            [moveDownDefinitionSelector]: true,
-                          })}
-                          onClick={() => {
-                            dispatch({
-                              type: ActionType.DOWN_DEFINITION,
-                              index,
-                            });
-                          }}
-                        >
-                          <span className="icon is-small">
-                            <i className="fas fa-chevron-down"></i>
-                          </span>
-                        </button>
-                      )}
-                    </div>
+                    {definitionsLen > 1 && index + 1 !== definitionsLen && (
+                      <button
+                        type="button"
+                        className={makeClassNames({
+                          "button is-rounded": true,
+                          "data-definition-control": true,
+                          "data-definition-control--down": true,
+                          [moveDownDefinitionSelector]: true,
+                        })}
+                        onClick={() => {
+                          dispatch({
+                            type: ActionType.DOWN_DEFINITION,
+                            data: definitionProperties,
+                          });
+                        }}
+                      >
+                        <span className="icon is-small">
+                          <i className="fas fa-chevron-down"></i>
+                        </span>
+                      </button>
+                    )}
                   </div>
-                );
-              },
-            )}
+                </div>
+              );
+            })}
           </div>
         </section>
 
