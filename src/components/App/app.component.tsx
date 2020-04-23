@@ -6,6 +6,7 @@ import {
 import { E2EWindowObject } from "../../utils/types";
 import AppInner from "./app-inner.component";
 import Loading from "../Loading/loading.component";
+import { hot } from "react-hot-loader";
 
 export function App() {
   const obj = buildClientCache({
@@ -20,7 +21,7 @@ export function App() {
   useEffect(() => {
     const { cache, persistor } = obj;
 
-    (async function() {
+    (async function () {
       // istanbul ignore next:
       if (cache && restoreCacheOrPurgeStorage) {
         try {
@@ -43,7 +44,7 @@ export function App() {
 }
 
 // istanbul ignore next:
-export default App;
+export default hot(module)(App);
 
 interface State {
   readonly renderChildren: boolean;

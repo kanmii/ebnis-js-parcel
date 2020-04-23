@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "@apollo/react-hooks": "^3.1.5",
+    "@fortawesome/fontawesome-free": "^5.13.0",
     "@kanmii/socket": "^0.2.2",
     "@kanmii/socket-apollo-link": "^0.2.3",
     "apollo-cache-inmemory": "^1.6.5",
@@ -29,9 +30,11 @@
     "react-router-dom": "^5.1.2",
     "react-scripts": "3.4.1",
     "typescript": "~3.7.2",
+    "uuidv4": "^6.0.7",
     "zen-observable-ts": "^0.8.21"
   },
   "devDependencies": {
+    "@hot-loader/react-dom": "^16.13.0",
     "@testing-library/react": "^9.3.2",
     "@types/classnames": "^2.2.10",
     "@types/jest": "^24.0.0",
@@ -48,6 +51,9 @@
     "node-sass": "^4.14.0",
     "nps": "^5.9.12",
     "prettier": "^2.0.5",
+    "react-app-rewire-hot-loader": "^2.0.1",
+    "react-app-rewired": "^2.1.5",
+    "react-hot-loader": "^4.12.20",
     "rimraf": "^3.0.2",
     "serve": "^11.3.0",
     "shelljs": "^0.8.3",

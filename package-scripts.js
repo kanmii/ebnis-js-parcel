@@ -12,13 +12,14 @@ const {
 
 const distFolderName = "build";
 const distAbsPath = path.resolve(__dirname, `./${distFolderName}`);
+const reactScript = "react-app-rewired";
 
-const test = "env-cmd -e test yarn react-scripts test --runInBand";
+const test = `env-cmd -e test yarn ${reactScript} test --runInBand`;
 const testWatch = test + " --watch";
 const testWatchCoverage = testWatch + " --coverage";
 
 function buildFn(flag) {
-  const reactBuild = `yarn react-scripts build`;
+  const reactBuild = `yarn ${reactScript} build`;
   const preBuild = `rimraf ${distFolderName}`;
   const startSw = "yarn start serviceWorker";
 
