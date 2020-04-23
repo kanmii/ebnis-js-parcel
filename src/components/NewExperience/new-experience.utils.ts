@@ -24,12 +24,12 @@ import {
   CreateExperiences_createExperiences_CreateExperienceErrors_errors_dataDefinitions,
 } from "../../graphql/apollo-types/CreateExperiences";
 import { createExperiencesManualUpdate } from "../../apollo/create-experiences-manual-update";
-import { makeDefinitionId } from "./new-experience.injectables";
 import { scrollIntoViewDomId } from "./new-experience.dom";
 import { CreateExperienceOfflineMutationComponentProps } from "./new-experience.resolvers";
 import { EXPERIENCE_DETAIL_URL } from "../../utils/urls";
 import { windowChangeUrl, ChangeUrlType } from "../../utils/global-window";
 import { AppPersistor } from "../../utils/app-context";
+import { uuid } from "uuidv4";
 
 function makeExperienceRoute(id: string) {
   return `${EXPERIENCE_DETAIL_URL}/${id}`;
@@ -257,7 +257,7 @@ export const effectFunctions = {
 
 function makeDataDefinitionFormField() {
   return {
-    id: makeDefinitionId(),
+    id: uuid(),
     name: {
       states: {
         value: StateValue.unchanged,

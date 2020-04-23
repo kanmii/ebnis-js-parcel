@@ -16,6 +16,9 @@ export const addDefinitionSelector = "js-add-definition";
 export const removeDefinitionSelector = "js-remove-definition";
 export const moveUpDefinitionSelector = "js-move-up-definition";
 export const moveDownDefinitionSelector = "js-move-down-definition";
+export const definitionNameFormControlSelector = `${domPrefix}-def-name-form-control`;
+export const definitionTpeFormControlSelector = `${domPrefix}-def-type-form-control`;
+export const fieldErrorSelector = `${domPrefix}-field-error`;
 
 export function makeDefinitionTypeOptionDomId(type: DataTypes) {
   return `${domPrefix}-${type}`;

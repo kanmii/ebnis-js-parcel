@@ -35,6 +35,9 @@ import {
   moveUpDefinitionSelector,
   removeDefinitionSelector,
   addDefinitionSelector,
+  definitionNameFormControlSelector,
+  fieldErrorSelector,
+  definitionTpeFormControlSelector,
 } from "./new-experience.dom";
 import { EbnisAppContext } from "../../utils/app-context";
 import { useCreateExperienceOfflineMutation } from "./new-experience.resolvers";
@@ -311,7 +314,10 @@ export function NewExperience(props: Props) {
                       <div className="control">
                         <input
                           type="text"
-                          className="input form__control is-rounded"
+                          className={makeClassNames({
+                            "input form__control is-rounded": true,
+                            [definitionNameFormControlSelector]: true,
+                          })}
                           id={definitionNameInputDomId + id}
                           value={nameValue}
                           onChange={(e) => {
@@ -328,9 +334,7 @@ export function NewExperience(props: Props) {
                       </div>
 
                       {nameErrors && (
-                        <FormCtrlError
-                          id={definitionNameInputDomId + id + "-errors"}
-                        >
+                        <FormCtrlError className={fieldErrorSelector}>
                           {nameErrors.map(([errorLabel, errorText], index) => {
                             return (
                               <div key={index}>
@@ -357,7 +361,10 @@ export function NewExperience(props: Props) {
                       <div className="control">
                         <div className="select is-rounded">
                           <select
-                            className="form__control form__control--select"
+                            className={makeClassNames({
+                              "form__control form__control--select": true,
+                              [definitionTpeFormControlSelector]: true,
+                            })}
                             id={definitionTypeInputDomId + id}
                             value={typeValue}
                             onChange={(e) => {
@@ -389,9 +396,7 @@ export function NewExperience(props: Props) {
                       </div>
 
                       {typeErrors && (
-                        <FormCtrlError
-                          id={definitionTypeInputDomId + id + "-errors"}
-                        >
+                        <FormCtrlError className={fieldErrorSelector}>
                           {typeErrors.map(([errorLabel, errorText], index) => {
                             return (
                               <div key={index}>
@@ -414,7 +419,9 @@ export function NewExperience(props: Props) {
                           });
                         }}
                       >
-                        +
+                        <span className="icon is-small">
+                          <i className="fas fa-plus"></i>
+                        </span>
                       </button>
 
                       {definitionsLen !== 1 && (
@@ -428,7 +435,9 @@ export function NewExperience(props: Props) {
                             });
                           }}
                         >
-                          -
+                          <span className="icon is-small">
+                            <i className="fas fa-minus"></i>
+                          </span>
                         </button>
                       )}
 
@@ -443,7 +452,9 @@ export function NewExperience(props: Props) {
                             });
                           }}
                         >
-                          Up
+                          <span className="icon is-small">
+                            <i className="fas fa-chevron-up"></i>
+                          </span>
                         </button>
                       )}
 
@@ -463,7 +474,9 @@ export function NewExperience(props: Props) {
                             });
                           }}
                         >
-                          d
+                          <span className="icon is-small">
+                            <i className="fas fa-chevron-down"></i>
+                          </span>
                         </button>
                       )}
                     </div>
