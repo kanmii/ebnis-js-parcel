@@ -1,11 +1,10 @@
 {
   "name": "ebnis",
-  "version": "3.0.0",
-  "main": "dist/index.html",
-  "license": "MIT",
+  "version": "0.0.0",
+  "private": true,
   "scripts": {
     "start": "nps",
-    "test": "nps test"
+    "eject": "react-scripts eject"
   },
   "dependencies": {
     "@apollo/react-hooks": "^3.1.5",
@@ -19,70 +18,65 @@
     "apollo-link-http": "^1.5.17",
     "bulma": "^0.8.2",
     "classnames": "^2.2.6",
-    "core-js": "^3.6.5",
-    "date-fns": "^2.12.0",
     "fuzzysort": "^1.1.4",
     "graphql": "14.5.8",
     "graphql-tag": "^2.10.3",
     "immer": "^6.0.3",
     "lodash": "^4.17.15",
-    "phoenix": "^1.4.16",
-    "react": "^16.12.0",
-    "react-dom": "^16.12.0",
-    "react-hot-loader": "^4.12.20",
-    "react-inlinesvg": "^1.2.0",
+    "phoenix": "^1.5.1",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1",
     "react-router-dom": "^5.1.2",
-    "regenerator-runtime": "^0.13.5",
+    "react-scripts": "3.4.1",
+    "typescript": "~3.7.2",
     "zen-observable-ts": "^0.8.21"
   },
   "devDependencies": {
-    "@fullhuman/postcss-purgecss": "^2.1.2",
-    "@testing-library/react": "^9.4.0",
+    "@testing-library/react": "^9.3.2",
     "@types/classnames": "^2.2.10",
-    "@types/jest": "^25.1.1",
-    "@types/node": "^13.7.0",
+    "@types/jest": "^24.0.0",
+    "@types/node": "^12.0.0",
     "@types/phoenix": "^1.4.4",
-    "@types/react": "^16.9.19",
-    "@types/react-dom": "^16.9.5",
+    "@types/react": "^16.9.0",
+    "@types/react-dom": "^16.9.0",
     "@types/react-router-dom": "^5.1.4",
-    "@typescript-eslint/eslint-plugin": "^2.19.0",
-    "@typescript-eslint/parser": "^2.19.0",
-    "apollo": "^2.27.0",
-    "babel-core": "^6.26.3",
-    "babel-jest": "^25.1.0",
-    "babel-plugin-transform-class-properties": "^6.24.1",
-    "babel-preset-env": "^1.7.0",
-    "babel-preset-react-app": "^9.1.2",
-    "cypress": "^4.4.0",
-    "env-cmd": "^10.0.1",
-    "eslint": "^6.8.0",
-    "eslint-config-prettier": "^6.10.0",
-    "eslint-plugin-jest": "^23.6.0",
-    "eslint-plugin-react": "^7.18.3",
-    "eslint-plugin-react-hooks": "^2.3.0",
-    "identity-obj-proxy": "^3.0.0",
-    "jest": "^25.1.0",
-    "jest-environment-jsdom-sixteen": "^1.0.3",
-    "jest-resolve": "^25.1.0",
-    "jest-watch-typeahead": "^0.4.2",
+    "apollo": "^2.27.3",
+    "cypress": "^4.4.1",
+    "env-cmd": "^10.1.0",
     "netlify": "^4.0.5",
     "node-fetch": "^2.6.0",
+    "node-sass": "^4.14.0",
     "nps": "^5.9.12",
-    "parcel-bundler": "^1.12.4",
-    "postcss": "^7.0.27",
-    "prettier": "^1.19.1",
-    "react-app-polyfill": "^1.0.6",
-    "rimraf": "^3.0.1",
-    "sass": "^1.26.3",
+    "prettier": "^2.0.5",
+    "rimraf": "^3.0.2",
     "serve": "^11.3.0",
     "shelljs": "^0.8.3",
     "start-server-and-test": "^1.11.0",
-    "typescript": "^3.7.5",
     "workbox-build": "^5.1.2",
-    "workbox-window": "^5.0.0"
+    "workbox-window": "^5.1.2"
   },
   "eslintConfig": {
-    "extends": "react-app"
+    "extends": "react-app",
+    "overrides": [
+      {
+        "files": [
+          "cypress/**/*.ts"
+        ],
+        "rules": {
+          "jest/expect-expect": "off",
+          "jest/valid-expect-in-promise": "off",
+          "jest/valid-expect": "off"
+        }
+      },
+      {
+        "files": [
+          "**/*.tsx"
+        ],
+        "rules": {
+          "react/prop-types": "off"
+        }
+      }
+    ]
   },
   "browserslist": {
     "production": [
@@ -98,5 +92,22 @@
   },
   "resolutions": {
     "graphql": "14.5.8"
+  },
+  "jest": {
+    "collectCoverageFrom": [
+      "src/**/*.ts*",
+      "!src/__tests__/**",
+      "!src/graphql/**",
+      "!src/register-service-worker.*",
+      "!src/react-app-env.d.ts"
+    ],
+    "watchPathIgnorePatterns": [
+      "<rootDir>/node_modules*",
+      "<rootDir>/package.json",
+      "<rootDir>/build/",
+      "<rootDir>/coverage/",
+      "<rootDir>/public/",
+      "<rootDir>/.netlify/"
+    ]
   }
 }

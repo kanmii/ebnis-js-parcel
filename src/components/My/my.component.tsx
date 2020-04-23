@@ -1,5 +1,4 @@
 import React, { useLayoutEffect } from "react";
-import logo from "../../media/logo.svg";
 import Header from "../Header/header.component";
 import { MY_TITLE } from "./my.dom";
 import { setUpRoutePage } from "../../utils/global-window";
@@ -16,7 +15,7 @@ export function My() {
 
   return (
     <>
-      <Header appLogo={logo} />
+      <Header />
 
       <NewExperience />
 

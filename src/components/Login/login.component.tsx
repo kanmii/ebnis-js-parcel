@@ -173,7 +173,7 @@ export function Login(props: Props) {
               type="text"
               id={emailInputId}
               value={emailValue}
-              onChange={e => {
+              onChange={(e) => {
                 const node = e.currentTarget;
                 dispatch({
                   type: ActionType.FORM_CHANGED,
@@ -209,7 +209,7 @@ export function Login(props: Props) {
               type="password"
               id={passwordInputId}
               value={passwordValue}
-              onChange={e => {
+              onChange={(e) => {
                 const node = e.currentTarget;
                 dispatch({
                   type: ActionType.FORM_CHANGED,
@@ -261,7 +261,9 @@ export function Login(props: Props) {
 
         <div className="other-auth">
           <div>Don&apos;t have an account?</div>
-          <a className="other-auth__other-link">Sign Up</a>
+          <a href="/" className="other-auth__other-link">
+            Sign Up
+          </a>
         </div>
       </form>
     </>

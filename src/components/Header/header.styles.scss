@@ -12,6 +12,8 @@
   margin: 0;
 
   .logo {
-    height: calc(var(--header-height) - 5px);
+    height: calc(var(--header-height) - 15px);
+    margin-left: 10px;
+    margin-top: 8px;
   }
 }

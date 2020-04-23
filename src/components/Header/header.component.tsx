@@ -1,19 +1,14 @@
 import React from "react";
 import { createPortal } from "react-dom";
-import SVG from "react-inlinesvg";
-import logo from "../../media/logo.svg";
 import "./header.styles.scss";
+import logo from "../../media/logo.png";
 
-export function Header(props: { appLogo?: string }) {
-  const {
-    appLogo = logo, //
-  } = props;
-
+export function Header() {
   return createPortal(
     <header className="app-header">
-      <SVG src={appLogo} className="logo" />
+      <img src={logo} alt="logo" className="logo" />
     </header>,
-    document.body
+    document.body,
   );
 }
 

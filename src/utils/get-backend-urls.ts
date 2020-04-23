@@ -1,10 +1,13 @@
 /* istanbul ignore file */
+import { apiUrlReactEnv } from "./env-variables";
 
 export function getBackendUrls(uri?: string) {
-  const apiUrl = uri || process.env.API_URL;
+  const apiUrl = uri || process.env[apiUrlReactEnv];
 
   if (!apiUrl) {
-    throw new Error('You must set the "API_URL" environment variable');
+    throw new Error(
+      `You must set the "${apiUrlReactEnv}" environment variable`,
+    );
   }
 
   const url = new URL(apiUrl);

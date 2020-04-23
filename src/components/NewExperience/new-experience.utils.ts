@@ -72,7 +72,7 @@ export const reducer: Reducer<StateMachine, Action> = (state, action) =>
     state,
     action,
     (prevState, { type, ...payload }) => {
-      return immer(prevState, proxy => {
+      return immer(prevState, (proxy) => {
         proxy.effects.general.value = StateValue.noEffect;
         delete proxy.effects.general[StateValue.hasEffects];
         switch (type) {
@@ -640,9 +640,7 @@ function handleResetFormFieldsAction(proxy: DraftState) {
   Object.entries(fields).forEach(([fieldName, fieldState]) => {
     switch (fieldName) {
       case "title":
-        {
-          clearFieldInvalidState(fieldState as FormField);
-        }
+        clearFieldInvalidState(fieldState as FormField);
 
         break;
 
@@ -657,14 +655,10 @@ function handleResetFormFieldsAction(proxy: DraftState) {
         break;
 
       case "dataDefinitions":
-        {
-          (fieldState as DataDefinitionFormField[]).forEach(
-            ({ name, type }) => {
-              clearFieldInvalidState(name);
-              clearFieldInvalidState(type);
-            },
-          );
-        }
+        (fieldState as DataDefinitionFormField[]).forEach(({ name, type }) => {
+          clearFieldInvalidState(name);
+          clearFieldInvalidState(type);
+        });
 
         break;
     }
@@ -781,7 +775,7 @@ function handleOnServerErrorsAction(
   });
 
   if (dataDefinitions) {
-    dataDefinitions.forEach(d => {
+    dataDefinitions.forEach((d) => {
       const {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         __typename,

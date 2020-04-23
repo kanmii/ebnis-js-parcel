@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
     "module": "esnext",
-    "target": "es6",
-    "lib": ["es6", "dom", "esnext"],
+    "target": "es5",
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "jsx": "react",
     "moduleResolution": "node",
@@ -15,7 +15,6 @@
     "allowSyntheticDefaultImports": true,
     "noEmit": true,
     "noEmitHelpers": true,
-    "importHelpers": true,
     "noUnusedParameters": false,
     "esModuleInterop": true,
     "strict": true,
@@ -23,6 +22,5 @@
     "isolatedModules": true,
     "skipLibCheck": true
   },
-  "include": ["src"],
-  "exclude": ["node_modules", "public", ".cache"]
+  "include": ["src"]
 }

@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any*/
 import { Reducer, useEffect } from "react";
 import lodashIsEqual from "lodash/isEqual";
+import { noLogReactEnv } from "./utils/env-variables";
 
 const isDevEnv = process.env.NODE_ENV === "development";
 const isTestEnv = process.env.NODE_ENV === "test";
@@ -13,7 +14,7 @@ export const logger = async (prefix: keyof Console, tag: any, ...data: any) => {
       tag,
       "\n",
       ...data,
-      "\n     =======logging ends======\n"
+      "\n     =======logging ends======\n",
     );
   }
 };
@@ -22,7 +23,7 @@ export function wrapReducer<State, Action>(
   prevState: State,
   action: Action,
   reducer: Reducer<State, Action>,
-  shouldWrap?: boolean
+  shouldWrap?: boolean,
 ) {
   if (shouldWrap === false && doNotLog()) {
     return reducer(prevState, action);
@@ -34,7 +35,7 @@ export function wrapReducer<State, Action>(
       objectForEnv(prevState),
 
       "\n\n\nupdate with = \n\t",
-      objectForEnv(action)
+      objectForEnv(action),
     );
 
     const nextState = reducer(prevState, action);
@@ -44,7 +45,7 @@ export function wrapReducer<State, Action>(
       objectForEnv(nextState),
 
       "\n\n\nDifferences = \n\t",
-      objectForEnv(deepObjectDifference(nextState, prevState))
+      objectForEnv(deepObjectDifference(nextState, prevState)),
     );
 
     return nextState;
@@ -55,11 +56,11 @@ export function wrapReducer<State, Action>(
 
 function deepObjectDifference(
   compareObject: { [k: string]: any },
-  baseObject: { [k: string]: any }
+  baseObject: { [k: string]: any },
 ) {
   function differences(
     newObject: { [k: string]: any },
-    baseObjectDiff: { [k: string]: any }
+    baseObjectDiff: { [k: string]: any },
   ) {
     return Object.entries(newObject).reduce((acc, [key, value]) => {
       const baseValue = baseObjectDiff[key];
@@ -99,6 +100,6 @@ export function useLogger(data: any, tag = "") {
 export function doNotLog() {
   return (
     !window.____ebnis.logApolloQueries &&
-    (process.env.NODE_ENV === "production" || process.env.NO_LOG === "true")
+    (process.env.NODE_ENV === "production" || process.env[noLogReactEnv])
   );
 }

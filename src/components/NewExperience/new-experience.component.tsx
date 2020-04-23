@@ -178,7 +178,7 @@ export function NewExperience(props: Props) {
                 type="text"
                 id={titleInputDomId}
                 value={titleValue}
-                onChange={e => {
+                onChange={(e) => {
                   const node = e.currentTarget;
                   dispatch({
                     type: ActionType.FORM_CHANGED,
@@ -242,12 +242,12 @@ export function NewExperience(props: Props) {
               <textarea
                 rows={7}
                 className={makeClassNames({
-                  ["form__control textarea"]: true,
+                  "form__control textarea": true,
                   "form__control--hidden": !descriptionActive,
                 })}
                 id={descriptionInputDomId}
                 value={descriptionValue}
-                onChange={e => {
+                onChange={(e) => {
                   const node = e.currentTarget;
                   dispatch({
                     type: ActionType.FORM_CHANGED,
@@ -314,7 +314,7 @@ export function NewExperience(props: Props) {
                           className="input form__control is-rounded"
                           id={definitionNameInputDomId + id}
                           value={nameValue}
-                          onChange={e => {
+                          onChange={(e) => {
                             const node = e.currentTarget;
                             dispatch({
                               type: ActionType.FORM_CHANGED,
@@ -360,7 +360,7 @@ export function NewExperience(props: Props) {
                             className="form__control form__control--select"
                             id={definitionTypeInputDomId + id}
                             value={typeValue}
-                            onChange={e => {
+                            onChange={(e) => {
                               const node = e.currentTarget;
                               dispatch({
                                 type: ActionType.FORM_CHANGED,
@@ -373,7 +373,7 @@ export function NewExperience(props: Props) {
                           >
                             <option value="">Click to select</option>
 
-                            {fieldTypeKeys.map(fieldType => {
+                            {fieldTypeKeys.map((fieldType) => {
                               return (
                                 <option
                                   key={fieldType}
