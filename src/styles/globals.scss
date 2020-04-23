@@ -1,4 +1,6 @@
+$modal-background-background-color: rgba(255, 255, 255, 0.85);
 @import "../../node_modules/bulma/bulma.sass";
+$modal-card-body-border-color: darken($background, 5%);
 
 :root {
   --app-color: #5faac7;
@@ -22,7 +24,6 @@
 
 html,
 body {
-  box-sizing: border-box;
   overflow-x: hidden;
 }
 
@@ -30,32 +31,23 @@ body {
   padding-top: calc(var(--header-height) + 10px);
 }
 
-.app-header {
-  --blur-radius: 4px;
-  box-shadow: 0 1px var(--blur-radius) rgba(38, 44, 49, 0.4);
-  height: var(--header-height);
-  z-index: var(--header-z-index);
-  position: fixed;
-  top: 0;
-  left: 0;
-  display: flex;
-  width: 100%;
-  background-color: white;
-  margin: 0;
+.modal {
+  &-background {
+    pointer-events: none;
+  }
 
-  .logo {
-    height: calc(var(--header-height) - 5px);
+  &-card-title {
+    flex-shrink: 1;
+  }
+
+  &-card-body {
+    border-left: 1px solid $modal-card-body-border-color;
+    border-right: 1px solid $modal-card-body-border-color;
   }
 }
 
-.modal-card,
-.modal-content {
-  max-height: initial;
-  max-width: var(--modal-content-width);
-}
-
-.modal-background {
-  pointer-events: none;
+form {
+  margin-bottom: 0;
 }
 
 .field.error {
@@ -71,99 +63,11 @@ body {
   }
 }
 
-ul {
-  padding: 0;
-  margin: 0;
-}
-
-li {
-  list-style-type: none;
-}
-
 .visually-hidden {
   width: 1px;
   height: 1px;
   visibility: hidden;
   clip: rect(1px, 1px, 1px, 1px);
-}
-
-.notification {
-  border: 1px solid;
-  border-radius: 4px;
-  padding: 10px 10px 10px 20px;
-  margin-bottom: 30px;
-
-  &--warning {
-    border-color: var(--warning-border-color);
-    background-color: var(--warning-bg-color);
-  }
-
-  &--error {
-    border-color: var(--error-border-color);
-    background-color: var(--error-bg-color);
-  }
-
-  &__close {
-    position: relative;
-    top: -15px;
-    right: -15px;
-    width: var(--close-width);
-    height: var(--close-width);
-    float: right;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-weight: 900;
-
-    &-button {
-      width: 20px;
-      height: 20px;
-      border: 1px solid;
-      border-radius: 50%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-
-      &:before,
-      &:after {
-        content: "";
-        display: block;
-        color: white;
-        border: 1px solid white;
-        width: 50%;
-      }
-
-      &:after {
-        transform: translateX(-50%) rotate(-45deg);
-      }
-
-      &:before {
-        transform: translateX(50%) rotate(45deg);
-      }
-
-      &--warning {
-        background-color: var(--warning-close-bg-color);
-        border-color: var(--warning-close-bg-color);
-      }
-
-      &--error {
-        background-color: var(--error-close-bg-color);
-        border-color: var(--error-close-border-color);
-      }
-    }
-  }
-
-  &__content {
-    word-break: break-word;
-
-    &--warning {
-      color: var(--warning-text-color);
-    }
-
-    &--error {
-      color: var(--error-text-color);
-    }
-  }
 }
 
 .chevron-down {
@@ -182,49 +86,4 @@ li {
   border-top: 10px solid black;
   border-left: 5px solid transparent;
   border-right: 5px solid transparent;
-}
-
-.form {
-  &__field + &__field {
-    margin-top: 30px;
-  }
-
-  &__field {
-    display: block;
-
-    &--errors {
-      color: var(--error-text-color);
-
-      .form__control {
-        border-color: var(--error-border-color);
-      }
-    }
-  }
-
-  &__label {
-    font-weight: 600;
-  }
-
-  &__control {
-    border: 1px solid #d1d5da;
-    display: block;
-    border-radius: 3px;
-    outline: none;
-    padding: 8px;
-    width: 100%;
-
-    &:active,
-    &:focus {
-      box-shadow: inset -1px -1px 0px 0px #b9b9ef;
-      border-color: #b9b9ef;
-    }
-
-    &--hidden {
-      display: none;
-    }
-
-    &--select {
-      background-color: white;
-    }
-  }
 }

@@ -1,5 +1,11 @@
 import gql from "graphql-tag";
 
+export const entriesPaginationVariables = {
+  entriesPagination: {
+    first: 20000,
+  },
+};
+
 export const DATA_OBJECT_FRAGMENT = gql`
   fragment DataObjectFragment on DataObject {
     id

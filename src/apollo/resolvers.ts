@@ -1,8 +1,13 @@
 /* istanbul ignore file */
-import { CacheResolver } from "apollo-cache-inmemory";
+import { CacheResolver, InMemoryCache } from "apollo-cache-inmemory";
+import { ApolloClient } from "apollo-client";
 
 export const LOGGED_IN_USER_CACHE_KEY = "loggedInUser";
 export const LOGGED_OUT_USER_CACHE_KEY = "loggedOutUser";
+export const UNSYNCED_LEDGER_CACHE_KEY = "unsyncedLedger";
+export const MUTATION_NAME_createExperienceOffline = "createOfflineExperience";
+export const MUTATION_NAME_createOfflineEntry = "createOfflineEntry";
+export const QUERY_NAME_getExperience = "getExperience";
 
 export function initState() {
   return {
@@ -11,6 +16,7 @@ export function initState() {
       staleToken: null,
       [LOGGED_OUT_USER_CACHE_KEY]: null,
       [LOGGED_IN_USER_CACHE_KEY]: null,
+      [UNSYNCED_LEDGER_CACHE_KEY]: null,
     },
   };
 }
@@ -26,3 +32,19 @@ export const CUSTOM_QUERY_RESOLVERS = {
     getExperience,
   },
 };
+
+export interface CacheContext {
+  cache: InMemoryCache;
+  client: ApolloClient<{}>;
+  getCacheKey: (args: { __typename: string; id: string }) => string;
+}
+
+export type LocalResolverFn<TVariables = {}, TReturnedValue = void> = (
+  root: object,
+  variables: TVariables,
+  context: CacheContext,
+) => TReturnedValue;
+
+export function makeApolloCacheRef(typeName: string, id: string | number) {
+  return `${typeName}:${id}`;
+}

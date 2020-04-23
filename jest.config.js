@@ -6,9 +6,7 @@ module.exports = {
     "!src/utils/**",
     "!src/register-service-worker.*",
   ],
-  setupFiles: [
-    "react-app-polyfill/jsdom",
-  ],
+  setupFiles: ["react-app-polyfill/jsdom"],
   setupFilesAfterEnv: ["<rootDir>/config/jest/setupTests.js"],
   testRegex: "src/__tests__/.+?\\.test\\.tsx?$",
   testEnvironment: "jest-environment-jsdom-sixteen",

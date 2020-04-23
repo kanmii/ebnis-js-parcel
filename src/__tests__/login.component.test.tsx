@@ -33,7 +33,7 @@ import { isConnected } from "../utils/connections";
 import { LoginMutationVariables } from "../graphql/apollo-types/LoginMutation";
 import { LoginMutationResult } from "../utils/user.gql.types";
 import { AppPersistor } from "../utils/app-context";
-import { windowReplaceUrl } from "../utils/global-window";
+import { windowChangeUrl } from "../utils/global-window";
 import { manageUserAuthentication } from "../utils/manage-user-auth";
 
 jest.mock("../utils/scroll-into-view");
@@ -43,7 +43,7 @@ jest.mock("../utils/connections");
 const mockIsConnected = isConnected as jest.Mock;
 
 jest.mock("../utils/global-window");
-const mockWindowReplaceUrl = windowReplaceUrl as jest.Mock;
+const mockWindowReplaceUrl = windowChangeUrl as jest.Mock;
 
 jest.mock("../utils/manage-user-auth");
 const mockManageUserAuth = manageUserAuthentication as jest.Mock;

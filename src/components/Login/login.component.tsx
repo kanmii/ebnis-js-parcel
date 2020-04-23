@@ -14,10 +14,10 @@ import {
   reducer,
   initState,
   StateValue,
-  FieldError,
   ActionType,
   CallerProps,
 } from "./login.utils";
+import { FieldError } from "../../utils/common-errors";
 import FormCtrlError from "../FormCtrlError/form-ctrl-error.component";
 import {
   emailInputId,
@@ -153,7 +153,11 @@ export function Login(props: Props) {
               [errorClassName]: !!errorText,
             })}
           >
-            <button className="delete" onClick={onCloseNotification} />
+            <button
+              type="button"
+              className="delete"
+              onClick={onCloseNotification}
+            />
             {warningText || errorText}
           </div>
         )}

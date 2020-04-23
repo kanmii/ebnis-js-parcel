@@ -1,7 +1,6 @@
 /* istanbul ignore file */
 import gql from "graphql-tag";
 import { UserFragment } from "../graphql/apollo-types/UserFragment";
-import { InMemoryCache } from "apollo-cache-inmemory";
 import {
   LOGGED_IN_USER_CACHE_KEY,
   LOGGED_OUT_USER_CACHE_KEY,
@@ -18,10 +17,9 @@ const LOGGED_IN_USER_QUERY = gql`
   ${USER_FRAGMENT}
 `;
 
-export function manageUserAuthentication(
-  cache: InMemoryCache,
-  user: UserFragment | null
-) {
+export function manageUserAuthentication(user: UserFragment | null) {
+  const { cache } = window.____ebnis;
+
   if (user) {
     cache.writeData({
       data: {

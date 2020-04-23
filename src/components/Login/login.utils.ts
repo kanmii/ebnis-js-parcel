@@ -8,12 +8,13 @@ import {
   FORM_CONTAINS_ERRORS_MESSAGE,
   NO_CONNECTION_ERROR,
   GENERIC_SERVER_ERROR,
+  FieldError,
 } from "../../utils/common-errors";
 import { scrollIntoView } from "../../utils/scroll-into-view";
 import { LoginMutationComponentProps } from "../../utils/user.gql.types";
 import { isConnected } from "../../utils/connections";
 import { EbnisContextProps } from "../../utils/app-context";
-import { windowReplaceUrl } from "../../utils/global-window";
+import { windowChangeUrl, ChangeUrlType } from "../../utils/global-window";
 import {
   MY_URL, //
 } from "../../utils/urls";
@@ -116,7 +117,6 @@ const loginEffect: DefLoginEffect["func"] = async (
   const {
     login, //
     persistor,
-    cache,
   } = props;
 
   const {
@@ -166,9 +166,9 @@ const loginEffect: DefLoginEffect["func"] = async (
         user, //
       } = validResponse;
 
-      manageUserAuthentication(cache, user);
+      manageUserAuthentication(user);
       await persistor.persist();
-      windowReplaceUrl(MY_URL);
+      windowChangeUrl(MY_URL, ChangeUrlType.replace);
     }
   } catch (error) {
     dispatch({
@@ -542,10 +542,6 @@ interface FieldInValid {
     };
   };
 }
-
-type ErrorField = string;
-type ErrorText = string;
-export type FieldError = [ErrorField, ErrorText][];
 
 export type Action =
   | {

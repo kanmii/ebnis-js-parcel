@@ -4,6 +4,7 @@ import {
   DATA_OBJECT_FRAGMENT,
   ENTRY_CONNECTION_FRAGMENT,
 } from "./entry.gql";
+import { GetExperienceConnectionMiniVariables } from "./apollo-types/GetExperienceConnectionMini";
 
 export const DEFINITION_FRAGMENT = gql`
   fragment DataDefinitionFragment on DataDefinition {
@@ -439,3 +440,47 @@ export const DELETE_EXPERIENCES_MUTATION = gql`
     }
   }
 `;
+
+// this query will be kept around after we ran it and all experiences list will
+// refer to it.
+export const GET_EXPERIENCES_CONNECTION_MINI_QUERY = gql`
+  query GetExperienceConnectionMini($input: GetExperiencesInput) {
+    getExperiences(input: $input) {
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
+      }
+
+      edges {
+        cursor
+        node {
+          ...ExperienceMiniFragment
+        }
+      }
+    }
+  }
+
+  ${EXPERIENCE_MINI_FRAGMENT}
+`;
+
+// this query will be deleted after we ran it.
+export const PRE_FETCH_EXPERIENCES_QUERY = gql`
+  query PreFetchExperiences(
+    $input: GetExperiencesInput!
+    $entriesPagination: PaginationInput!
+  ) {
+    getExperiences(input: $input) {
+      ...ExperienceConnectionPreFetchFragment
+    }
+  }
+
+  ${EXPERIENCE_CONNECTION_PRE_FETCH_FRAGMENT}
+`;
+
+export const getExperienceConnectionMiniVariables: GetExperienceConnectionMiniVariables = {
+  input: {
+    pagination: {
+      first: 20000,
+    },
+  },
+};

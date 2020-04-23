@@ -1,6 +1,20 @@
 /* istanbul ignore file */
-export function windowReplaceUrl(url: string) {
-  window.location.replace(url);
+
+export enum ChangeUrlType {
+  replace = "replace",
+  goTo = "goTo",
+}
+
+export function windowChangeUrl(url: string, type: ChangeUrlType) {
+  switch (type) {
+    case ChangeUrlType.replace:
+      window.location.replace(url);
+      break;
+
+    case ChangeUrlType.goTo:
+      window.location.href = url;
+      break;
+  }
 }
 
 export function setUpRoutePage(args: SetUpRoutePageArgs) {

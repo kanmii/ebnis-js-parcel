@@ -1,11 +1,10 @@
 import React, { useLayoutEffect } from "react";
 import logo from "../../media/logo.svg";
 import Header from "../Header/header.component";
-import {
-  MY_TITLE, //
-} from "./my.dom";
+import { MY_TITLE } from "./my.dom";
 import { setUpRoutePage } from "../../utils/global-window";
 import "./my.styles.scss";
+import NewExperience from "../NewExperience/new-experience.component";
 
 export function My() {
   useLayoutEffect(() => {
@@ -18,6 +17,8 @@ export function My() {
   return (
     <>
       <Header appLogo={logo} />
+
+      <NewExperience />
 
       <div className="new-experience-trigger">
         <span>+</span>

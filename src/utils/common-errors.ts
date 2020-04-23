@@ -25,3 +25,7 @@ export const NO_CONNECTION_ERROR =
 export interface StringyErrorPayload {
   error: Error | string;
 }
+
+type ErrorField = string;
+type ErrorText = string;
+export type FieldError = [ErrorField, ErrorText][];
