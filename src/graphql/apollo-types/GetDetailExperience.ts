@@ -3,13 +3,13 @@
 // @generated
 // This file was automatically generated and should not be edited.
 
-import { DataTypes } from "./globalTypes";
+import { PaginationInput, DataTypes } from "./globalTypes";
 
 // ====================================================
-// GraphQL fragment: ExperienceFragment
+// GraphQL query operation: GetDetailExperience
 // ====================================================
 
-export interface ExperienceFragment_dataDefinitions {
+export interface GetDetailExperience_getExperience_dataDefinitions {
   __typename: "DataDefinition";
   id: string;
   /**
@@ -29,7 +29,7 @@ export interface ExperienceFragment_dataDefinitions {
   clientId: string | null;
 }
 
-export interface ExperienceFragment_entries_pageInfo {
+export interface GetDetailExperience_getExperience_entries_pageInfo {
   __typename: "PageInfo";
   /**
    * When paginating forwards, are there more items?
@@ -41,7 +41,7 @@ export interface ExperienceFragment_entries_pageInfo {
   hasPreviousPage: boolean;
 }
 
-export interface ExperienceFragment_entries_edges_node_dataObjects {
+export interface GetDetailExperience_getExperience_entries_edges_node_dataObjects {
   __typename: "DataObject";
   id: string;
   data: any;
@@ -54,7 +54,7 @@ export interface ExperienceFragment_entries_edges_node_dataObjects {
   updatedAt: any;
 }
 
-export interface ExperienceFragment_entries_edges_node {
+export interface GetDetailExperience_getExperience_entries_edges_node {
   __typename: "Entry";
   /**
    * Entry ID
@@ -76,10 +76,10 @@ export interface ExperienceFragment_entries_edges_node {
   /**
    * The list of data belonging to this entry.
    */
-  dataObjects: (ExperienceFragment_entries_edges_node_dataObjects | null)[];
+  dataObjects: (GetDetailExperience_getExperience_entries_edges_node_dataObjects | null)[];
 }
 
-export interface ExperienceFragment_entries_edges {
+export interface GetDetailExperience_getExperience_entries_edges {
   __typename: "EntryEdge";
   /**
    * A cursor for use in pagination
@@ -88,16 +88,16 @@ export interface ExperienceFragment_entries_edges {
   /**
    * The item at the end of the edge
    */
-  node: ExperienceFragment_entries_edges_node | null;
+  node: GetDetailExperience_getExperience_entries_edges_node | null;
 }
 
-export interface ExperienceFragment_entries {
+export interface GetDetailExperience_getExperience_entries {
   __typename: "EntryConnection";
-  pageInfo: ExperienceFragment_entries_pageInfo;
-  edges: (ExperienceFragment_entries_edges | null)[] | null;
+  pageInfo: GetDetailExperience_getExperience_entries_pageInfo;
+  edges: (GetDetailExperience_getExperience_entries_edges | null)[] | null;
 }
 
-export interface ExperienceFragment {
+export interface GetDetailExperience_getExperience {
   __typename: "Experience";
   /**
    * The title of the experience
@@ -120,9 +120,21 @@ export interface ExperienceFragment {
   /**
    * The field definitions used for the experience entries
    */
-  dataDefinitions: ExperienceFragment_dataDefinitions[];
+  dataDefinitions: GetDetailExperience_getExperience_dataDefinitions[];
   /**
    * The entries of the experience - can be paginated
    */
-  entries: ExperienceFragment_entries;
+  entries: GetDetailExperience_getExperience_entries;
+}
+
+export interface GetDetailExperience {
+  /**
+   * Get an experience
+   */
+  getExperience: GetDetailExperience_getExperience | null;
+}
+
+export interface GetDetailExperienceVariables {
+  id: string;
+  entriesPagination: PaginationInput;
 }

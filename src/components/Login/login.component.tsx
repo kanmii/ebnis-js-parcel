@@ -29,14 +29,9 @@ import {
   notificationId,
   LOGIN_PAGE_TITLE,
 } from "./login.dom";
-import {
-  useLoginMutation, //
-} from "../../utils/user.gql.types";
+import { useLoginMutation } from "../../utils/user.gql.types";
 import makeClassNames from "classnames";
-import {
-  warningClassName,
-  errorClassName, //
-} from "../../utils/utils.dom";
+import { warningClassName, errorClassName } from "../../utils/utils.dom";
 import { EbnisAppContext } from "../../utils/app-context";
 import { setUpRoutePage } from "../../utils/global-window";
 
@@ -47,11 +42,7 @@ export function Login(props: Props) {
     states: {
       submission: submissionState,
       form: {
-        // validity: formValidity,
-        fields: {
-          email: emailState, //
-          password: passwordState,
-        },
+        fields: { email: emailState, password: passwordState },
       },
     },
     effects: { general: generalEffects },
@@ -77,7 +68,7 @@ export function Login(props: Props) {
   useLayoutEffect(() => {
     setUpRoutePage({
       title: LOGIN_PAGE_TITLE,
-      rootClassName: "login-component",
+      // rootClassName: "login-component",
     });
   }, []);
 
@@ -141,7 +132,7 @@ export function Login(props: Props) {
     <>
       <Header />
 
-      <form onSubmit={onSubmit} className="form">
+      <form onSubmit={onSubmit} className="login-component form">
         <div className="form__caption">Login with email</div>
 
         {(warningText || errorText) && (

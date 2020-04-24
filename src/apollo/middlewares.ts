@@ -1,7 +1,7 @@
 /* istanbul ignore file */
 import { ApolloLink } from "apollo-link";
 import { onError } from "apollo-link-error";
-import { getToken } from "../utils/user";
+import { getToken } from "../utils/manage-user-auth";
 import { doNotLog } from "../logger";
 
 export type MakeSocketLinkFn = (arg: {
@@ -12,8 +12,9 @@ export type MakeSocketLinkFn = (arg: {
 export function middlewareAuthLink(makeSocketLink: MakeSocketLinkFn) {
   let previousToken = getToken();
   let socketLink = makeSocketLink({ token: previousToken });
+
   const headers: {
-    [k: string]: string;
+    [headerKey: string]: string;
   } = {};
 
   return new ApolloLink((operation, forward) => {
@@ -59,7 +60,7 @@ export function middlewareLoggerLink(link: ApolloLink) {
         query: operation.query.loc ? operation.query.loc.source.body : "",
         variables: operation.variables,
       },
-      `\n\n===End ${operationName}====`
+      `\n\n===End ${operationName}====`,
     );
 
     if (fop.map) {
@@ -69,7 +70,7 @@ export function middlewareLoggerLink(link: ApolloLink) {
           getNow(),
           `\n=Received response from ${operationName}=\n\n`,
           response,
-          `\n\n=End Received response from ${operationName}=`
+          `\n\n=End Received response from ${operationName}=`,
         );
         return response;
       });
@@ -93,7 +94,7 @@ export function middlewareErrorLink(link: ApolloLink) {
         getNow(),
         `\n=${operationName}=\n\n`,
         obj,
-        `\n\n=End Response ${operationName}=`
+        `\n\n=End Response ${operationName}=`,
       );
     };
 

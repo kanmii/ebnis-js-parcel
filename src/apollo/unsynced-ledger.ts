@@ -5,6 +5,8 @@ import {
   UnsyncedLedgerItem,
 } from "../utils/unsynced-ledger.types";
 
+// const KEY = 'XmyjKscDKE+McpWyPNtRLvs4s2N/mo0wvTpCNmCeocmq8F0EBYzzu536dMivCbNS'
+
 const UNSYNCED_LEDGER_QUERY = gql`
   query {
     unsyncedLedger @client
@@ -31,7 +33,7 @@ export function removeUnsyncedExperience(id: string) {
 export function removeUnsyncedExperiences(ids: string[]) {
   const unsyncedLedger = getUnsyncedLedger();
 
-  ids.forEach(id => {
+  ids.forEach((id) => {
     delete unsyncedLedger[id];
   });
 
@@ -42,7 +44,7 @@ function writeUnsyncedLedger(unsyncedLedger: UnsyncedLedger) {
   const { cache } = window.____ebnis;
   cache.writeData({
     data: {
-      unsyncedLedger,
+      unsyncedLedger: JSON.stringify(unsyncedLedger),
     },
   });
 }
@@ -53,9 +55,11 @@ function getUnsyncedLedger() {
     query: UNSYNCED_LEDGER_QUERY,
   });
 
-  return data ? data.unsyncedLedger : {};
+  const unsyncedLedger = data && data.unsyncedLedger;
+
+  return unsyncedLedger ? JSON.parse(unsyncedLedger) : {};
 }
 
 interface UnsyncedLedgerQueryResult {
-  unsyncedLedger: UnsyncedLedger;
+  unsyncedLedger: string; // UnsyncedLedger;
 }

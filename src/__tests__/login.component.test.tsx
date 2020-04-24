@@ -36,6 +36,8 @@ import { AppPersistor } from "../utils/app-context";
 import { windowChangeUrl } from "../utils/global-window";
 import { manageUserAuthentication } from "../utils/manage-user-auth";
 
+jest.mock("../components/Header/header.component", () => () => null);
+
 jest.mock("../utils/scroll-into-view");
 const mockScrollIntoView = scrollIntoView as jest.Mock;
 
@@ -169,7 +171,7 @@ async function reducerSubmissionHelper() {
 
   expect(
     (stateMachineOnDispatch.states.submission as SubmissionCommonErrors)
-      .commonErrors
+      .commonErrors,
   ).toBeUndefined();
 
   const { key, ownArgs } = getEffects(stateMachineOnDispatch)[0];
@@ -190,7 +192,7 @@ describe("reducer", () => {
 
     expect(
       (stateMachineOnDispatch.states.submission as SubmissionCommonErrors)
-        .commonErrors.context.errors
+        .commonErrors.context.errors,
     ).toBeDefined();
 
     //
@@ -203,7 +205,7 @@ describe("reducer", () => {
 
     expect(
       (stateMachineOnDispatch.states.submission as SubmissionCommonErrors)
-        .commonErrors.context.errors
+        .commonErrors.context.errors,
     ).toBeDefined();
 
     //
@@ -224,7 +226,7 @@ describe("reducer", () => {
 
     expect(
       (stateMachineOnDispatch.states.submission as SubmissionCommonErrors)
-        .commonErrors.context.errors
+        .commonErrors.context.errors,
     ).toBeDefined();
 
     //
@@ -237,7 +239,7 @@ describe("reducer", () => {
 
     expect(
       (stateMachineOnDispatch.states.submission as SubmissionCommonErrors)
-        .commonErrors.context.errors
+        .commonErrors.context.errors,
     ).toBeDefined();
   });
 });

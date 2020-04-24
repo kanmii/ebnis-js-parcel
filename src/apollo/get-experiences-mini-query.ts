@@ -1,5 +1,4 @@
 /* istanbul ignore file */
-import { DataProxy } from "apollo-cache";
 import {
   GetExperienceConnectionMini,
   GetExperienceConnectionMiniVariables,
@@ -14,7 +13,8 @@ export const readOptions = {
   variables: getExperienceConnectionMiniVariables,
 };
 
-export function getExperiencesMiniQuery(cache: DataProxy) {
+export function getExperiencesMiniQuery() {
+  const { cache } = window.____ebnis;
   let getExperiences;
 
   try {

@@ -1,4 +1,14 @@
+@import "../../styles/extensions";
+
 .component-new-experience {
+  @extend %modal;
+
+  .scroll-into-view {
+    @extend %visually-hidden;
+    position: relative;
+    top: -40px;
+  }
+
   .modal-card {
     max-width: 450px;
   }
@@ -6,6 +16,10 @@
   .form {
     &__control {
       width: 100%;
+
+      &--hidden {
+        display: none;
+      }
     }
 
     &__label-description {
@@ -15,6 +29,18 @@
       &-toggle {
         padding: 10px 35px 10px 10px;
       }
+
+      &-hide {
+        @extend %chevron-down;
+      }
+
+      &-show {
+        @extend %chevron-up;
+      }
+    }
+
+    &__field--errors {
+      @extend %form-field-errors;
     }
   }
 
@@ -43,7 +69,7 @@
     border-radius: 4px;
 
     &.errors {
-      border-color: var(--error-text-color);
+      border-color: $danger;
     }
   }
 

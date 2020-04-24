@@ -1,4 +1,4 @@
-import { useMutation } from "@apollo/react-hooks";
+import { useMutation, useQuery } from "@apollo/react-hooks";
 import {
   MutationFunctionOptions,
   MutationResult,
@@ -32,6 +32,11 @@ import {
   DeleteExperiences,
   DeleteExperiencesVariables,
 } from "../graphql/apollo-types/DeleteExperiences";
+import {
+  GetDetailExperience,
+  GetDetailExperienceVariables,
+} from "../graphql/apollo-types/GetDetailExperience";
+import { GET_DETAIL_EXPERIENCE_QUERY } from "../graphql/experience.gql";
 
 ////////////////////////// UPDATE EXPERIENCES SECTION //////////////////
 
@@ -44,7 +49,7 @@ export async function updateExperiencesOnlineEffectHelperFunc(
   updateExperiencesOnline: UpdateExperiencesOnlineMutationFn,
   onUpdateSuccess: (arg: UpdateExperienceFragment) => void,
   onError: (error?: CommonError) => void,
-  onDone?: () => void
+  onDone?: () => void,
 ) {
   try {
     const response = await updateExperiencesOnline({
@@ -97,7 +102,7 @@ export type UpdateExperiencesOnlineMutationFnOptions = MutationFunctionOptions<
 
 export type UseUpdateExperiencesOnlineMutation = [
   UpdateExperiencesOnlineMutationFn,
-  MutationResult<UpdateExperiencesOnline>
+  MutationResult<UpdateExperiencesOnline>,
 ];
 
 // component's props should extend this
@@ -131,7 +136,7 @@ export type CreateExperiencesMutationFnOptions = MutationFunctionOptions<
 
 type UseCreateExperiencesMutation = [
   CreateExperiencesMutationFn,
-  MutationResult<CreateExperiences>
+  MutationResult<CreateExperiences>,
 ];
 
 // component's props should extend this
@@ -165,7 +170,7 @@ export type DeleteExperiencesMutationFnOptions = MutationFunctionOptions<
 
 export type UseDeleteExperiencesMutation = [
   DeleteExperiencesMutationFn,
-  MutationResult<DeleteExperiences>
+  MutationResult<DeleteExperiences>,
 ];
 
 // component's props should extend this
@@ -174,3 +179,14 @@ export interface DeleteExperiencesComponentProps {
 }
 
 ////////////////////////// END DELETE EXPERIENCES SECTION ////////////
+
+export function useGetExperienceDetail(
+  variables: GetDetailExperienceVariables,
+) {
+  return useQuery<GetDetailExperience, GetDetailExperienceVariables>(
+    GET_DETAIL_EXPERIENCE_QUERY,
+    {
+      variables,
+    },
+  );
+}

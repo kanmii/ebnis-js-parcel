@@ -1,14 +1,16 @@
 import React from "react";
-import { createPortal } from "react-dom";
 import "./header.styles.scss";
 import logo from "../../media/logo.png";
+import { MY_URL } from "../../utils/urls";
+import { Link } from "react-router-dom";
 
 export function Header() {
-  return createPortal(
+  return (
     <header className="app-header">
-      <img src={logo} alt="logo" className="logo" />
-    </header>,
-    document.body,
+      <Link to={MY_URL}>
+        <img src={logo} alt="logo" className="logo" />
+      </Link>
+    </header>
   );
 }
 

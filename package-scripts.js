@@ -15,8 +15,6 @@ const distAbsPath = path.resolve(__dirname, `./${distFolderName}`);
 const reactScript = "react-app-rewired";
 
 const test = `env-cmd -e test yarn ${reactScript} test --runInBand`;
-const testWatch = test + " --watch";
-const testWatchCoverage = testWatch + " --coverage";
 
 function buildFn(flag) {
   const reactBuild = `yarn ${reactScript} build`;
@@ -58,10 +56,10 @@ module.exports = {
       prod: buildFn("prod"),
     },
     test: {
-      default: test,
-      w: testWatch,
-      wc: testWatchCoverage,
-      c: "rimraf coverage && " + test + " --coverage",
+      default: `CI=true ${test}`,
+      w: test,
+      wc: `${test} --coverage`,
+      c: `rimraf coverage && CI=true ${test} --coverage`,
     },
     serve: `serve -s ${distFolderName} -l ${settings.serve.port}`,
     serviceWorker: `node -e 'require("./package-scripts").serviceWorker()'`,

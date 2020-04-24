@@ -10,22 +10,19 @@ export const definitionTypeInputDomId = `${domPrefix}-definition-type-input`;
 export const submitDomId = `${domPrefix}-submit`;
 export const resetDomId = `${domPrefix}-reset`;
 export const notificationCloseId = `${domPrefix}-notification-close`;
-export const revealDescriptionInputDomId = `${domPrefix}-reveal-description-input`;
-export const hideDescriptionInputDomId = `${domPrefix}-hide-description-input`;
 export const addDefinitionSelector = "js-add-definition";
 export const removeDefinitionSelector = "js-remove-definition";
 export const moveUpDefinitionSelector = "js-move-up-definition";
 export const moveDownDefinitionSelector = "js-move-down-definition";
 export const definitionNameFormControlSelector = `${domPrefix}-def-name-form-control`;
-export const definitionTpeFormControlSelector = `${domPrefix}-def-type-form-control`;
+export const definitionTypeFormControlSelector = `${domPrefix}-def-type-form-control`;
 export const fieldErrorSelector = `${domPrefix}-field-error`;
+export const disposeComponentDomId = `${domPrefix}-dispose`;
 
 export function makeDefinitionTypeOptionDomId(type: DataTypes) {
   return `${domPrefix}-${type}`;
 }
 
-export function makeDefinitionContainerDomId(id: Id) {
-  return `${domPrefix}-definition-container-${id}`;
-}
+export const definitionContainerDomSelector = `js-${domPrefix}-definition-container`;
 
 type Id = string | number;

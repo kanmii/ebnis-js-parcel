@@ -8,14 +8,18 @@ import { restoreCacheOrPurgeStorage } from "../../apollo/setup";
 import Loading from "../Loading/loading.component";
 import WithEmitter from "./with-emitter.component";
 import {
-  ROOT_URL, //
+  ROOT_URL,
   LOGIN_URL,
   MY_URL,
+  EXPERIENCE_DETAIL_URL,
 } from "../../utils/urls";
 import AuthenticationRequired from "../AuthenticationRequired/authentication-required.component";
 
 const Login = lazy(() => import("../Login/login.component"));
 const My = lazy(() => import("../My/my.component"));
+const DetailExperience = lazy(() =>
+  import("../DetailExperience/detail-experience.component"),
+);
 
 export function AppInner({ obj }: { obj: E2EWindowObject }) {
   const { client, cache, persistor, observable } = obj;
@@ -40,8 +44,17 @@ export function AppInner({ obj }: { obj: E2EWindowObject }) {
                   path={MY_URL}
                   component={My}
                 />
+
+                <AuthenticationRequired
+                  exact={true}
+                  path={EXPERIENCE_DETAIL_URL}
+                  component={DetailExperience}
+                />
+
                 <Route exact={true} path={ROOT_URL} component={Login} />
+
                 <Route exact={true} path={LOGIN_URL} component={Login} />
+
                 <Route component={Login} />
               </Switch>
             </WithEmitter>

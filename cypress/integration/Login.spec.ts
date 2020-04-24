@@ -1,21 +1,13 @@
+import { LOGIN_URL } from "../../src/utils/urls";
+import { LOGIN_PAGE_TITLE } from "../../src/components/Login/login.dom";
 import {
-  LOGIN_URL, //
-} from "../../src/utils/urls";
-import {
-  LOGIN_PAGE_TITLE, //
-} from "../../src/components/Login/login.dom";
-import {
-  passwordInputId, //
+  passwordInputId,
   emailInputId,
   submitId,
   notificationId,
 } from "../../src/components/Login/login.dom";
-import {
-  MY_TITLE, //
-} from "../../src/components/My/my.dom";
-import {
-  CREATE_USER_ATTRS as userAttrs, //
-} from "../support/create-user-attrs";
+import { MY_TITLE } from "../../src/components/My/my.dom";
+import { CREATE_USER_ATTRS as userAttrs } from "../support/create-user-attrs";
 
 context("Login user", () => {
   beforeEach(() => {

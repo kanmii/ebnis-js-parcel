@@ -1,153 +1,56 @@
 @import "./variables";
 
-%route-main {
-  height: 100%;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-
-%app-main {
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
-}
-
-%simple-error {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  color: $error-color;
-  font-weight: 900;
-  font-size: 1.2em;
-}
-
-%auth-redirect-btn {
-  margin-top: 20px;
-}
-
-%field-margin-bottom {
-  margin-bottom: 20px !important;
-}
-
-%form {
-  .form {
-    .field {
-      @extend %field-margin-bottom;
+%modal {
+  .modal {
+    &-background {
+      pointer-events: none;
     }
 
-    .field.disabled {
-      & > label {
-        opacity: 1;
-      }
-
-      input {
-        background-color: #f5f5f5;
-        pointer-events: none;
-      }
+    &-card-title {
+      flex-shrink: 1;
     }
 
-    .ui {
-      &.message.error {
-        display: block;
-        padding: 0.5em;
-        margin-bottom: 1em;
-        margin-top: -10px;
-        background-color: #fff6f6;
-        box-shadow: none;
-        font-size: 1em;
-
-        .header {
-          font-size: 1em;
-          font-weight: 500;
-        }
-      }
+    &-card-body {
+      border-left: 1px solid $modal-card-body-border-color;
+      border-right: 1px solid $modal-card-body-border-color;
     }
   }
 }
 
-%msg-error-close {
-  .ui.message > .close.icon {
-    color: #960101 !important;
+%form-field-errors {
+  color: $danger;
+
+  label {
+    color: $danger;
+  }
+
+  input {
+    color: $danger;
+    border-color: $danger;
   }
 }
 
-%list-resources-modal {
-  margin-top: -20px !important;
-  overflow: hidden !important;
-  max-width: 500px;
-
-  .content {
-    word-wrap: break-word;
-  }
-
-  .modal-close {
-    flex-shrink: 0;
-    font-weight: 900;
-    font-size: 2rem;
-    text-align: right;
-    cursor: pointer;
-    color: darken($app-color, 20);
-  }
-
-  .list {
-    background: white;
-    padding: 8px !important ;
-    flex: 1;
-    overflow: auto;
-    margin-top: 0;
-    border: 1px solid #dad8d8;
-  }
-
-  .list-item {
-    cursor: pointer;
-  }
-
-  .no-resources-message {
-    text-align: center;
-    font-weight: 900;
-    max-width: 96%;
-    color: #fff;
-    background: darken($app-color, 10);
-  }
-
-  .error-container {
-    @extend %simple-error;
-  }
+%visually-hidden {
+  width: 1px;
+  height: 1px;
+  visibility: hidden;
+  clip: rect(1px, 1px, 1px, 1px);
 }
 
-%header-box-shadow {
-  box-shadow: 0 2px 1px $app-color;
+%chevron-down {
+  display: inline-block;
+  width: 0;
+  height: 0;
+  border-bottom: 10px solid black;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
 }
 
-%submit-btn-hr {
-  margin: 4em 0 1em;
-  opacity: 0.3;
-}
-
-%auth-root-styles {
-  display: block !important;
-  overflow-y: auto;
-  margin-top: 1px;
-
-  .card {
-    max-width: 400px;
-    min-width: 98%;
-    margin: 10px auto 35px !important;
-
-    @media screen and (min-width: 420px) {
-      min-width: 400px;
-    }
-  }
-
-  @extend %msg-error-close;
-
-  @extend %form;
-}
-
-%button {
-  border: 1px solid var(--btn-border-neutral-color);
-  border-radius: 4px;
-  padding: 5px;
+%chevron-up {
+  display: inline-block;
+  width: 0;
+  height: 0;
+  border-top: 10px solid black;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
 }

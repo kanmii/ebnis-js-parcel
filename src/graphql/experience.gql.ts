@@ -24,7 +24,6 @@ export const EXPERIENCE_MINI_FRAGMENT = gql`
     clientId
     insertedAt
     updatedAt
-    hasUnsaved
   }
 `;
 
@@ -476,6 +475,19 @@ export const PRE_FETCH_EXPERIENCES_QUERY = gql`
 
   ${EXPERIENCE_CONNECTION_PRE_FETCH_FRAGMENT}
 `;
+
+
+////////////////////////// GET EXPERIENCE DETAIL //////////////////
+export const GET_DETAIL_EXPERIENCE_QUERY = gql`
+  query GetDetailExperience($id: ID!, $entriesPagination: PaginationInput!) {
+    getExperience(id: $id) {
+      ...ExperienceFragment
+    }
+  }
+
+  ${EXPERIENCE_FRAGMENT}
+`;
+////////////////////////// END GET EXPERIENCE DETAIL //////////////////
 
 export const getExperienceConnectionMiniVariables: GetExperienceConnectionMiniVariables = {
   input: {

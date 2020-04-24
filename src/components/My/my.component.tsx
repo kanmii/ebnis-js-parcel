@@ -1,11 +1,28 @@
-import React, { useLayoutEffect } from "react";
+import React, {
+  useLayoutEffect,
+  useReducer,
+  useCallback,
+  lazy,
+  Suspense,
+} from "react";
 import Header from "../Header/header.component";
-import { MY_TITLE } from "./my.dom";
+import { MY_TITLE, activateNewExperienceDomId } from "./my.dom";
 import { setUpRoutePage } from "../../utils/global-window";
 import "./my.styles.scss";
-import NewExperience from "../NewExperience/new-experience.component";
+import Loading from "../Loading/loading.component";
+import { reducer, StateValue, initState, ActionType } from "./my.utils";
+
+const NewExperience = lazy(() =>
+  import("../NewExperience/new-experience.component"),
+);
 
 export function My() {
+  const [stateMachine, dispatch] = useReducer(reducer, undefined, initState);
+
+  const {
+    states: { newExperienceActivated },
+  } = stateMachine;
+
   useLayoutEffect(() => {
     setUpRoutePage({
       title: MY_TITLE,
@@ -13,13 +30,27 @@ export function My() {
     });
   }, []);
 
+  const onNewExperienceActivated = useCallback(() => {
+    dispatch({
+      type: ActionType.ACTIVATE_NEW_EXPERIENCE,
+    });
+  }, []);
+
   return (
     <>
       <Header />
 
-      <NewExperience />
+      {newExperienceActivated.value === StateValue.active && (
+        <Suspense fallback={<Loading />}>
+          <NewExperience parentDispatch={dispatch} />
+        </Suspense>
+      )}
 
-      <div className="new-experience-trigger">
+      <div
+        id={activateNewExperienceDomId}
+        className="new-experience-trigger"
+        onClick={onNewExperienceActivated}
+      >
         <span>+</span>
       </div>
     </>

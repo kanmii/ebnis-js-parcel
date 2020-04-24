@@ -24,24 +24,18 @@ import {
   CreateExperiences_createExperiences_CreateExperienceErrors_errors_dataDefinitions,
 } from "../../graphql/apollo-types/CreateExperiences";
 import { createExperiencesManualUpdate } from "../../apollo/create-experiences-manual-update";
-import {
-  scrollIntoViewDomId,
-  makeDefinitionContainerDomId,
-} from "./new-experience.dom";
+import { scrollIntoViewDomId } from "./new-experience.dom";
 import { CreateExperienceOfflineMutationComponentProps } from "./new-experience.resolvers";
-import { EXPERIENCE_DETAIL_URL } from "../../utils/urls";
+import { makeExperienceRoute } from "../../utils/urls";
 import { windowChangeUrl, ChangeUrlType } from "../../utils/global-window";
 import { AppPersistor } from "../../utils/app-context";
 import { uuid } from "uuidv4";
-
-function makeExperienceRoute(id: string) {
-  return `${EXPERIENCE_DETAIL_URL}/${id}`;
-}
+import { DispatchType as ParentDispatch } from "../My/my.utils";
 
 export const fieldTypeKeys = Object.values(DataTypes);
 
 export enum ActionType {
-  SUBMITTING = "@experience-definition/submitting",
+  SUBMISSION = "@experience-definition/submission",
   FORM_ERRORS = "@experience-definition/form-errors",
   ON_COMMON_ERROR = "@experience-definition/on-common-error",
   CLOSE_SUBMIT_NOTIFICATION = "@experience-definition/close-submit-notification",
@@ -83,7 +77,7 @@ export const reducer: Reducer<StateMachine, Action> = (state, action) =>
             handleFormChangedAction(proxy, payload as FormChangedPayload);
             break;
 
-          case ActionType.SUBMITTING:
+          case ActionType.SUBMISSION:
             handleSubmissionAction(proxy);
             break;
 
@@ -180,15 +174,25 @@ const submissionEffect: DefSubmissionEffect["func"] = async (
       const validResponse =
         result && result.data && result.data.createOfflineExperience;
 
-      if (validResponse) {
-        const experienceId = validResponse.id;
-        await persistor.persist();
-        windowChangeUrl(makeExperienceRoute(experienceId), ChangeUrlType.goTo);
-      } else {
+      if (!validResponse) {
         dispatch({
           type: ActionType.ON_COMMON_ERROR,
           error: GENERIC_SERVER_ERROR,
         });
+      } else {
+        if (validResponse.__typename === "CreateExperienceErrors") {
+          dispatch({
+            type: ActionType.ON_SERVER_ERRORS,
+            errors: validResponse.errors,
+          });
+        } else {
+          const experienceId = validResponse.experience.id;
+          await persistor.persist();
+          windowChangeUrl(
+            makeExperienceRoute(experienceId),
+            ChangeUrlType.goTo,
+          );
+        }
       }
 
       return;
@@ -410,6 +414,7 @@ function validateForm(proxy: DraftState): FormValues {
 
   const input = {} as FormValues;
   let formUpdated = false;
+  let hasErrors = false;
 
   Object.entries(fields).forEach(([fieldName, fieldState]) => {
     switch (fieldName) {
@@ -417,11 +422,13 @@ function validateForm(proxy: DraftState): FormValues {
         {
           const state = (fieldState as FormField).states;
 
-          const [formValue, updated] = validateFormStringValuesHelper(
-            proxy,
-            "title",
-            state,
-          );
+          const [
+            formValue,
+            updated,
+            withErrors,
+          ] = validateFormStringValuesHelper(proxy, "title", state);
+
+          hasErrors = hasErrors || withErrors;
 
           if (updated) {
             formUpdated = true;
@@ -454,6 +461,7 @@ function validateForm(proxy: DraftState): FormValues {
             const value = formValue.trim();
             formUpdated = true;
 
+            /* istanbul ignore else*/
             if (value) {
               input.description = value;
               validityState.value = StateValue.valid;
@@ -490,11 +498,11 @@ function validateForm(proxy: DraftState): FormValues {
               formUpdated = true;
 
               if (namesValuesMap[nameValue]) {
-                putFormFieldErrorHelper(
-                  nameState.states,
-                  [["field name", "has already been taken"]],
-                  proxy,
-                );
+                putFormFieldErrorHelper(nameState.states, [
+                  ["field name", "has already been taken"],
+                ]);
+
+                hasErrors = true;
               } else {
                 namesValuesMap[nameValue] = true;
                 dataDefinition.name = nameValue;
@@ -529,6 +537,12 @@ function validateForm(proxy: DraftState): FormValues {
     }
   });
 
+  if (hasErrors) {
+    handleOnCommonErrorAction(proxy, {
+      error: FORM_CONTAINS_ERRORS_MESSAGE,
+    });
+  }
+
   if (!formUpdated) {
     submissionWarningState.value = StateValue.warning;
     submissionWarningState.warning = {
@@ -544,21 +558,7 @@ function validateForm(proxy: DraftState): FormValues {
 function putFormFieldErrorHelper(
   fieldState: FormField["states"],
   errors: FieldError,
-  proxy?: DraftState,
 ) {
-  if (proxy) {
-    const submissionErrorState = proxy.states
-      .submission as SubmissionCommonErrors;
-
-    submissionErrorState.value = StateValue.commonErrors;
-
-    submissionErrorState.commonErrors = {
-      context: {
-        errors: FORM_CONTAINS_ERRORS_MESSAGE,
-      },
-    };
-  }
-
   const fieldStateChanged = fieldState as ChangedState;
   fieldStateChanged.value = StateValue.changed;
 
@@ -585,9 +585,10 @@ function validateFormStringValuesHelper(
   fieldName: string,
   state: FormField["states"],
   emptyErrorText = EMPTY_ERROR_TEXT,
-): [string, boolean] {
+): [string, boolean, boolean] {
   let returnValue = "";
   let updated = false;
+  let hasErrors = false;
 
   if (state.value === StateValue.changed) {
     const {
@@ -602,50 +603,51 @@ function validateFormStringValuesHelper(
     updated = true;
 
     if (value.length < 2) {
-      putFormFieldErrorHelper(
-        state,
-        [[fieldName, "must be at least 2 characters long"]],
-        proxy,
-      );
+      hasErrors = true;
+
+      putFormFieldErrorHelper(state, [
+        [fieldName, "must be at least 2 characters long"],
+      ]);
     } else {
       returnValue = value;
       validityState.value = StateValue.valid;
     }
   } else {
-    putFormFieldErrorHelper(state, [[fieldName, emptyErrorText]], proxy);
+    putFormFieldErrorHelper(state, [[fieldName, emptyErrorText]]);
+    hasErrors = true;
   }
 
-  return [returnValue, updated];
+  return [returnValue, updated, hasErrors];
 }
 
 function handleOnCommonErrorAction(
   proxy: DraftState,
   payload: StringyErrorPayload,
+  scroll: "scroll" | "no-scroll" = "scroll",
 ) {
   const errors = parseStringError(payload.error);
 
-  const commonErrorsState = {
-    value: StateValue.commonErrors,
-    commonErrors: {
-      context: {
-        errors,
-      },
-    },
-  } as Submission;
+  const submissionErrorState = proxy.states
+    .submission as SubmissionCommonErrors;
 
-  proxy.states.submission = {
-    ...proxy.states.submission,
-    ...commonErrorsState,
+  submissionErrorState.value = StateValue.commonErrors;
+
+  submissionErrorState.commonErrors = {
+    context: {
+      errors,
+    },
   };
 
-  const effects = getGeneralEffects(proxy);
+  if (scroll === "scroll") {
+    const effects = getGeneralEffects(proxy);
 
-  effects.push({
-    key: "scrollToViewEffect",
-    ownArgs: {
-      id: scrollIntoViewDomId,
-    },
-  });
+    effects.push({
+      key: "scrollToViewEffect",
+      ownArgs: {
+        id: scrollIntoViewDomId,
+      },
+    });
+  }
 }
 
 function handleResetFormFieldsAction(proxy: DraftState) {
@@ -662,17 +664,18 @@ function handleResetFormFieldsAction(proxy: DraftState) {
     switch (fieldName) {
       case "title":
         clearFieldInvalidState(fieldState as FormField);
-
         break;
 
       case "description":
         {
+          const inactiveState = fieldState as Draft<DescriptionFormField>;
+          inactiveState.value = StateValue.active;
+
           const state = (fieldState as DescriptionFormFieldActive).active
             .states;
 
           state.value = StateValue.unchanged;
         }
-
         break;
 
       case "dataDefinitions":
@@ -704,6 +707,7 @@ function clearFieldInvalidState(formField: FormField) {
   const state = formField.states;
   state.value = StateValue.unchanged;
 
+  /* istanbul ignore else*/
   if ((state as ChangedState).changed) {
     (state as ChangedState).changed.states.value = StateValue.initial;
   }
@@ -743,7 +747,7 @@ function handleAddDefinitionAction(
   effects.push({
     key: "scrollToViewEffect",
     ownArgs: {
-      id: makeDefinitionContainerDomId(definitionElProperties.id),
+      id: definitionElProperties.id,
     },
   });
 }
@@ -772,7 +776,7 @@ function handleRemoveDefinitionAction(
   effects.push({
     key: "scrollToViewEffect",
     ownArgs: {
-      id: makeDefinitionContainerDomId(defToScrollToId),
+      id: defToScrollToId,
     },
   });
 }
@@ -802,7 +806,7 @@ function handleDownDefinitionAction(
   effects.push({
     key: "scrollToViewEffect",
     ownArgs: {
-      id: makeDefinitionContainerDomId(downDefinition.id),
+      id: downDefinition.id,
     },
   });
 }
@@ -832,7 +836,7 @@ function handleUpDefinitionAction(
   effects.push({
     key: "scrollToViewEffect",
     ownArgs: {
-      id: makeDefinitionContainerDomId(upDefinition.id),
+      id: upDefinition.id,
     },
   });
 }
@@ -863,8 +867,8 @@ function handleOnServerErrorsAction(
     __typename,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     meta,
-    dataDefinitions,
-    title,
+    dataDefinitions: dataDefinitionsErrors,
+    title: titleError,
     ...errors
   } = payload.errors;
 
@@ -874,22 +878,74 @@ function handleOnServerErrorsAction(
     },
   } = proxy;
 
-  if (title) {
+  /* istanbul ignore else*/
+  if (titleError) {
     const {
       title: { states },
     } = fields;
 
-    putFormFieldErrorHelper(states, [["title", title]]);
+    putFormFieldErrorHelper(states, [["title", titleError]]);
   }
 
-  const formInvalidState = validity as FormInValid;
-  formInvalidState.value = StateValue.invalid;
-  const invalidErrors = [] as FieldError;
-  formInvalidState.invalid = {
-    context: {
-      errors: invalidErrors,
-    },
-  };
+  if (dataDefinitionsErrors) {
+    dataDefinitionsErrors.forEach((d) => {
+      const {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        __typename,
+        index,
+        name: nameError,
+        type: typeError,
+      } = d as CreateExperiences_createExperiences_CreateExperienceErrors_errors_dataDefinitions;
+
+      const state = definitionFieldsMapToList(fields.dataDefinitions).find(
+        (def) => {
+          return def.index === index;
+        },
+      ) as DataDefinitionFormField;
+
+      /* istanbul ignore else*/
+      if (nameError) {
+        putFormFieldErrorHelper(state.name.states, [["name", nameError]]);
+      }
+
+      /* istanbul ignore else*/
+      if (typeError) {
+        putFormFieldErrorHelper(state.type.states, [["type", typeError]]);
+      }
+    });
+  }
+
+  if (
+    Object.values(errors).reduce((acc, v) => {
+      if (v) {
+        ++acc;
+      }
+      return acc;
+    }, 0)
+  ) {
+    const formInvalidState = validity as FormInValid;
+    formInvalidState.value = StateValue.invalid;
+    const invalidErrors = [] as FieldError;
+    formInvalidState.invalid = {
+      context: {
+        errors: invalidErrors,
+      },
+    };
+
+    Object.entries(errors).forEach(([k, v]) => {
+      if (v) {
+        invalidErrors.push([k, v]);
+      }
+    });
+  } else {
+    handleOnCommonErrorAction(
+      proxy,
+      {
+        error: FORM_CONTAINS_ERRORS_MESSAGE,
+      },
+      "no-scroll",
+    );
+  }
 
   const effects = getGeneralEffects(proxy);
 
@@ -899,34 +955,6 @@ function handleOnServerErrorsAction(
       id: scrollIntoViewDomId,
     },
   });
-
-  Object.entries(errors).forEach(([k, v]) => {
-    if (v) {
-      invalidErrors.push([k, v]);
-    }
-  });
-
-  if (dataDefinitions) {
-    dataDefinitions.forEach((d) => {
-      const {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        __typename,
-        index,
-        name: nameError,
-        type: typeError,
-      } = d as CreateExperiences_createExperiences_CreateExperienceErrors_errors_dataDefinitions;
-
-      const state = fields.dataDefinitions[index];
-
-      if (nameError) {
-        putFormFieldErrorHelper(state.name.states, [["name", nameError]]);
-      }
-
-      if (typeError) {
-        putFormFieldErrorHelper(state.type.states, [["type", typeError]]);
-      }
-    });
-  }
 }
 
 function handleCloseSubmitNotificationAction(proxy: DraftState) {
@@ -944,8 +972,13 @@ function handleCloseSubmitNotificationAction(proxy: DraftState) {
 
 ////////////////////////// TYPES SECTION ////////////////////////////
 
+export interface CallerProps {
+  parentDispatch: ParentDispatch;
+}
+
 export type Props = CreateExperiencesComponentProps &
-  CreateExperienceOfflineMutationComponentProps & {
+  CreateExperienceOfflineMutationComponentProps &
+  CallerProps & {
     client: ApolloClient<{}>;
     persistor: AppPersistor;
   };
@@ -976,7 +1009,7 @@ export type Action =
       type: ActionType.ON_COMMON_ERROR;
     } & StringyErrorPayload)
   | {
-      type: ActionType.SUBMITTING;
+      type: ActionType.SUBMISSION;
     }
   | {
       type: ActionType.FORM_ERRORS;
@@ -1065,7 +1098,7 @@ interface Submitting {
   value: SubmittingVal;
 }
 
-interface SubmissionCommonErrors {
+export interface SubmissionCommonErrors {
   value: CommonErrorsVal;
   commonErrors: {
     context: {
@@ -1083,14 +1116,16 @@ interface SubmissionWarning {
   };
 }
 
-type DescriptionFormField = { value: InActiveVal } | DescriptionFormFieldActive;
+export type DescriptionFormField =
+  | { value: InActiveVal }
+  | DescriptionFormFieldActive;
 
 interface DescriptionFormFieldActive {
   readonly value: ActiveVal;
   readonly active: FormField;
 }
 
-interface DataDefinitionFieldsMap {
+export interface DataDefinitionFieldsMap {
   [dataDefinitionDomId: string]: DataDefinitionFormField;
 }
 
@@ -1101,11 +1136,11 @@ interface DataDefinitionFormField {
   readonly type: FormField<DataTypes>;
 }
 
-type FormField<Value = string> = {
+export type FormField<Value = string> = {
   states: { value: UnChangedVal } | ChangedState<Value>;
 };
 
-interface ChangedState<Value = string> {
+export interface ChangedState<Value = string> {
   value: ChangedVal;
   changed: {
     context: {
@@ -1115,7 +1150,7 @@ interface ChangedState<Value = string> {
   };
 }
 
-interface FieldInValid {
+export interface FieldInValid {
   value: InvalidVal;
   invalid: {
     context: {
@@ -1124,7 +1159,7 @@ interface FieldInValid {
   };
 }
 
-interface FormInValid {
+export interface FormInValid {
   value: InvalidVal;
   invalid: {
     context: {
@@ -1133,7 +1168,7 @@ interface FormInValid {
   };
 }
 
-interface EffectArgs {
+export interface EffectArgs {
   dispatch: DispatchType;
 }
 
@@ -1152,7 +1187,7 @@ interface EffectDefinition<
   ) => void | Promise<void | VoidFn | VoidFn>;
 }
 
-interface EffectState {
+export interface EffectState {
   value: HasEffectsVal;
   hasEffects: {
     context: {

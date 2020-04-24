@@ -1,8 +1,6 @@
 /* istanbul ignore file */
 import React, { PropsWithChildren } from "react";
 import makeClassName from "classnames";
-
-import "./form-ctrl-error.styles.css";
 import { ComponentProps } from "../../utils/types";
 
 interface Props extends PropsWithChildren<{}>, ComponentProps {
@@ -15,7 +13,7 @@ export function FormCtrlError(props: Props) {
   return children || error ? (
     <div
       className={makeClassName({
-        "components-form-control-error": true,
+        "is-danger help": true,
         [className]: !!className,
       })}
       id={id}

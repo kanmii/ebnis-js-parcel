@@ -21,22 +21,59 @@ import {
   MutationResult,
   ExecutionResult,
 } from "@apollo/react-common";
-import { CreateExperiencesVariables } from "../../graphql/apollo-types/CreateExperiences";
+import {
+  CreateExperiencesVariables,
+  CreateExperiences_createExperiences,
+  CreateExperiences_createExperiences_CreateExperienceErrors_errors,
+  CreateExperiences_createExperiences_ExperienceSuccess,
+} from "../../graphql/apollo-types/CreateExperiences";
+import { uuid } from "uuidv4";
+import { getExperiencesMiniQuery } from "../../apollo/get-experiences-mini-query";
+import {
+  GetExperienceConnectionMini_getExperiences_edges,
+  GetExperienceConnectionMini_getExperiences_edges_node,
+} from "../../graphql/apollo-types/GetExperienceConnectionMini";
 
 const createOfflineExperienceResolver: LocalResolverFn<
   CreateExperiencesVariables,
-  ExperienceFragment
-> = (_, variables, { client }) => {
+  CreateExperiences_createExperiences
+> = (_, variables) => {
   const { input: inputs } = variables;
+  const input = inputs[0];
+
+  const existingExperiencesMini = getExperiencesMiniQuery();
+
+  const existingExperiences = existingExperiencesMini
+    ? (existingExperiencesMini.edges as GetExperienceConnectionMini_getExperiences_edges[])
+    : ([] as GetExperienceConnectionMini_getExperiences_edges[]);
+
+  const exists = existingExperiences.find((e) => {
+    const edge = e as GetExperienceConnectionMini_getExperiences_edges;
+    return (
+      (edge.node as GetExperienceConnectionMini_getExperiences_edges_node)
+        .title === input.title
+    );
+  });
+
+  if (exists) {
+    return {
+      __typename: "CreateExperienceErrors",
+      errors: {
+        __typename: "CreateExperienceError",
+        title: "has already been taken",
+      } as CreateExperiences_createExperiences_CreateExperienceErrors_errors,
+    };
+  }
+
   const today = new Date();
   const timestamp = today.toJSON();
-  const experienceId = makeOfflineId(today.getTime());
+  const experienceId = makeOfflineId(uuid());
 
   const {
     dataDefinitions: createDataDefinitions,
     title,
     description = null,
-  } = inputs[0];
+  } = input;
 
   const dataDefinitions: ExperienceFragment_dataDefinitions[] = (createDataDefinitions as CreateDataDefinition[]).map(
     ({ name, type }, index) => {
@@ -53,7 +90,6 @@ const createOfflineExperienceResolver: LocalResolverFn<
   );
 
   const experience: ExperienceFragment = {
-    hasUnsaved: true,
     __typename: "Experience",
     id: experienceId,
     clientId: experienceId,
@@ -75,19 +111,32 @@ const createOfflineExperienceResolver: LocalResolverFn<
 
   writeExperienceFragmentToCache(experience);
 
-  insertExperienceInGetExperiencesMiniQuery(client, experience, {
+  insertExperienceInGetExperiencesMiniQuery(experience, {
     force: true,
   });
 
   writeUnsyncedExperience(experienceId, true);
 
-  return experience;
+  return {
+    __typename: "ExperienceSuccess",
+    experience,
+  } as CreateExperiences_createExperiences_ExperienceSuccess;
 };
 
 export const CREATE_OFFLINE_EXPERIENCE_MUTATION = gql`
   mutation CreateOfflineExperienceMutation($input: CreateExperienceInput!) {
     createOfflineExperience(input: $input) @client {
-      ...ExperienceFragment
+      __typename
+      ... on ExperienceSuccess {
+        experience {
+          ...ExperienceFragment
+        }
+      }
+      ... on CreateExperienceErrors {
+        errors {
+          title
+        }
+      }
     }
   }
 
@@ -95,7 +144,7 @@ export const CREATE_OFFLINE_EXPERIENCE_MUTATION = gql`
 `;
 
 export interface CreateExperienceOfflineMutation {
-  createOfflineExperience: ExperienceFragment;
+  createOfflineExperience: CreateExperiences_createExperiences;
 }
 
 // istanbul ignore next:
