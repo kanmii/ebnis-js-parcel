@@ -2,7 +2,6 @@ import React, {
   useLayoutEffect,
   useReducer,
   useCallback,
-  lazy,
   Suspense,
 } from "react";
 import Header from "../Header/header.component";
@@ -11,10 +10,7 @@ import { setUpRoutePage } from "../../utils/global-window";
 import "./my.styles.scss";
 import Loading from "../Loading/loading.component";
 import { reducer, StateValue, initState, ActionType } from "./my.utils";
-
-const NewExperience = lazy(() =>
-  import("../NewExperience/new-experience.component"),
-);
+import { NewExperience } from "./my.lazy";
 
 export function My() {
   const [stateMachine, dispatch] = useReducer(reducer, undefined, initState);

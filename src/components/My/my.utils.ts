@@ -82,3 +82,5 @@ type Action =
     };
 
 export type DispatchType = Dispatch<Action>;
+
+export type Props = {};
