@@ -2,7 +2,13 @@
 import React, { ComponentType } from "react";
 import { render, cleanup } from "@testing-library/react";
 import { My } from "../components/My/my.component";
-import { Props } from "../components/My/my.utils";
+import {
+  Props,
+  reducer,
+  initState,
+  StateValue,
+  ActionType,
+} from "../components/My/my.utils";
 import { activateNewExperienceDomId } from "../components/My/my.dom";
 
 jest.mock("../components/Header/header.component", () => () => null);
@@ -17,13 +23,33 @@ afterEach(() => {
   cleanup();
 });
 
-it("renders", () => {
-  const { ui } = makeComp();
-  render(ui);
+describe("component", () => {
+  it("renders", () => {
+    const { ui } = makeComp();
+    render(ui);
 
-  expect(document.getElementById(mockNewExperienceId)).toBeNull();
-  (document.getElementById(activateNewExperienceDomId) as HTMLElement).click()
-  expect(document.getElementById(mockNewExperienceId)).not.toBeNull();
+    expect(document.getElementById(mockNewExperienceId)).toBeNull();
+    (document.getElementById(
+      activateNewExperienceDomId,
+    ) as HTMLElement).click();
+    expect(document.getElementById(mockNewExperienceId)).not.toBeNull();
+  });
+});
+
+describe("reducer", () => {
+  test("deactivate new experience", () => {
+    let state = initState();
+
+    state = reducer(state, {
+      type: ActionType.ACTIVATE_NEW_EXPERIENCE,
+    });
+    expect(state.states.newExperienceActivated.value).toBe(StateValue.active);
+
+    state = reducer(state, {
+      type: ActionType.DEACTIVATE_NEW_EXPERIENCE,
+    });
+    expect(state.states.newExperienceActivated.value).toBe(StateValue.inactive);
+  });
 });
 
 ////////////////////////// HELPER FUNCTIONS ///////////////////////////
