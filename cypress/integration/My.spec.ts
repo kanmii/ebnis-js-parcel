@@ -88,7 +88,7 @@ context("My page", () => {
   });
 
   describe("create offline experience", () => {
-    it.only("fails/succeeds", () => {
+    it("fails/succeeds", () => {
       const p = createOfflineExperience({
         title: existingExperienceTitle,
         description: "dd",
