@@ -9,6 +9,8 @@ import {
   UPDATE_EXPERIENCES_ONLINE_MUTATION, //
   CREATE_EXPERIENCES_MUTATION,
   DELETE_EXPERIENCES_MUTATION,
+  GET_EXPERIENCES_CONNECTION_MINI_QUERY,
+  getExperienceConnectionMiniVariables,
 } from "../graphql/experience.gql";
 import { UpdateExperienceFragment } from "../graphql/apollo-types/UpdateExperienceFragment";
 import {
@@ -37,6 +39,11 @@ import {
   GetDetailExperienceVariables,
 } from "../graphql/apollo-types/GetDetailExperience";
 import { GET_DETAIL_EXPERIENCE_QUERY } from "../graphql/experience.gql";
+import {
+  GetExperienceConnectionMiniVariables,
+  GetExperienceConnectionMini,
+} from "../graphql/apollo-types/GetExperienceConnectionMini";
+import { WatchQueryFetchPolicy } from "apollo-client";
 
 ////////////////////////// UPDATE EXPERIENCES SECTION //////////////////
 
@@ -189,4 +196,16 @@ export function useGetExperienceDetail(
       variables,
     },
   );
+}
+
+export function useGetExperienceConnectionMini(
+  fetchPolicy: WatchQueryFetchPolicy,
+) {
+  return useQuery<
+    GetExperienceConnectionMini,
+    GetExperienceConnectionMiniVariables
+  >(GET_EXPERIENCES_CONNECTION_MINI_QUERY, {
+    variables: getExperienceConnectionMiniVariables,
+    fetchPolicy,
+  });
 }

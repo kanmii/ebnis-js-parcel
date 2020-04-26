@@ -6,6 +6,7 @@ import { ApolloClient } from "apollo-client";
 import { Observable } from "zen-observable-ts";
 import { CachePersistor } from "apollo-cache-persist";
 import { EmitActionType } from "./observable-manager";
+import { ChangeEvent } from "react";
 
 export type EmitData = (params: EmitPayload) => void;
 
@@ -58,7 +59,7 @@ declare global {
 export type CommonError = Error | string;
 
 export type RestoreCacheOrPurgeStorageFn = (
-  persistor: CachePersistor<{}>
+  persistor: CachePersistor<{}>,
 ) => Promise<CachePersistor<{}>>;
 
 export type ComponentProps = any &
@@ -71,3 +72,5 @@ export type ComponentProps = any &
   };
 
 export type IEnum<T extends object> = T[keyof T];
+
+export type InputChangeEvent = ChangeEvent<HTMLInputElement>;

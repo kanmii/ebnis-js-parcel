@@ -26,11 +26,11 @@ import {
 import { createExperiencesManualUpdate } from "../../apollo/create-experiences-manual-update";
 import { scrollIntoViewDomId } from "./new-experience.dom";
 import { CreateExperienceOfflineMutationComponentProps } from "./new-experience.resolvers";
-import { makeExperienceRoute } from "../../utils/urls";
+import { makeDetailedExperienceRoute } from "../../utils/urls";
 import { windowChangeUrl, ChangeUrlType } from "../../utils/global-window";
 import { AppPersistor } from "../../utils/app-context";
 import { uuid } from "uuidv4";
-import { DispatchType as ParentDispatch } from "../My/my.utils";
+import { MyChildDispatchProps } from "../My/my.utils";
 
 export const fieldTypeKeys = Object.values(DataTypes);
 
@@ -189,7 +189,7 @@ const submissionEffect: DefSubmissionEffect["func"] = async (
           const experienceId = validResponse.experience.id;
           await persistor.persist();
           windowChangeUrl(
-            makeExperienceRoute(experienceId),
+            makeDetailedExperienceRoute(experienceId),
             ChangeUrlType.goTo,
           );
         }
@@ -227,7 +227,10 @@ const submissionEffect: DefSubmissionEffect["func"] = async (
     } else {
       const { experience } = response;
       await persistor.persist();
-      windowChangeUrl(makeExperienceRoute(experience.id), ChangeUrlType.goTo);
+      windowChangeUrl(
+        makeDetailedExperienceRoute(experience.id),
+        ChangeUrlType.goTo,
+      );
     }
   } catch (error) {
     dispatch({
@@ -972,9 +975,7 @@ function handleCloseSubmitNotificationAction(proxy: DraftState) {
 
 ////////////////////////// TYPES SECTION ////////////////////////////
 
-export interface CallerProps {
-  parentDispatch: ParentDispatch;
-}
+export type CallerProps = MyChildDispatchProps
 
 export type Props = CreateExperiencesComponentProps &
   CreateExperienceOfflineMutationComponentProps &

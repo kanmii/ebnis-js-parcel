@@ -16,7 +16,7 @@ import {
 import AuthenticationRequired from "../AuthenticationRequired/authentication-required.component";
 
 const Login = lazy(() => import("../Login/login.component"));
-const My = lazy(() => import("../My/my.component"));
+const My = lazy(() => import("../My/my.index"));
 const DetailExperience = lazy(() =>
   import("../DetailExperience/detail-experience.component"),
 );

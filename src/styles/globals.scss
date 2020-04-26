@@ -15,6 +15,7 @@
   --close-width: 50px;
   --header-height: 60px;
   --header-z-index: 1;
+  --body-padding-top: calc(var(--header-height) + 10px);
 }
 
 html,
@@ -23,5 +24,9 @@ body {
 }
 
 body {
-  padding-top: calc(var(--header-height) + 10px) !important;
+  padding-top: var(--body-padding-top) !important;
+}
+
+.app-root {
+  padding-top: 5px !important;
 }

@@ -58,9 +58,10 @@ import {
   errorClassName, //
 } from "../../utils/utils.dom";
 import { ActionType as ParentActionType } from "../My/my.utils";
+import { InputChangeEvent } from "../../utils/types";
 
 export function NewExperience(props: Props) {
-  const { client, parentDispatch } = props;
+  const { client, myDispatch: parentDispatch } = props;
   const [stateMachine, dispatch] = useReducer(reducer, undefined, initState);
 
   const {
@@ -650,8 +651,6 @@ interface DescriptionProps {
   onToggleDescription: () => void;
   onDescriptionChanged: (e: ChangeEvent<HTMLTextAreaElement>) => void;
 }
-
-type InputChangeEvent = ChangeEvent<HTMLInputElement>;
 
 interface TitleProps {
   state: FormField;

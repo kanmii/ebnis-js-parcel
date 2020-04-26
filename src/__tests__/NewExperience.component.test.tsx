@@ -651,7 +651,7 @@ function makeComp({ props = {} }: { props?: Partial<{}> } = {}) {
         createExperiences={mockCreateExperiencesOnline}
         persistor={persistor}
         createExperienceOffline={mockCreateOfflineExperience}
-        parentDispatch={mockParentDispatch}
+        myDispatch={mockParentDispatch}
         {...props}
       />
     ),
