@@ -2,8 +2,13 @@ import { Reducer, Dispatch } from "react";
 import { wrapReducer } from "../../logger";
 import immer, { Draft } from "immer";
 import { ExperienceMiniFragment } from "../../graphql/apollo-types/ExperienceMiniFragment";
-import { WatchQueryFetchPolicy } from "apollo-client";
 import fuzzysort from "fuzzysort";
+import { GetExperienceConnectionMini } from "../../graphql/apollo-types/GetExperienceConnectionMini";
+import { GetExperienceConnectionMini_getExperiences_edges } from "../../graphql/apollo-types/GetExperienceConnectionMini";
+import { FetchPolicy, ApolloQueryResult } from "apollo-client";
+import { manuallyFetchExperienceConnectionMini } from "../../utils/experience.gql.types";
+import { isConnected } from "../../utils/connections";
+import { parseStringError } from "../../utils/common-errors";
 
 export enum ActionType {
   ACTIVATE_NEW_EXPERIENCE = "@my/activate-new-experience",
@@ -13,11 +18,19 @@ export enum ActionType {
   CLOSE_ALL_OPTIONS_MENU = "@my/close-all-options-menu",
   SEARCH = "@my/search",
   CLEAR_SEARCH = "@my/clear-search",
+  ON_DATA_RECEIVED = "@my/on-data-received",
+  ON_DATA_RE_FETCHED = "@my/on-data-reFetched",
 }
 
 export const StateValue = {
   inactive: "inactive" as InActiveVal,
   active: "active" as ActiveVal,
+  error: "error" as ErrorVal,
+  loading: "loading" as LoadingVal,
+  data: "data" as DataVal,
+  noEffect: "noEffect" as NoEffectVal,
+  hasEffects: "hasEffects" as HasEffectsVal,
+  initial: "initial" as InitialVal,
 };
 
 export const reducer: Reducer<StateMachine, Action> = (state, action) =>
@@ -198,16 +211,6 @@ function handleClearSearchAction(proxy: DraftState) {
 
 ////////////////////////// END STATE UPDATE SECTION //////////////////////
 
-////////////////////////// HELPER FUNCTIONS /////////////////////
-
-export function computeFetchPolicy(
-  hasConnection: boolean,
-): WatchQueryFetchPolicy {
-  return hasConnection ? "cache-first" : "cache-only";
-}
-
-////////////////////////// END HELPER FUNCTIONS //////////////////////
-
 type DraftState = Draft<StateMachine>;
 
 export interface StateMachine {
@@ -230,6 +233,12 @@ export interface StateMachine {
 ////////////////////////// STRINGY TYPES SECTION ///////////
 type InActiveVal = "inactive";
 type ActiveVal = "active";
+type LoadingVal = "loading";
+type ErrorVal = "error";
+type DataVal = "data";
+type HasEffectsVal = "hasEffects";
+type NoEffectVal = "noEffect";
+type InitialVal = "initial";
 ////////////////////////// END STRINGY TYPES SECTION /////////
 
 export type SearchState =
@@ -308,3 +317,241 @@ export type ExperiencesSearchPrepared = {
   title: string;
   id: string;
 }[];
+
+////////////////////////// INDEX ////////////////////////////
+
+export const indexReducer: Reducer<IndexStateMachine, IndexAction> = (
+  state,
+  action,
+) =>
+  wrapReducer(
+    state,
+    action,
+    (prevState, { type, ...payload }) => {
+      return immer(prevState, (proxy) => {
+        proxy.effects.general.value = StateValue.noEffect;
+        delete proxy.effects.general[StateValue.hasEffects];
+
+        switch (type) {
+          case ActionType.ON_DATA_RECEIVED:
+            handleOnDataReceivedAction(proxy, payload as OnDataReceivedPayload);
+            break;
+
+          case ActionType.ON_DATA_RE_FETCHED:
+            handleOnDataReFetchedAction(proxy);
+            break;
+        }
+      });
+    },
+
+    // true,
+  );
+
+function handleOnDataReceivedAction(
+  proxy: IndexDraftState,
+  payload: OnDataReceivedPayload,
+) {
+  switch (payload.key) {
+    case StateValue.data:
+      {
+        const { data, loading } = payload.data;
+
+        if (loading) {
+          proxy.states = {
+            value: StateValue.loading,
+          };
+        } else {
+          proxy.states = {
+            value: StateValue.data,
+            data: experienceNodesFromEdges(data),
+          };
+        }
+      }
+      break;
+
+    case StateValue.error:
+      proxy.states = {
+        value: StateValue.error,
+        error: parseStringError(payload.error),
+      };
+
+      break;
+  }
+}
+
+async function handleOnDataReFetchedAction(proxy: IndexDraftState) {
+  const effects = getGeneralEffects(proxy);
+  effects.push({
+    key: "fetchExperiencesEffect",
+    ownArgs: {},
+  });
+}
+
+export function experienceNodesFromEdges(data?: GetExperienceConnectionMini) {
+  const d = data && data.getExperiences;
+
+  return d
+    ? (d.edges as GetExperienceConnectionMini_getExperiences_edges[]).map(
+        (edge) => {
+          return edge.node as ExperienceMiniFragment;
+        },
+      )
+    : // istanbul ignore next:
+      ([] as ExperienceMiniFragment[]);
+}
+
+export function initIndexState(): IndexStateMachine {
+  return {
+    states: {
+      value: StateValue.loading,
+    },
+    effects: {
+      general: {
+        value: StateValue.hasEffects,
+        hasEffects: {
+          context: {
+            effects: [
+              {
+                key: "fetchExperiencesEffect",
+                ownArgs: {
+                  initial: "initial",
+                },
+              },
+            ],
+          },
+        },
+      },
+    },
+  };
+}
+
+////////////////////////// END INDEX ////////////////////////////
+
+type IndexDraftState = Draft<IndexStateMachine>;
+
+interface IndexStateMachine {
+  readonly states:
+    | {
+        value: LoadingVal;
+      }
+    | IndexErrorState
+    | IndexDataState;
+  readonly effects: {
+    readonly general: EffectState | { value: NoEffectVal };
+  };
+}
+
+interface IndexErrorState {
+  value: ErrorVal;
+  error: string;
+}
+
+interface IndexDataState {
+  value: DataVal;
+  data: ExperienceMiniFragment[];
+}
+
+export interface EffectState {
+  value: HasEffectsVal;
+  hasEffects: {
+    context: {
+      effects: EffectsList;
+    };
+  };
+}
+
+interface EffectDefinition<
+  Key extends keyof typeof effectFunctions,
+  OwnArgs = {}
+> {
+  key: Key;
+  ownArgs: OwnArgs;
+  func?: (
+    ownArgs: OwnArgs,
+    args: EffectArgs,
+  ) => void | Promise<void | (() => void)> | (() => void);
+}
+
+type EffectsList = DefFetchExperiencesEffect[];
+
+export interface EffectArgs {
+  dispatch: Dispatch<IndexAction>;
+}
+
+type DefFetchExperiencesEffect = EffectDefinition<
+  "fetchExperiencesEffect",
+  {
+    initial?: InitialVal;
+  }
+>;
+
+const fetchExperiencesEffect: DefFetchExperiencesEffect["func"] = async (
+  { initial },
+  { dispatch },
+) => {
+  try {
+    let fetchPolicy = undefined;
+
+    if (initial) {
+      fetchPolicy = isConnected() ? "cache-first" : "cache-only";
+    }
+
+    const data = await manuallyFetchExperienceConnectionMini(
+      fetchPolicy as FetchPolicy,
+    );
+
+    dispatch({
+      type: ActionType.ON_DATA_RECEIVED,
+      key: StateValue.data,
+      data,
+    });
+  } catch (error) {
+    dispatch({
+      type: ActionType.ON_DATA_RECEIVED,
+      key: StateValue.error,
+      error,
+    });
+  }
+};
+
+export const effectFunctions = {
+  fetchExperiencesEffect,
+};
+
+function getGeneralEffects(proxy: IndexDraftState) {
+  const generalEffects = proxy.effects.general as EffectState;
+  generalEffects.value = StateValue.hasEffects;
+  let effects: EffectsList = [];
+
+  // istanbul ignore next: trivial
+  if (!generalEffects.hasEffects) {
+    generalEffects.hasEffects = {
+      context: {
+        effects,
+      },
+    };
+  } else {
+    // istanbul ignore next: trivial
+    effects = generalEffects.hasEffects.context.effects;
+  }
+
+  return effects;
+}
+
+type IndexAction =
+  | ({
+      type: ActionType.ON_DATA_RECEIVED;
+    } & OnDataReceivedPayload)
+  | {
+      type: ActionType.ON_DATA_RE_FETCHED;
+    };
+
+type OnDataReceivedPayload =
+  | {
+      key: DataVal;
+      data: ApolloQueryResult<GetExperienceConnectionMini>;
+    }
+  | {
+      key: ErrorVal;
+      error: Error;
+    };

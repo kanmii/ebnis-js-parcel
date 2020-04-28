@@ -15,9 +15,7 @@ import { LoginMutationComponentProps } from "../../utils/user.gql.types";
 import { isConnected } from "../../utils/connections";
 import { EbnisContextProps } from "../../utils/app-context";
 import { windowChangeUrl, ChangeUrlType } from "../../utils/global-window";
-import {
-  MY_URL, //
-} from "../../utils/urls";
+import { MY_URL } from "../../utils/urls";
 import { manageUserAuthentication } from "../../utils/manage-user-auth";
 
 export enum ActionType {
@@ -50,7 +48,7 @@ export const reducer: Reducer<StateMachine, Action> = (state, action) =>
     state,
     action,
     (prevState, { type, ...payload }) => {
-      return immer(prevState, proxy => {
+      return immer(prevState, (proxy) => {
         proxy.effects.general.value = StateValue.noEffect;
         delete proxy.effects.general[StateValue.hasEffects];
 
@@ -110,22 +108,15 @@ const scrollToTopEffect: DefScrollToTopEffect["func"] = () => {
 type DefScrollToTopEffect = EffectDefinition<"scrollToTopEffect", {}>;
 
 const loginEffect: DefLoginEffect["func"] = async (
-  ownArgs, //
+  ownArgs,
   props,
   effectArgs,
 ) => {
-  const {
-    login, //
-    persistor,
-  } = props;
+  const { login, persistor } = props;
 
-  const {
-    input, //
-  } = ownArgs;
+  const { input } = ownArgs;
 
-  const {
-    dispatch, //
-  } = effectArgs;
+  const { dispatch } = effectArgs;
 
   if (!isConnected()) {
     dispatch({
@@ -162,9 +153,7 @@ const loginEffect: DefLoginEffect["func"] = async (
 
       return;
     } else {
-      const {
-        user, //
-      } = validResponse;
+      const { user } = validResponse;
 
       manageUserAuthentication(user);
       await persistor.persist();
@@ -231,9 +220,7 @@ function handleFormChangedAction(
   const { value: text, fieldName } = payload;
   const {
     states: {
-      form: {
-        fields, //
-      },
+      form: { fields },
     },
   } = proxy;
 
@@ -285,20 +272,14 @@ function validateForm(proxy: DraftState): FormInput {
   const {
     states: {
       submission,
-      form: {
-        fields, //
-      },
+      form: { fields },
     },
   } = proxy;
 
   const {
-    email: {
-      states: emailState, //
-    },
+    email: { states: emailState },
 
-    password: {
-      states: passwordState, //
-    },
+    password: { states: passwordState },
   } = fields;
 
   const submissionErrorState = submission as SubmissionCommonErrors;
@@ -419,9 +400,7 @@ function handleResetFormFieldsAction(proxy: DraftState) {
   const {
     states: {
       submission,
-      form: {
-        fields, //
-      },
+      form: { fields },
     },
   } = proxy;
 

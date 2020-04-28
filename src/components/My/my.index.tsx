@@ -1,87 +1,89 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useCallback, useReducer } from "react";
 import Header from "../Header/header.component";
-import { useGetExperienceConnectionMini } from "../../utils/experience.gql.types";
-import { isConnected } from "../../utils/connections";
-import { GetExperienceConnectionMini_getExperiences_edges } from "../../graphql/apollo-types/GetExperienceConnectionMini";
-import { ExperienceMiniFragment } from "../../graphql/apollo-types/ExperienceMiniFragment";
-import { computeFetchPolicy } from "./my.utils";
 import Loading from "../Loading/loading.component";
 import { My } from "./my.component";
-import { fetchExperiencesErrorsDomId } from "./my.dom";
-import { ApolloError } from "apollo-client";
-import { parseStringError } from "../../utils/common-errors";
+import { fetchExperiencesErrorsDomId, fetchErrorRetryDomId } from "./my.dom";
+import errorImage from "../../media/error-96.png";
+import {
+  initIndexState,
+  StateValue,
+  ActionType,
+  indexReducer,
+  effectFunctions,
+} from "./my.utils";
 
 export default () => {
-  const hasConnection = isConnected() || false;
-
-  const { data, loading, error } = useGetExperienceConnectionMini(
-    computeFetchPolicy(hasConnection),
+  const [stateMachine, dispatch] = useReducer(
+    indexReducer,
+    undefined,
+    initIndexState,
   );
+  const {
+    states,
+    effects: { general: generalEffects },
+  } = stateMachine;
 
-  const experiences = useMemo(() => {
-    const d = data && data.getExperiences;
-
-    if (d) {
-      return (d.edges as GetExperienceConnectionMini_getExperiences_edges[]).map(
-        (edge) => {
-          return edge.node as ExperienceMiniFragment;
-        },
-      );
-    } else {
-      return [] as ExperienceMiniFragment[];
+  useEffect(() => {
+    if (generalEffects.value !== StateValue.hasEffects) {
+      return;
     }
-  }, [data]);
+
+    for (const { key, ownArgs } of generalEffects.hasEffects.context.effects) {
+      effectFunctions[key](
+        /* eslint-disable-next-line @typescript-eslint/no-explicit-any*/
+        ownArgs as any,
+        { dispatch },
+      );
+    }
+
+    /* eslint-disable-next-line react-hooks/exhaustive-deps*/
+  }, [generalEffects]);
+
+  const onReFetch = useCallback(() => {
+    dispatch({
+      type: ActionType.ON_DATA_RE_FETCHED,
+    });
+  }, []);
 
   return (
     <>
       <Header />
 
-      {error ? (
-        <FetchExperiencesFail error={error} />
-      ) : loading ? (
+      {states.value === StateValue.error ? (
+        <FetchExperiencesFail error={states.error} onReFetch={onReFetch} />
+      ) : states.value === StateValue.loading ? (
         <Loading />
       ) : (
-        <My experiences={experiences} />
+        <My experiences={states.data} />
       )}
     </>
   );
 };
 
-function FetchExperiencesFail(props: { error: ApolloError }) {
-  const { error } = props;
+function FetchExperiencesFail(props: { error: string; onReFetch: () => void }) {
+  const { error, onReFetch } = props;
   return (
-    <div className="card" id={fetchExperiencesErrorsDomId}>
+    <div className="card my__fetch-errors" id={fetchExperiencesErrorsDomId}>
       <div className="card-image">
-        <figure className="image is-4by3">
-          <img
-            src="https://bulma.io/images/placeholders/1280x960.png"
-            alt="Placeholder"
-          />
+        <figure className="image is-96x96 my__fetch-errors-image">
+          <img src={errorImage} alt="error loading experiences" />
         </figure>
       </div>
 
-      <div className="card-content">
-        <div className="media">
-          <div className="media-left">
-            <figure className="image is-48x48">
-              <img
-                src="https://bulma.io/images/placeholders/96x96.png"
-                alt="Placeholder"
-              />
-            </figure>
-          </div>
+      <div className="my__fetch-errors-content card-content notification is-light is-danger">
+        <div className="content">
+          <p>{error}</p>
         </div>
-      </div>
 
-      <div className="content">
-        <p>{parseStringError(error)}</p>
-      </div>
-
-      <footer className="card-footer">
-        <button className="button" type="button">
+        <button
+          className="button is-medium"
+          type="button"
+          id={fetchErrorRetryDomId}
+          onClick={onReFetch}
+        >
           Retry
         </button>
-      </footer>
+      </div>
     </div>
   );
 }

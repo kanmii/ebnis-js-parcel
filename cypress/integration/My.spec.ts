@@ -2,7 +2,7 @@
 import { MY_URL } from "../../src/utils/urls";
 import {
   MY_TITLE,
-  activateNewExperienceDomId,
+  activateNewDomId,
 } from "../../src/components/My/my.dom";
 import {
   domPrefix as newExperienceDomId,
@@ -30,8 +30,8 @@ context("My page", () => {
   const newExperienceTitleAppend = "1";
   const newExperienceTitle = existingExperienceTitle + newExperienceTitleAppend;
 
-  describe("create online experience", () => {
-    it("fails/succeeds", () => {
+  describe("online experience", () => {
+    it("create fails/succeeds", () => {
       const p = createOnlineExperience({
         title: existingExperienceTitle,
         description: "dd",
@@ -46,10 +46,10 @@ context("My page", () => {
       cy.wrap(p).then(() => {
         cy.visit(MY_URL);
         cy.title().should("contain", MY_TITLE);
-        cy.get("#" + activateNewExperienceDomId).click();
+        cy.get("#" + activateNewDomId).click();
         cy.get("#" + newExperienceDomId).then(() => {
           cy.get("#" + titleInputDomId).type(existingExperienceTitle);
-          cy.get("#" + descriptionInputDomId).type("dd");
+          cy.get("#" + descriptionInputDomId).type("dd"); // existing title
 
           cy.get("." + definitionNameFormControlSelector).type("n0");
 
@@ -87,8 +87,8 @@ context("My page", () => {
     });
   });
 
-  describe("create offline experience", () => {
-    it("fails/succeeds", () => {
+  describe("offline experience", () => {
+    it("create fails/succeeds", () => {
       const p = createOfflineExperience({
         title: existingExperienceTitle,
         description: "dd",
@@ -103,7 +103,7 @@ context("My page", () => {
       cy.wrap(p).then(() => {
         cy.visit(MY_URL);
         cy.title().should("contain", MY_TITLE);
-        cy.get("#" + activateNewExperienceDomId).click();
+        cy.get("#" + activateNewDomId).click();
         cy.setConnectionStatus(false);
 
         cy.get("#" + newExperienceDomId).then(() => {

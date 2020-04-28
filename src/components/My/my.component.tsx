@@ -4,12 +4,14 @@ import React, {
   useCallback,
   Suspense,
   memo,
-  useRef,
 } from "react";
 import {
   MY_TITLE,
   activateNewDomId,
   noExperiencesActivateNewDomId,
+  domPrefix,
+  experiencesDomId,
+  searchInputDomId,
 } from "./my.dom";
 import { setUpRoutePage } from "../../utils/global-window";
 import "./my.styles.scss";
@@ -73,11 +75,13 @@ export function My(props: Props) {
   }, []);
 
   return (
-    <div className="container my-component">
+    <div id={domPrefix} className="container my-component">
       {newExperienceActivated.value === StateValue.active && (
-        <Suspense fallback={<Loading />}>
-          <NewExperience myDispatch={dispatch} />
-        </Suspense>
+        <>
+          <Suspense fallback={<Loading />}>
+            <NewExperience myDispatch={dispatch} />
+          </Suspense>
+        </>
       )}
 
       {noExperiences ? (
@@ -122,7 +126,7 @@ const ExperiencesComponent = memo(
     const { dispatch, experiences, experiencesStates } = props;
 
     return (
-      <div className="experiences-container">
+      <div className="experiences-container" id={experiencesDomId}>
         {experiences.map((experience) => {
           const { id } = experience;
 
@@ -154,19 +158,13 @@ const ExperiencesComponent = memo(
 
 const ExperienceComponent = React.memo(
   function ExperienceFn(props: ExperienceProps) {
-    const {
-      experience,
-      experienceState: state, // we show 1 line of description: this toggle show the rest
-      dispatch,
-    } = props;
-
-    const nodeRef = useRef<HTMLDivElement>(null);
+    const { experience, experienceState: state, dispatch } = props;
     const { title, description, id } = experience;
     const { isOffline, isPartOffline } = getOnlineStatus(experience);
     const detailPath = makeDetailedExperienceRoute(id);
     const { showingDescription, showingOptionsMenu } = state;
 
-    const onToggleShowMenuOptions = useCallback(() => {
+    const onToggleShowMenuOptions = useCallback((e) => {
       dispatch({
         type: ActionType.TOGGLE_SHOW_OPTIONS_MENU,
         id,
@@ -186,14 +184,13 @@ const ExperienceComponent = React.memo(
       <article
         className={makeClassNames({
           "experience box media": true,
-          "is-danger": isOffline,
-          "is-warning": isPartOffline,
+          "experience--is-danger": isOffline,
+          "experience--is-warning": isPartOffline,
         })}
-        ref={nodeRef}
       >
         <div className="media-content">
           <div className="content">
-            <Link className="neutral-link" to={detailPath}>
+            <Link className="neutral-link experience-link" to={detailPath}>
               <strong>{title}</strong>
             </Link>
 
@@ -205,9 +202,9 @@ const ExperienceComponent = React.memo(
                 >
                   <span className="icon">
                     {showingDescription ? (
-                      <i className="fas fa-minus"></i>
+                      <i className="fas fa-minus description__control--less"></i>
                     ) : (
-                      <i className="fas fa-plus"></i>
+                      <i className="fas fa-plus description__control--more"></i>
                     )}
                   </span>
 
@@ -243,9 +240,7 @@ const ExperienceComponent = React.memo(
                     delete: true,
                   },
                 }}
-                className={makeClassNames({
-                  "dropdown-item": true,
-                })}
+                className="experience-link"
               >
                 Delete
               </Link>
@@ -279,10 +274,10 @@ const SearchComponent = (props: SearchProps) => {
   const { state, dispatch } = props;
   const stateValue = state.value;
 
-  const active =
-    (state as SearchActive).active || makeDefaultSearchActive();
+  const active = (state as SearchActive).active || makeDefaultSearchActive();
 
   const { value, results } = active.context;
+  const hasResults = results.length > 0;
 
   const onSearch = useCallback((e: InputChangeEvent) => {
     const text = e.target.value;
@@ -297,6 +292,7 @@ const SearchComponent = (props: SearchProps) => {
     <div className="search">
       <div className="control has-icons-right">
         <input
+          id={searchInputDomId}
           className="input is-rounded"
           type="text"
           placeholder="Search your experiences"
@@ -312,13 +308,14 @@ const SearchComponent = (props: SearchProps) => {
       <div className="table-container search__results">
         <table className="table table is-bordered is-striped is-fullwidth">
           <tbody>
-            {stateValue === StateValue.active
-              ? results.map(({ id, title }) => {
+            {stateValue === StateValue.active ? (
+              hasResults ? (
+                results.map(({ id, title }) => {
                   return (
                     <tr key={id}>
-                      <td>
+                      <td className="search__link-container">
                         <Link
-                          className="neutral-link"
+                          className="neutral-link search__link"
                           to={makeDetailedExperienceRoute(id)}
                         >
                           {title}
@@ -327,7 +324,12 @@ const SearchComponent = (props: SearchProps) => {
                     </tr>
                   );
                 })
-              : null}
+              ) : (
+                <tr>
+                  <td className="search__no-results">No results</td>
+                </tr>
+              )
+            ) : null}
           </tbody>
         </table>
       </div>

@@ -1,97 +1,140 @@
-.my-component {
-  --new-trigger-bottom: 30px;
-  padding-bottom: calc(var(--new-trigger-bottom) * 1.5);
-  padding-top: 60px;
+@import "../../styles/variables";
 
-  .no-experiences {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-top: 10px;
+.my {
+  &__fetch {
+    &-errors {
+      max-width: 300px;
+      margin: 0 auto;
+      padding-top: 10px;
+      margin-top: 40px;
 
-    &__notification {
-      width: 90%;
-      max-width: 400px;
-    }
-
-    &__title {
-      font-weight: 500;
-      font-size: 1.3rem;
-      margin-bottom: 5px;
-    }
-  }
-
-  .new-experience-trigger {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    background-color: var(--app-color);
-    color: #fff;
-    position: fixed;
-    bottom: var(--new-trigger-bottom);
-    right: 30px;
-  }
-
-  .media-content {
-    overflow-x: auto;
-  }
-
-  .neutral-link {
-    color: initial;
-  }
-
-  .dropdown {
-    &-trigger {
-      cursor: pointer;
-    }
-
-    &-item {
-      cursor: pointer;
-    }
-  }
-
-  .description {
-    &__label {
-      margin-left: 10px;
-    }
-
-    &__text {
-      word-break: break-word;
-      padding: 15px 0 0 15px;
-      background: white;
-
-      &--summary {
-        height: 60px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-height: 60px;
-        white-space: nowrap;
-      }
-
-      &--full {
-        height: 200px;
-        background: #fdfdfd;
+      &-image {
+        margin: 0 auto;
       }
     }
 
-    &__control {
-      margin-left: -5px;
+    &-errors-content {
+      border-radius: 0;
+      margin-top: 20px;
+      margin-top: 40px;
     }
   }
 
-  .search {
-    max-width: 400px;
-    width: 85%;
-    position: fixed;
-    top: var(--body-padding-top);
+  &-component {
+    --new-trigger-bottom: 30px;
+    padding-bottom: calc(var(--new-trigger-bottom) * 1.5);
+    padding-top: 60px;
 
-    &__results {
-      max-height: 300px;
-      overflow-y: auto;
+    .no-experiences {
+      display: flex;
+      justify-content: center;
+      align-items: center;
       margin-top: 10px;
+
+      &__notification {
+        width: 90%;
+        max-width: 400px;
+      }
+
+      &__title {
+        font-weight: 500;
+        font-size: 1.3rem;
+        margin-bottom: 5px;
+      }
+    }
+
+    .new-experience-trigger {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background-color: var(--app-color);
+      color: #fff;
+      position: fixed;
+      bottom: var(--new-trigger-bottom);
+      right: 30px;
+    }
+
+    .media-content {
+      overflow-x: auto;
+    }
+
+    .experience {
+      &--is-danger {
+        box-shadow: 0 0.5em 1em -0.125em $danger, 0 0px 0 1px $danger;
+      }
+
+      &--is-warning {
+        box-shadow: 0 0.5em 1em -0.125em $warning, 0 0px 0 1px $warning;
+      }
+    }
+
+    .neutral-link {
+      color: initial;
+    }
+
+    .dropdown {
+      &-trigger {
+        cursor: pointer;
+      }
+
+      &-item {
+        cursor: pointer;
+      }
+    }
+
+    .description {
+      &__label {
+        margin-left: 10px;
+      }
+
+      &__text {
+        word-break: break-word;
+        padding: 15px 0 0 15px;
+        background: white;
+
+        &--summary {
+          height: 60px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          max-height: 60px;
+          white-space: nowrap;
+        }
+
+        &--full {
+          max-height: 200px;
+          background: #fdfdfd;
+        }
+      }
+
+      &__control {
+        margin-left: -5px;
+      }
+    }
+
+    .search {
+      max-width: 400px;
+      width: 85%;
+      position: fixed;
+      top: var(--body-padding-top);
+
+      &__results {
+        max-height: 300px;
+        overflow-y: auto;
+        margin-top: 10px;
+      }
+
+      &__link {
+        width: 100%;
+        display: block;
+        padding: 0.5em 0.75em;
+
+        &-container {
+          padding: 0;
+        }
+      }
     }
   }
 }

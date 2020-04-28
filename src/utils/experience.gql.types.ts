@@ -43,7 +43,7 @@ import {
   GetExperienceConnectionMiniVariables,
   GetExperienceConnectionMini,
 } from "../graphql/apollo-types/GetExperienceConnectionMini";
-import { WatchQueryFetchPolicy } from "apollo-client";
+import { FetchPolicy } from "apollo-client";
 
 ////////////////////////// UPDATE EXPERIENCES SECTION //////////////////
 
@@ -198,14 +198,17 @@ export function useGetExperienceDetail(
   );
 }
 
-export function useGetExperienceConnectionMini(
-  fetchPolicy: WatchQueryFetchPolicy,
+export function manuallyFetchExperienceConnectionMini(
+  fetchPolicy?: FetchPolicy,
 ) {
-  return useQuery<
+  const { client } = window.____ebnis;
+
+  return client.query<
     GetExperienceConnectionMini,
     GetExperienceConnectionMiniVariables
-  >(GET_EXPERIENCES_CONNECTION_MINI_QUERY, {
+  >({
+    query: GET_EXPERIENCES_CONNECTION_MINI_QUERY,
     variables: getExperienceConnectionMiniVariables,
-    fetchPolicy,
+    fetchPolicy: fetchPolicy || "network-only",
   });
 }

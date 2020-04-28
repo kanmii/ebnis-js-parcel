@@ -8,7 +8,7 @@ export function getOnlineStatus<T extends { id: string }>(experience: T) {
   const { id } = experience;
   const isOffline = isOfflineId(experience.id);
   const hasUnsaved = getUnsyncedExperience(id);
-  const isPartOffline = !isOffline && hasUnsaved;
+  const isPartOffline = !isOffline && !!hasUnsaved;
   return { isOffline, isPartOffline };
 }
 
