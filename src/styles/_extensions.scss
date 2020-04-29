@@ -54,3 +54,17 @@
   border-left: 5px solid transparent;
   border-right: 5px solid transparent;
 }
+
+%floating-circular {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: var(--app-color);
+  color: #fff;
+  position: fixed;
+  right: 30px;
+  bottom: $floating-circular-bottom;
+}

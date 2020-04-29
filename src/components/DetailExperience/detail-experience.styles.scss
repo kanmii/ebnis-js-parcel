@@ -1,0 +1,10 @@
+@import "../../styles/variables";
+@import "../../styles/extensions";
+
+.detailed-experience-component {
+  padding-bottom: $floating-circular-bottom * 1.5;
+
+  .new-entry-trigger {
+    @extend %floating-circular;
+  }
+}

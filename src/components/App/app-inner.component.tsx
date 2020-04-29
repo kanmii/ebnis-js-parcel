@@ -18,7 +18,7 @@ import AuthenticationRequired from "../AuthenticationRequired/authentication-req
 const Login = lazy(() => import("../Login/login.component"));
 const My = lazy(() => import("../My/my.index"));
 const DetailExperience = lazy(() =>
-  import("../DetailExperience/detail-experience.component"),
+  import("../DetailExperience/detail-experience.index"),
 );
 
 export function AppInner({ obj }: { obj: E2EWindowObject }) {
