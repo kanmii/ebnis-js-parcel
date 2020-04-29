@@ -9,13 +9,11 @@ export function DetailExperience(props: Props) {
   useLayoutEffect(() => {
     setUpRoutePage({
       title: experience.title,
-      rootClassName: "my-component",
     });
   }, [experience]);
 
   return (
     <>
-
       <div className="detailed-experience-component">
         <pre>{JSON.stringify(experience)}</pre>
 
