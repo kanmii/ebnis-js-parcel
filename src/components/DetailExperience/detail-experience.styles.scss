@@ -7,4 +7,13 @@
   .new-entry-trigger {
     @extend %floating-circular;
   }
+
+  .data-object {
+    border: none;
+  }
+
+  .scroll-into-view {
+    @extend %visually-hidden;
+    margin-bottom: 30px;
+  }
 }

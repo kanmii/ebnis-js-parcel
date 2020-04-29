@@ -6,6 +6,16 @@
       pointer-events: none;
     }
 
+    &-card {
+      min-height: 500px;
+
+      @media (max-height: 500px) {
+        min-height: 100vh;
+      }
+
+      max-width: 450px;
+    }
+
     &-card-title {
       flex-shrink: 1;
     }
@@ -35,6 +45,7 @@
   height: 1px;
   visibility: hidden;
   clip: rect(1px, 1px, 1px, 1px);
+  display: block;
 }
 
 %chevron-down {
@@ -67,4 +78,5 @@
   position: fixed;
   right: 30px;
   bottom: $floating-circular-bottom;
+  cursor: pointer;
 }

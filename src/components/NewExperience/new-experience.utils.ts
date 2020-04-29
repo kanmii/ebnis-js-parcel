@@ -15,6 +15,12 @@ import {
   GENERIC_SERVER_ERROR,
   FieldError,
 } from "../../utils/common-errors";
+import {
+  GenericGeneralEffect,
+  getGeneralEffects,
+  GenericEffectDefinition,
+  GenericHasEffect,
+} from "../../utils/effects";
 import { scrollIntoView } from "../../utils/scroll-into-view";
 import { CreateExperiencesComponentProps } from "../../utils/experience.gql.types";
 import { entriesPaginationVariables } from "../../graphql/entry.gql";
@@ -31,6 +37,19 @@ import { windowChangeUrl, ChangeUrlType } from "../../utils/global-window";
 import { AppPersistor } from "../../utils/app-context";
 import { uuid } from "uuidv4";
 import { MyChildDispatchProps } from "../My/my.utils";
+import {
+  InActiveVal,
+  UnChangedVal,
+  CommonErrorsVal,
+  WarningVal,
+  InitialVal,
+  SubmissionVal,
+  ActiveVal,
+  ChangedVal,
+  ValidVal,
+  InvalidVal,
+  StateValue,
+} from "../../utils/types";
 
 export const fieldTypeKeys = Object.values(DataTypes);
 
@@ -38,7 +57,7 @@ export enum ActionType {
   SUBMISSION = "@experience-definition/submission",
   FORM_ERRORS = "@experience-definition/form-errors",
   ON_COMMON_ERROR = "@experience-definition/on-common-error",
-  CLOSE_SUBMIT_NOTIFICATION = "@experience-definition/close-submit-notification",
+  CLOSE_SUBMIT_NOTIFICATION = "@definition/close-submit-notification",
   FORM_CHANGED = "@experience-definition/form-changed",
   RESET_FORM_FIELDS = "@experience-definition/reset-form-fields",
   ON_SERVER_ERRORS = "@experience-definition/on-server-errors",
@@ -48,21 +67,6 @@ export enum ActionType {
   UP_DEFINITION = "@experience-definition/up-definition",
   TOGGLE_DESCRIPTION = "@experience-definition/toggle-description",
 }
-
-export const StateValue = {
-  noEffect: "noEffect" as NoEffectVal,
-  hasEffects: "hasEffects" as HasEffectsVal,
-  inactive: "inactive" as InActiveVal,
-  unchanged: "unchanged" as UnChangedVal,
-  commonErrors: "commonErrors" as CommonErrorsVal,
-  warning: "warning" as WarningVal,
-  active: "active" as ActiveVal,
-  submitting: "submitting" as SubmittingVal,
-  changed: "changed" as ChangedVal,
-  valid: "valid" as ValidVal,
-  invalid: "invalid" as InvalidVal,
-  initial: "initial" as InitialVal,
-};
 
 export const reducer: Reducer<StateMachine, Action> = (state, action) =>
   wrapReducer(
@@ -135,26 +139,6 @@ export const reducer: Reducer<StateMachine, Action> = (state, action) =>
   );
 
 ////////////////////////// EFFECTS SECTION /////////////////////////
-
-function getGeneralEffects(proxy: DraftState) {
-  const generalEffects = proxy.effects.general as EffectState;
-  generalEffects.value = StateValue.hasEffects;
-  let effects: EffectsList = [];
-
-  // istanbul ignore next: trivial
-  if (!generalEffects.hasEffects) {
-    generalEffects.hasEffects = {
-      context: {
-        effects,
-      },
-    };
-  } else {
-    // istanbul ignore next: trivial
-    effects = generalEffects.hasEffects.context.effects;
-  }
-
-  return effects;
-}
 
 const submissionEffect: DefSubmissionEffect["func"] = async (
   { input },
@@ -374,7 +358,7 @@ function handleSubmissionAction(proxy: DraftState) {
     states: { submission },
   } = proxy;
 
-  const effects = getGeneralEffects(proxy);
+  const effects = getGeneralEffects<EffectType, DraftState>(proxy);
   submission.value = StateValue.inactive;
 
   const input = validateForm(proxy);
@@ -975,7 +959,7 @@ function handleCloseSubmitNotificationAction(proxy: DraftState) {
 
 ////////////////////////// TYPES SECTION ////////////////////////////
 
-export type CallerProps = MyChildDispatchProps
+export type CallerProps = MyChildDispatchProps;
 
 export type Props = CreateExperiencesComponentProps &
   CreateExperienceOfflineMutationComponentProps &
@@ -1049,26 +1033,9 @@ interface DefinitionChangedPayload {
 
 ////////////////////////// TYPES SECTION ////////////////////
 
-////////////////////////// STRINGY TYPES SECTION ///////////
-
-type NoEffectVal = "noEffect";
-type HasEffectsVal = "hasEffects";
-type ActiveVal = "active";
-type InActiveVal = "inactive";
-type SubmittingVal = "submitting";
-type CommonErrorsVal = "commonErrors";
-type WarningVal = "warning";
-type ValidVal = "valid";
-type InvalidVal = "invalid";
-type InitialVal = "initial";
-type UnChangedVal = "unchanged";
-type ChangedVal = "changed";
-
-////////////////////////// END STRINGY TYPES SECTION /////////
-
 type DraftState = Draft<StateMachine>;
 
-export interface StateMachine {
+export interface StateMachine extends Readonly<GenericGeneralEffect<EffectType>> {
   readonly states: {
     readonly submission: Submission;
     readonly form: {
@@ -1079,9 +1046,6 @@ export interface StateMachine {
         readonly dataDefinitions: DataDefinitionFieldsMap;
       };
     };
-  };
-  readonly effects: {
-    readonly general: EffectState | { value: NoEffectVal };
   };
 }
 
@@ -1096,7 +1060,7 @@ export type Submission =
   | SubmissionWarning;
 
 interface Submitting {
-  value: SubmittingVal;
+  value: SubmissionVal;
 }
 
 export interface SubmissionCommonErrors {
@@ -1173,30 +1137,13 @@ export interface EffectArgs {
   dispatch: DispatchType;
 }
 
-type VoidFn = () => void;
-
-interface EffectDefinition<
+type EffectDefinition<
   Key extends keyof typeof effectFunctions,
-  OwnArgs = {}
-> {
-  key: Key;
-  ownArgs: OwnArgs;
-  func?: (
-    ownArgs: OwnArgs,
-    effectArgs: Props,
-    lastArgs: EffectArgs,
-  ) => void | Promise<void | VoidFn | VoidFn>;
-}
+  OwnArgs
+> = GenericEffectDefinition<EffectArgs, Props, Key, OwnArgs>;
 
-export interface EffectState {
-  value: HasEffectsVal;
-  hasEffects: {
-    context: {
-      effects: EffectsList;
-    };
-  };
-}
-
-type EffectsList = (DefScrollToViewEffect | DefSubmissionEffect)[];
+type EffectType = DefScrollToViewEffect | DefSubmissionEffect;
+export type EffectState = GenericHasEffect<EffectType>;
+type EffectList = EffectType[];
 
 export type DispatchType = Dispatch<Action>;

@@ -1,9 +1,10 @@
 /* istanbul ignore file */
+
 export function scrollIntoView(
   id: string,
   options: ScrollIntoViewOptions = {
     behavior: "smooth",
-  }
+  },
 ) {
   const element = document.getElementById(id);
 
@@ -21,5 +22,5 @@ export function scrollIntoView(
 
 export type ScrollIntoView = (
   id: string,
-  options?: ScrollIntoViewOptions
+  options?: ScrollIntoViewOptions,
 ) => void;

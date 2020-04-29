@@ -12,7 +12,6 @@ import {
   Props,
   initState,
   reducer,
-  StateValue,
   effectFunctions,
   ActionType,
   fieldTypeKeys,
@@ -59,6 +58,8 @@ import {
 } from "../../utils/utils.dom";
 import { ActionType as ParentActionType } from "../My/my.utils";
 import { InputChangeEvent } from "../../utils/types";
+import { StateValue } from "../../utils/types";
+import { useRunEffects } from "../../utils/use-run-effects";
 
 export function NewExperience(props: Props) {
   const { client, myDispatch: parentDispatch } = props;
@@ -79,22 +80,7 @@ export function NewExperience(props: Props) {
     effects: { general: generalEffects },
   } = stateMachine;
 
-  useEffect(() => {
-    if (generalEffects.value !== StateValue.hasEffects) {
-      return;
-    }
-
-    for (const { key, ownArgs } of generalEffects.hasEffects.context.effects) {
-      effectFunctions[key](
-        /* eslint-disable-next-line @typescript-eslint/no-explicit-any*/
-        ownArgs as any,
-        props,
-        { dispatch },
-      );
-    }
-
-    /* eslint-disable-next-line react-hooks/exhaustive-deps*/
-  }, [generalEffects]);
+  useRunEffects(generalEffects, effectFunctions, props, { dispatch });
 
   useEffect(() => {
     addResolvers(client);

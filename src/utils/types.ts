@@ -74,3 +74,31 @@ export type ComponentProps = any &
 export type IEnum<T extends object> = T[keyof T];
 
 export type InputChangeEvent = ChangeEvent<HTMLInputElement>;
+
+export type NoEffectVal = "noEffect";
+export type HasEffectsVal = "hasEffects";
+export type ActiveVal = "active";
+export type InActiveVal = "inactive";
+export type SubmissionVal = "submitting";
+export type CommonErrorsVal = "commonErrors";
+export type WarningVal = "warning";
+export type ValidVal = "valid";
+export type InvalidVal = "invalid";
+export type InitialVal = "initial";
+export type UnChangedVal = "unchanged";
+export type ChangedVal = "changed";
+
+export const StateValue = {
+  noEffect: "noEffect" as NoEffectVal,
+  hasEffects: "hasEffects" as HasEffectsVal,
+  inactive: "inactive" as InActiveVal,
+  unchanged: "unchanged" as UnChangedVal,
+  commonErrors: "commonErrors" as CommonErrorsVal,
+  warning: "warning" as WarningVal,
+  active: "active" as ActiveVal,
+  submitting: "submission" as SubmissionVal,
+  changed: "changed" as ChangedVal,
+  valid: "valid" as ValidVal,
+  invalid: "invalid" as InvalidVal,
+  initial: "initial" as InitialVal,
+} as const;

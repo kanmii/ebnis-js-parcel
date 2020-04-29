@@ -8,13 +8,13 @@ import {
   initState,
   effectFunctions,
   ActionType,
-  EffectState,
   EffectArgs,
   StateMachine,
   ChangedState,
   FieldInValid,
   FormInValid,
   SubmissionCommonErrors,
+  EffectState,
 } from "../components/NewExperience/new-experience.utils";
 import {
   submitDomId,
@@ -364,8 +364,8 @@ describe("reducer", () => {
       dispatch: mockDispatch,
     } as EffectArgs;
 
-    const effect = (state.effects.general as EffectState).hasEffects.context
-      .effects[0];
+    const effect = (state.effects.general as EffectState).hasEffects
+      .context.effects[0];
 
     const effectFn = effectFunctions[effect.key];
 
