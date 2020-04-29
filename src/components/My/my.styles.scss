@@ -69,6 +69,11 @@
       &--is-warning {
         box-shadow: 0 0.5em 1em -0.125em $warning, 0 0px 0 1px $warning;
       }
+
+      &__title {
+        display: block;
+        padding: 0 0 25px 0;
+      }
     }
 
     .neutral-link {
