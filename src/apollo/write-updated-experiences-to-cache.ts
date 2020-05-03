@@ -1,140 +1,158 @@
-import immer, { Draft } from "immer";
 import { DataProxy } from "apollo-cache";
+import immer, { Draft } from "immer";
 import { UpdateExperiencesOnlineMutationResult } from "../utils/experience.gql.types";
+import { readExperienceFragment } from "./read-experience-fragment";
+import { UpdateExperienceFragment } from "../graphql/apollo-types/UpdateExperienceFragment";
+import { ExperienceFragment } from "../graphql/apollo-types/ExperienceFragment";
 import { writeExperienceFragmentToCache } from "./write-experience-fragment";
+import { UnsyncedModifiedExperience } from "../utils/unsynced-ledger.types";
+import { DataObjectFragment } from "../graphql/apollo-types/DataObjectFragment";
+import { DataDefinitionFragment } from "../graphql/apollo-types/DataDefinitionFragment";
 import {
   getUnsyncedExperience,
   removeUnsyncedExperience,
   writeUnsyncedExperience,
 } from "./unsynced-ledger";
-import { floatExperiencesToTopInGetExperiencesMiniQuery } from "./update-get-experiences-mini-query";
-import { ExperienceFragment } from "../graphql/apollo-types/ExperienceFragment";
-import { UpdateExperienceFragment } from "../graphql/apollo-types/UpdateExperienceFragment";
 import { EntryConnectionFragment_edges } from "../graphql/apollo-types/EntryConnectionFragment";
 import { EntryFragment } from "../graphql/apollo-types/EntryFragment";
-import { DataObjectFragment } from "../graphql/apollo-types/DataObjectFragment";
-import { DataDefinitionFragment } from "../graphql/apollo-types/DataDefinitionFragment";
-import { readExperienceFragment } from "./read-experience-fragment";
 import { entryToEdge } from "../components/NewEntry/entry-to-edge";
-import { UnsyncedModifiedExperience } from "../utils/unsynced-ledger.types";
 
-export const StateValue = {
+const StateValue = {
   ownFieldsCleanUp: "clean-up-own-fields" as OwnFieldsCleanUp,
   ownFieldsNoCleanUp: "no-clean-up-own-fields" as OwnFieldsNoCleanUp,
   newEntriesCleanUp: "clean-up-new-entries" as NewEntriesCleanUp,
   newEntriesNoCleanUp: "no-clean-up-new-entries" as NewEntriesNoCleanUp,
-};
+} as const;
 
 export function writeUpdatedExperienceToCache(onDone?: () => void) {
   return function updateExperiencesInCacheInner(
     dataProxy: DataProxy,
     result: UpdateExperiencesOnlineMutationResult,
   ) {
-    const successfulResults = filterSuccessfulUpdates(result);
-    const cachedExperienceToUpdateDataList = mapUpdatedDataToCachedExperience(
-      dataProxy,
-      successfulResults,
-    );
+    const updateExperiences =
+      result && result.data && result.data.updateExperiences;
 
-    const [updatedExperiences, cleanUpDataList] = applyUpdatesAndGetCleanUpData(
-      cachedExperienceToUpdateDataList,
-    );
+    if (!updateExperiences) {
+      return;
+    }
 
-    const updatedIds: { [experienceId: string]: 1 } = {};
+    const updatedIds: {
+      [experienceId: string]: 1;
+    } = {};
 
-    updatedExperiences.forEach((experience) => {
-      writeExperienceFragmentToCache(experience);
-      updatedIds[experience.id] = 1;
-    });
+    // istanbul ignore else
+    if (updateExperiences.__typename === "UpdateExperiencesSomeSuccess") {
+      for (const updateResult of updateExperiences.experiences) {
+        // istanbul ignore else
+        if (updateResult.__typename === "UpdateExperienceSomeSuccess") {
+          const result = updateResult.experience;
+          const { experienceId } = updateResult.experience;
+          const experience = readExperienceFragment(experienceId);
 
-    cleanUpDataList.forEach(([experienceId, ...data]) => {
-      const unsynced = getUnsyncedExperience(
-        experienceId,
-      ) as UnsyncedModifiedExperience;
+          // istanbul ignore next
+          if (!experience) {
+            continue;
+          }
 
-      if (unsynced) {
-        const updatedUnsynced = updateUnSyncedLedger(unsynced, data);
+          const updatedExperience = immer(experience, (proxy) => {
+            const ownFieldsCleanUp = ownFieldsApplyUpdatesAndGetCleanUpData(
+              proxy,
+              result,
+            );
 
-        if (!Object.keys(updatedUnsynced).length) {
-          removeUnsyncedExperience(experienceId);
-        } else {
-          writeUnsyncedExperience(experienceId, updatedUnsynced);
+            const dataDefinitionsCleanUp = definitionsApplyUpdatesAndGetCleanUpData(
+              proxy,
+              result,
+            );
+
+            const newEntriesCleanUp = newEntriesApplyUpdatesAndGetCleanUpData(
+              proxy,
+              result,
+            );
+
+            const updatedEntriesCleanUp = updatedEntriesApplyUpdatesAndGetCleanUpData(
+              proxy,
+              result,
+            );
+
+            const unsynced = getUnsyncedExperience(
+              experienceId,
+            ) as UnsyncedModifiedExperience;
+
+            if (unsynced) {
+              const updatedUnsynced = updateUnSyncedLedger(unsynced, [
+                ownFieldsCleanUp,
+                dataDefinitionsCleanUp,
+                newEntriesCleanUp,
+                updatedEntriesCleanUp,
+              ]);
+
+              if (!Object.keys(updatedUnsynced).length) {
+                removeUnsyncedExperience(experienceId);
+              } else {
+                writeUnsyncedExperience(experienceId, updatedUnsynced);
+              }
+            }
+          });
+
+          updatedIds[updatedExperience.id] = 1;
+          writeExperienceFragmentToCache(updatedExperience);
         }
       }
-    });
-
-    floatExperiencesToTopInGetExperiencesMiniQuery(updatedIds);
-
-    if (onDone) {
-      onDone();
     }
   };
 }
 
-export function filterSuccessfulUpdates(
-  result: UpdateExperiencesOnlineMutationResult,
-) {
-  const updateExperiences =
-    result && result.data && result.data.updateExperiences;
-
-  if (!updateExperiences) {
-    return [];
+function ownFieldsApplyUpdatesAndGetCleanUpData(
+  proxy: DraftState,
+  { ownFields }: UpdateExperienceFragment,
+): ShouldCleanUpOwnFields {
+  if (!ownFields) {
+    return StateValue.ownFieldsNoCleanUp;
   }
 
-  if (updateExperiences.__typename === "UpdateExperiencesAllFail") {
-    return [];
+  // istanbul ignore else
+  if (ownFields.__typename === "ExperienceOwnFieldsSuccess") {
+    const { title, description } = ownFields.data;
+    proxy.title = title;
+    proxy.description = description;
+    return StateValue.ownFieldsCleanUp;
   } else {
-    return updateExperiences.experiences.reduce((acc, updateResult) => {
-      if (updateResult.__typename === "UpdateExperienceSomeSuccess") {
-        acc.push(updateResult.experience);
-      }
-
-      return acc;
-    }, [] as UpdateExperienceFragment[]);
+    return StateValue.ownFieldsNoCleanUp;
   }
 }
 
-export function applyUpdatesAndGetCleanUpData(
-  results: [ExperienceFragment, UpdateExperienceFragment][],
-): [ExperienceFragment[], AllCleanUpData] {
-  const updatedExperiences: ExperienceFragment[] = [];
-  const cleanUpData = [] as AllCleanUpData;
+function definitionsApplyUpdatesAndGetCleanUpData(
+  proxy: DraftState,
+  { updatedDefinitions }: UpdateExperienceFragment,
+): string[] {
+  if (!updatedDefinitions) {
+    return [];
+  }
 
-  results.forEach(([experience, updateResult]) => {
-    const updatedExperience = immer(experience, (proxy) => {
-      const ownFieldsCleanUp = ownFieldsApplyUpdatesAndGetCleanUpData(
-        proxy,
-        updateResult,
-      );
+  let hasSuccess = false;
+  const definitionsIdsToCleanUp: string[] = [];
 
-      const dataDefinitionsCleanUp = definitionsApplyUpdatesAndGetCleanUpData(
-        proxy,
-        updateResult,
-      );
+  const updates = updatedDefinitions.reduce((acc, update) => {
+    if (update.__typename === "DefinitionSuccess") {
+      hasSuccess = true;
+      const { definition } = update;
+      const { id } = definition;
+      acc[id] = definition;
+      definitionsIdsToCleanUp.push(id);
+    }
+    return acc;
+  }, {} as IdToDataDefinition);
 
-      const newEntriesCleanUp = newEntriesApplyUpdatesAndGetCleanUpData(
-        proxy,
-        updateResult,
-      );
-
-      const updatedEntriesCleanUp = updatedEntriesApplyUpdatesAndGetCleanUpData(
-        proxy,
-        updateResult,
-      );
-
-      cleanUpData.push([
-        experience.id,
-        ownFieldsCleanUp,
-        dataDefinitionsCleanUp,
-        newEntriesCleanUp,
-        updatedEntriesCleanUp,
-      ]);
+  if (hasSuccess) {
+    proxy.dataDefinitions = proxy.dataDefinitions.map((definition) => {
+      const { id } = definition;
+      const update = updates[id];
+      return update ? update : definition;
     });
+  }
 
-    updatedExperiences.push(updatedExperience);
-  });
-
-  return [updatedExperiences, cleanUpData];
+  return definitionsIdsToCleanUp;
 }
 
 function updatedEntriesApplyUpdatesAndGetCleanUpData(
@@ -155,6 +173,7 @@ function updatedEntriesApplyUpdatesAndGetCleanUpData(
         (dataObjectsAcc, data) => {
           const [dataObjectsIdsToCleanUp, dataObjectUpdates] = dataObjectsAcc;
 
+          // istanbul ignore else
           if (data.__typename === "DataObjectSuccess") {
             const { dataObject } = data;
             const { id } = dataObject;
@@ -167,6 +186,7 @@ function updatedEntriesApplyUpdatesAndGetCleanUpData(
         [[], {}] as [string[], IdToDataObjectMap],
       );
 
+      // istanbul ignore else
       if (dataObjectsIdsToCleanUp.length) {
         entriesIdsAcc[entryId] = dataObjectUpdates;
         idsToCleanUp.push([entryId, ...dataObjectsIdsToCleanUp]);
@@ -206,6 +226,7 @@ function newEntriesApplyUpdatesAndGetCleanUpData(
   }
 
   let hasOfflineSyncedEntryError = false;
+  let hasUpdates = false;
   const brandNewEntries: EntryFragment[] = [];
   const offlineSyncedEntries: IdToOfflineEntrySynced = {};
 
@@ -213,6 +234,7 @@ function newEntriesApplyUpdatesAndGetCleanUpData(
     if (update.__typename === "CreateEntrySuccess") {
       const { entry } = update;
       const { clientId } = entry;
+      hasUpdates = true;
 
       if (clientId) {
         // offline synced
@@ -225,6 +247,7 @@ function newEntriesApplyUpdatesAndGetCleanUpData(
       const clientId =
         update.errors && update.errors.meta && update.errors.meta.clientId;
 
+      // istanbul ignore else
       if (clientId) {
         // offline synced
         hasOfflineSyncedEntryError = true;
@@ -232,24 +255,28 @@ function newEntriesApplyUpdatesAndGetCleanUpData(
     }
   });
 
-  const edges = proxy.entries.edges as EntryConnectionFragment_edges[];
-
   const isOfflineEntrySynced = Object.keys(offlineSyncedEntries).length !== 0;
 
-  if (isOfflineEntrySynced) {
-    edges.forEach((e) => {
-      const edge = e as EntryConnectionFragment_edges;
-      const node = edge.node as EntryFragment;
-      const newEntry = offlineSyncedEntries[node.id];
-      if (newEntry) {
-        edge.node = newEntry;
-      }
-    });
-  }
+  if (hasUpdates) {
+    const edges = proxy.entries.edges as EntryConnectionFragment_edges[];
 
-  proxy.entries.edges = brandNewEntries
-    .map((entry) => entryToEdge(entry))
-    .concat(edges);
+    if (isOfflineEntrySynced) {
+      edges.forEach((e) => {
+        const edge = e as EntryConnectionFragment_edges;
+        const node = edge.node as EntryFragment;
+        // assumed that cached.id === cached.clientId === server.clientId
+        const newEntry = offlineSyncedEntries[node.id];
+        // istanbul ignore else
+        if (newEntry) {
+          edge.node = newEntry;
+        }
+      });
+    }
+
+    proxy.entries.edges = brandNewEntries
+      .map((entry) => entryToEdge(entry))
+      .concat(edges);
+  }
 
   const shouldCleanUp = hasOfflineSyncedEntryError
     ? StateValue.newEntriesNoCleanUp // errors! we can't clean up
@@ -260,74 +287,7 @@ function newEntriesApplyUpdatesAndGetCleanUpData(
   return shouldCleanUp;
 }
 
-function definitionsApplyUpdatesAndGetCleanUpData(
-  proxy: DraftState,
-  { updatedDefinitions }: UpdateExperienceFragment,
-): string[] {
-  if (!updatedDefinitions) {
-    return [];
-  }
-
-  let hasSuccess = false;
-  const definitionsIdsToCleanUp: string[] = [];
-
-  const updates = updatedDefinitions.reduce((acc, update) => {
-    if (update.__typename === "DefinitionSuccess") {
-      hasSuccess = true;
-      const { definition } = update;
-      const { id } = definition;
-      acc[id] = definition;
-      definitionsIdsToCleanUp.push(id);
-    }
-    return acc;
-  }, {} as IdToDataDefinition);
-
-  if (hasSuccess) {
-    proxy.dataDefinitions = proxy.dataDefinitions.map((d) => {
-      const definition = d as DataDefinitionFragment;
-      const { id } = definition;
-      const update = updates[id];
-      return update ? update : definition;
-    });
-  }
-
-  return definitionsIdsToCleanUp;
-}
-
-function ownFieldsApplyUpdatesAndGetCleanUpData(
-  proxy: DraftState,
-  { ownFields }: UpdateExperienceFragment,
-): ShouldCleanUpOwnFields {
-  if (!ownFields) {
-    return StateValue.ownFieldsNoCleanUp;
-  }
-
-  if (ownFields.__typename === "UpdateExperienceOwnFieldsErrors") {
-    return StateValue.ownFieldsNoCleanUp;
-  } else {
-    const { title, description } = ownFields.data;
-    proxy.title = title;
-    proxy.description = description;
-    return StateValue.ownFieldsCleanUp;
-  }
-}
-
-function mapUpdatedDataToCachedExperience(
-  dataProxy: DataProxy,
-  results: UpdateExperienceFragment[],
-) {
-  return results.reduce((acc, result) => {
-    const experience = readExperienceFragment(result.experienceId);
-
-    if (experience) {
-      acc.push([experience, result]);
-    }
-
-    return acc;
-  }, [] as [ExperienceFragment, UpdateExperienceFragment][]);
-}
-
-export function updateUnSyncedLedger(
+function updateUnSyncedLedger(
   unsynced: UnsyncedModifiedExperience,
   [
     shouldCleanUpOwnFields,
@@ -342,12 +302,13 @@ export function updateUnSyncedLedger(
 
   if (definitionsIdsToCleanUp.length) {
     const unsyncedDefinitions = unsynced.definitions;
-
+    // istanbul ignore else
     if (unsyncedDefinitions) {
       definitionsIdsToCleanUp.forEach((id) => {
         delete unsyncedDefinitions[id];
       });
 
+      // istanbul ignore else
       if (!Object.keys(unsyncedDefinitions).length) {
         delete unsynced.definitions;
       }
@@ -361,16 +322,19 @@ export function updateUnSyncedLedger(
   if (entryIdDataObjectsIdsToCleanUp.length) {
     const { modifiedEntries: unsyncedEntries } = unsynced;
 
+    // istanbul ignore else
     if (unsyncedEntries) {
       entryIdDataObjectsIdsToCleanUp.forEach(
         ([entryId, ...dataObjectsIdsToCleanUp]) => {
           const unsyncedEntry = unsyncedEntries[entryId];
 
+          // istanbul ignore else
           if (unsyncedEntry) {
             dataObjectsIdsToCleanUp.forEach((dataId) => {
               delete unsyncedEntry[dataId];
             });
 
+            // istanbul ignore else
             if (!Object.keys(unsyncedEntry).length) {
               delete unsyncedEntries[entryId];
             }
@@ -378,6 +342,7 @@ export function updateUnSyncedLedger(
         },
       );
 
+      // istanbul ignore else
       if (!Object.keys(unsyncedEntries).length) {
         delete unsynced.modifiedEntries;
       }
@@ -388,25 +353,17 @@ export function updateUnSyncedLedger(
 }
 
 type DraftState = Draft<ExperienceFragment>;
+type ShouldCleanUpOwnFields = OwnFieldsCleanUp | OwnFieldsNoCleanUp;
+type ShouldCleanUpNewEntries = NewEntriesCleanUp | NewEntriesNoCleanUp;
+type UpdatedEntriesCleanUp = string[][];
 
-interface IdToDataObjectMap {
-  [dataObjectId: string]: DataObjectFragment;
-}
+type OwnFieldsCleanUp = "clean-up-own-fields";
+type OwnFieldsNoCleanUp = "no-clean-up-own-fields";
+type NewEntriesCleanUp = "clean-up-new-entries";
+type NewEntriesNoCleanUp = "no-clean-up=new-entries";
+type DataDefinitionsIdsToCleanUp = string[];
+type DefinitionsUpdatesAndCleanUp = [IdToDataDefinition | null, string[]];
 
-type AllCleanUpData = [
-  string, // experienceId
-  ShouldCleanUpOwnFields,
-  DataDefinitionsIdsToCleanUp,
-  ShouldCleanUpNewEntries,
-  UpdatedEntriesCleanUp,
-][];
-
-// [
-//   shouldCleanUpOwnFields,
-//   dataDefinitionIdsToCleanUp,
-//   shouldCleanUpNewEntries,
-//   [entryIdToCleanUp, ...dataObjectsIdsToCleanUp][]
-// ]
 export type CleanUpData = [
   ShouldCleanUpOwnFields,
   DataDefinitionsIdsToCleanUp,
@@ -414,30 +371,18 @@ export type CleanUpData = [
   UpdatedEntriesCleanUp,
 ];
 
-type OwnFieldsUpdates = Pick<ExperienceFragment, "title" | "description">;
-type ShouldCleanUpOwnFields = OwnFieldsCleanUp | OwnFieldsNoCleanUp;
-
-export type DataDefinitionsIdsToCleanUp = string[];
-type DefinitionsUpdatesAndCleanUp = [IdToDataDefinition | null, string[]];
+interface IdToDataObjectMap {
+  [dataObjectId: string]: DataObjectFragment;
+}
 
 interface IdToDataDefinition {
   [definitionId: string]: DataDefinitionFragment;
-}
-
-type NewEntriesUpdates = [EntryFragment[], IdToOfflineEntrySynced | null];
-type ShouldCleanUpNewEntries = NewEntriesCleanUp | NewEntriesNoCleanUp;
-
-interface IdToOfflineEntrySynced {
-  [clientId: string]: EntryFragment;
 }
 
 interface EntryIdToDataObjectMap {
   [entryId: string]: IdToDataObjectMap;
 }
 
-type UpdatedEntriesCleanUp = string[][];
-
-type OwnFieldsCleanUp = "clean-up-own-fields";
-type OwnFieldsNoCleanUp = "no-clean-up-own-fields";
-type NewEntriesCleanUp = "clean-up-new-entries";
-type NewEntriesNoCleanUp = "no-clean-up=new-entries";
+interface IdToOfflineEntrySynced {
+  [clientId: string]: EntryFragment;
+}
