@@ -190,10 +190,7 @@ const ExperienceComponent = React.memo(
       >
         <div className="media-content">
           <div className="content">
-            <Link
-              className="neutral-link experience__title"
-              to={detailPath}
-            >
+            <Link className="neutral-link experience__title" to={detailPath}>
               <strong>{title}</strong>
             </Link>
 
@@ -243,6 +240,7 @@ const ExperienceComponent = React.memo(
                     delete: true,
                   },
                 }}
+                className="neutral-link"
               >
                 Delete
               </Link>
