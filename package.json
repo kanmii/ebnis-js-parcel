@@ -46,7 +46,7 @@
     "@types/react-dom": "^16.9.0",
     "@types/react-router-dom": "^5.1.4",
     "apollo": "^2.27.3",
-    "cypress": "^4.4.1",
+    "cypress": "^4.5.0",
     "env-cmd": "^10.1.0",
     "netlify": "^4.0.5",
     "node-fetch": "^2.6.0",
