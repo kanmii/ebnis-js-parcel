@@ -16,10 +16,13 @@ import {
 } from "../../utils/effects";
 import { scrollDocumentToTop } from "./detail-experience.injectables";
 import { StateValue } from "../../utils/types";
+import { EntryFragment } from "../../graphql/apollo-types/EntryFragment";
 
 export enum ActionType {
   TOGGLE_NEW_ENTRY_ACTIVE = "@detailed-experience/deactivate-new-entry",
   ON_NEW_ENTRY_CREATED = "@detailed-experience/on-new-entry-created",
+  ON_CLOSE_NOTIFICATION = "@detailed-experience/on-close-notification",
+  SET_TIMEOUT = "@detailed-experience/set-timeout",
 }
 
 export const reducer: Reducer<StateMachine, Action> = (state, action) =>
@@ -37,7 +40,15 @@ export const reducer: Reducer<StateMachine, Action> = (state, action) =>
             break;
 
           case ActionType.ON_NEW_ENTRY_CREATED:
-            handleOnNewEntryCreated(proxy);
+            handleOnNewEntryCreated(proxy, payload as OnNewEntryCreatedPayload);
+            break;
+
+          case ActionType.ON_CLOSE_NOTIFICATION:
+            handleOnCloseNotification(proxy);
+            break;
+
+          case ActionType.SET_TIMEOUT:
+            handleSetTimeout(proxy, payload as SetTimeoutPayload);
             break;
         }
       });
@@ -48,6 +59,7 @@ export const reducer: Reducer<StateMachine, Action> = (state, action) =>
 ////////////////////////// STATE UPDATE SECTION ////////////////////////////
 export function initState(): StateMachine {
   return {
+    context: {},
     effects: {
       general: {
         value: StateValue.noEffect,
@@ -55,6 +67,9 @@ export function initState(): StateMachine {
     },
     states: {
       newEntryActive: {
+        value: StateValue.inactive,
+      },
+      notification: {
         value: StateValue.inactive,
       },
     },
@@ -70,28 +85,95 @@ function handleToggleNewEntryActiveAction(proxy: DraftStateMachine) {
     value === StateValue.active ? StateValue.inactive : StateValue.active;
 }
 
-function handleOnNewEntryCreated(proxy: DraftStateMachine) {
-  const { states } = proxy;
-  const { newEntryActive } = states;
+function handleOnNewEntryCreated(
+  proxy: DraftStateMachine,
+  payload: OnNewEntryCreatedPayload,
+) {
+  const { states, context } = proxy;
+  const { newEntryActive, notification } = states;
+  const { entry } = payload;
+
   newEntryActive.value = StateValue.inactive;
+  const notificationState = notification as Draft<NotificationActive>;
+  notificationState.value = StateValue.active;
+  notificationState.active = {
+    context: {
+      message: `New entry created on: ${formatDatetime(entry.updatedAt)}`,
+    },
+  };
 
   const effects = getGeneralEffects<EffectType, DraftStateMachine>(proxy);
-  effects.push({
-    key: "scrollToViewEffect",
-    ownArgs: {},
-  });
+  effects.push(
+    {
+      key: "scrollDocToTopEffect",
+      ownArgs: {},
+    },
+    {
+      key: "autoCloseNotificationEffect",
+      ownArgs: {
+        timeoutId: context.autoCloseNotificationTimeoutId,
+      },
+    },
+  );
+}
+
+function handleOnCloseNotification(proxy: DraftStateMachine) {
+  proxy.states.notification.value = StateValue.inactive;
+}
+
+function handleSetTimeout(
+  proxy: DraftStateMachine,
+  payload: SetTimeoutPayload,
+) {
+  const { context } = proxy;
+  const { id } = payload;
+  context.autoCloseNotificationTimeoutId = id;
 }
 ////////////////////////// END STATE UPDATE ////////////////////////////
 
-const scrollToViewEffect: DefScrollToViewEffect["func"] = () => {
+////////////////////////// EFFECTS SECTION ////////////////////////////
+const scrollDocToTopEffect: DefScrollDocToTopEffect["func"] = () => {
   scrollDocumentToTop();
 };
 
-type DefScrollToViewEffect = EffectDefinition<"scrollToViewEffect">;
+type DefScrollDocToTopEffect = EffectDefinition<"scrollDocToTopEffect">;
+
+const autoCloseNotificationEffect: DefAutoCloseNotificationEffect["func"] = (
+  ownArgs,
+  _,
+  effectArgs,
+) => {
+  const { dispatch } = effectArgs;
+  const { timeoutId } = ownArgs;
+
+  if (timeoutId) {
+    clearTimeout(timeoutId);
+  }
+
+  const id = setTimeout(() => {
+    dispatch({
+      type: ActionType.ON_CLOSE_NOTIFICATION,
+    });
+  }, 10000);
+
+  dispatch({
+    type: ActionType.SET_TIMEOUT,
+    id,
+  });
+};
+
+type DefAutoCloseNotificationEffect = EffectDefinition<
+  "autoCloseNotificationEffect",
+  {
+    timeoutId?: NodeJS.Timeout;
+  }
+>;
 
 export const effectFunctions = {
-  scrollToViewEffect,
+  scrollDocToTopEffect,
+  autoCloseNotificationEffect,
 };
+////////////////////////// END EFFECTS SECTION ////////////////////////////
 
 ////////////////////////// HELPER FUNCTIONS ////////////////////////////
 
@@ -123,6 +205,9 @@ type DraftStateMachine = Draft<StateMachine>;
 
 type StateMachine = GenericGeneralEffect<EffectType> &
   Readonly<{
+    context: StateContext;
+  }> &
+  Readonly<{
     states: Readonly<{
       newEntryActive: Readonly<
         | {
@@ -132,8 +217,28 @@ type StateMachine = GenericGeneralEffect<EffectType> &
             value: InActiveVal;
           }
       >;
+
+      notification: Readonly<
+        | {
+            value: InActiveVal;
+          }
+        | NotificationActive
+      >;
     }>;
   }>;
+
+type StateContext = Readonly<{
+  autoCloseNotificationTimeoutId?: NodeJS.Timeout;
+}>;
+
+type NotificationActive = Readonly<{
+  value: ActiveVal;
+  active: Readonly<{
+    context: Readonly<{
+      message: string;
+    }>;
+  }>;
+}>;
 
 export type CallerProps = RouteChildrenProps<DetailExperienceRouteMatch>;
 
@@ -146,9 +251,23 @@ type Action =
   | {
       type: ActionType.TOGGLE_NEW_ENTRY_ACTIVE;
     }
-  | {
+  | ({
       type: ActionType.ON_NEW_ENTRY_CREATED;
-    };
+    } & OnNewEntryCreatedPayload)
+  | {
+      type: ActionType.ON_CLOSE_NOTIFICATION;
+    }
+  | ({
+      type: ActionType.SET_TIMEOUT;
+    } & SetTimeoutPayload);
+
+interface OnNewEntryCreatedPayload {
+  entry: EntryFragment;
+}
+
+interface SetTimeoutPayload {
+  id?: NodeJS.Timeout;
+}
 
 type DispatchType = Dispatch<Action>;
 
@@ -169,5 +288,5 @@ type EffectDefinition<
   OwnArgs = {}
 > = GenericEffectDefinition<EffectArgs, Props, Key, OwnArgs>;
 
-type EffectType = DefScrollToViewEffect;
+type EffectType = DefScrollDocToTopEffect | DefAutoCloseNotificationEffect;
 type EffectList = EffectType[];

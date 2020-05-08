@@ -3,6 +3,7 @@ import React, {
   Suspense,
   useReducer,
   useCallback,
+  useEffect,
 } from "react";
 import "./detail-experience.styles.scss";
 import {
@@ -24,6 +25,7 @@ import { EntryFragment } from "../../graphql/apollo-types/EntryFragment";
 import { DataObjectFragment } from "../../graphql/apollo-types/DataObjectFragment";
 import { StateValue } from "../../utils/types";
 import { useRunEffects } from "../../utils/use-run-effects";
+import { notificationCloseId } from "./detail-experience.dom";
 
 export function DetailExperience(props: Props) {
   const { experience } = props;
@@ -31,8 +33,12 @@ export function DetailExperience(props: Props) {
   const entries = entryConnectionToNodes(experience.entries);
 
   const {
-    states: { newEntryActive: newEntryActiveState },
+    states: {
+      newEntryActive: newEntryActiveState,
+      notification: notificationState,
+    },
     effects: { general: generalEffects },
+    context,
   } = stateMachine;
 
   useLayoutEffect(() => {
@@ -57,6 +63,29 @@ export function DetailExperience(props: Props) {
     {} as DataDefinitionIdToNameMap,
   );
 
+  const onCloseNotification = useCallback(() => {
+    dispatch({
+      type: ActionType.ON_CLOSE_NOTIFICATION,
+    });
+  }, []);
+
+  const { autoCloseNotificationTimeoutId } = context;
+
+  useEffect(() => {
+    return () => {
+
+      // istanbul ignore else
+      if (autoCloseNotificationTimeoutId) {
+        clearTimeout(autoCloseNotificationTimeoutId);
+      }
+    };
+  }, [autoCloseNotificationTimeoutId]);
+
+  let successText = "";
+  if (notificationState.value === StateValue.active) {
+    successText = notificationState.active.context.message;
+  }
+
   return (
     <>
       <div className="container detailed-experience-component">
@@ -67,6 +96,18 @@ export function DetailExperience(props: Props) {
               detailedExperienceDispatch={dispatch}
             />
           </Suspense>
+        )}
+
+        {successText && (
+          <div className="notification is-success">
+            <button
+              id={notificationCloseId}
+              type="button"
+              className="delete"
+              onClick={onCloseNotification}
+            />
+            {successText}
+          </div>
         )}
 
         {entries.length === 0 ? (

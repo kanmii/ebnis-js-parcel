@@ -185,6 +185,7 @@ const createEntryEffect: DefCreateEntryEffect["func"] = async (
 
           detailedExperienceDispatch({
             type: DetailedExperienceActionType.ON_NEW_ENTRY_CREATED,
+            entry: entry0.entry,
           });
 
           return;

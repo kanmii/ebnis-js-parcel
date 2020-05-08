@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { ComponentType } from "react";
-import { render, cleanup, wait } from "@testing-library/react";
+import { render, cleanup, waitForElement } from "@testing-library/react";
 import { DetailExperience } from "../components/DetailExperience/detail-experience.component";
 import {
   Props,
@@ -11,6 +11,9 @@ import { DataTypes } from "../graphql/apollo-types/globalTypes";
 import { ExperienceFragment } from "../graphql/apollo-types/ExperienceFragment";
 import { EntryConnectionFragment } from "../graphql/apollo-types/EntryConnectionFragment";
 import { scrollDocumentToTop } from "../components/DetailExperience/detail-experience.injectables";
+import { EntryFragment } from "../graphql/apollo-types/EntryFragment";
+import { notificationCloseId } from "../components/DetailExperience/detail-experience.dom";
+import { act } from "react-dom/test-utils";
 
 jest.mock("../components/DetailExperience/detail-experience.injectables");
 const mockScrollDocumentToTop = scrollDocumentToTop as jest.Mock;
@@ -27,6 +30,9 @@ jest.mock("../components/DetailExperience/detail-experience.lazy", () => {
         onClick={() => {
           detailedExperienceDispatch({
             type: mockActionType.ON_NEW_ENTRY_CREATED,
+            entry: {
+              updatedAt: "2020-05-08T06:49:19Z",
+            } as EntryFragment,
           });
         }}
       />
@@ -34,8 +40,13 @@ jest.mock("../components/DetailExperience/detail-experience.lazy", () => {
   };
 });
 
+beforeEach(() => {
+  jest.useFakeTimers();
+});
+
 afterEach(() => {
   cleanup();
+  jest.clearAllTimers();
 });
 
 const defaultExperience = {
@@ -52,7 +63,9 @@ const defaultExperience = {
   },
 } as ExperienceFragment;
 
-it("no entries", async () => {
+const timeout = 100000;
+
+it("no entries/entry added/auto close notification", async () => {
   const { ui } = makeComp();
   render(ui);
 
@@ -66,14 +79,36 @@ it("no entries", async () => {
 
   expect(mockScrollDocumentToTop).not.toHaveBeenCalled();
 
-  // new entry UI now visible
-  (document.getElementById(mockNewEntryId) as HTMLElement).click();
+  expect(getNotificationEl()).toBeNull();
+
+  // new entry UI now visible: let's simulate new entry created
+  const newEntryEl = await waitForElement(() => {
+    return document.getElementById(mockNewEntryId) as HTMLElement;
+  });
+
+  newEntryEl.click();
   expect(document.getElementById(mockNewEntryId)).toBeNull();
-  await wait(() => true);
+  let notificationEl = await waitForElement(getNotificationEl);
+
   expect(mockScrollDocumentToTop).toHaveBeenCalled();
+
+  notificationEl.click();
+  expect(getNotificationEl()).toBeNull();
+
+  // simulate auto close notification
+  const newEntryToggleEl = getNewEntryTriggerEl();
+  newEntryToggleEl.click();
+  (document.getElementById(mockNewEntryId) as HTMLElement).click();
+  await waitForElement(getNotificationEl); // exists
+
+  act(() => {
+    jest.advanceTimersByTime(timeout);
+  });
+
+  expect(getNotificationEl()).toBeNull();
 });
 
-it("with entries", () => {
+it("with entries", async () => {
   const { ui } = makeComp({
     props: {
       experience: {
@@ -110,8 +145,6 @@ it("with entries", () => {
   expect(document.getElementById(mockNewEntryId)).not.toBeNull();
   newEntryToggleEl.click();
   expect(document.getElementById(mockNewEntryId)).toBeNull();
-
-  // expect(getEntriesEl()).toBeNull();
 });
 
 ////////////////////////// HELPER FUNCTIONS ///////////////////////////
@@ -140,4 +173,8 @@ function getNewEntryTriggerEl() {
   return document
     .getElementsByClassName("new-entry-trigger")
     .item(0) as HTMLElement;
+}
+
+function getNotificationEl() {
+  return document.getElementById(notificationCloseId) as HTMLElement;
 }
