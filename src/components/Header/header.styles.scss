@@ -15,7 +15,7 @@ $part-shadow: 0 1px var(--blur-radius);
   margin: 0;
 
   &--connected {
-    box-shadow: $part-shadow rgba(38, 44, 49, 0.4);
+    box-shadow: $part-shadow var(--app-color);
   }
 
   &--unconnected {
