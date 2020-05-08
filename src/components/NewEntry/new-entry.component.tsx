@@ -108,7 +108,7 @@ export function NewEntry(props: Props) {
           <header className="modal-card-head">
             <div className="modal-card-title">
               <strong>New Entry</strong>
-              <div className="experience-title">{experience.title}</div>
+              <div className="experience-title">{title}</div>
             </div>
 
             <button
