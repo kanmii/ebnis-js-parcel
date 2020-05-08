@@ -7,13 +7,12 @@ import {
   ActionType,
   DetailedExperienceChildDispatchProps,
 } from "../components/DetailExperience/detail-experience.utils";
-import { DataTypes } from "../graphql/apollo-types/globalTypes";
-import { ExperienceFragment } from "../graphql/apollo-types/ExperienceFragment";
 import { EntryConnectionFragment } from "../graphql/apollo-types/EntryConnectionFragment";
 import { scrollDocumentToTop } from "../components/DetailExperience/detail-experience.injectables";
 import { EntryFragment } from "../graphql/apollo-types/EntryFragment";
 import { notificationCloseId } from "../components/DetailExperience/detail-experience.dom";
 import { act } from "react-dom/test-utils";
+import { defaultExperience } from "../tests.utils";
 
 jest.mock("../components/DetailExperience/detail-experience.injectables");
 const mockScrollDocumentToTop = scrollDocumentToTop as jest.Mock;
@@ -48,20 +47,6 @@ afterEach(() => {
   cleanup();
   jest.clearAllTimers();
 });
-
-const defaultExperience = {
-  id: "1",
-  dataDefinitions: [
-    {
-      id: "1",
-      name: "aa",
-      type: DataTypes.INTEGER,
-    },
-  ],
-  entries: {
-    edges: [] as any,
-  },
-} as ExperienceFragment;
 
 const timeout = 100000;
 
