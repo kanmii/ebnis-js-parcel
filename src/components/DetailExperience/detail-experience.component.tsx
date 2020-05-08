@@ -109,26 +109,27 @@ interface DataDefinitionIdToNameMap {
 
 function EntryComponent(props: EntryProps) {
   const { entry, dataDefinitionIdToNameMap } = props;
+  const { updatedAt, dataObjects: dObjects } = entry;
 
-  const dataObjects = entry.dataObjects as DataObjectFragment[];
+  const dataObjects = dObjects as DataObjectFragment[];
 
   return (
-    <div className="box media">
+    <div className="box media entry">
       <div className="media-content">
         {dataObjects.map((d) => {
-          const { id, definitionId, data, updatedAt } = d;
+          const { id, definitionId, data } = d;
 
           return (
             <div key={id} className="media data-object">
               <div className="media-content">
                 <div>{dataDefinitionIdToNameMap[definitionId]}</div>
                 <div>{data}</div>
-
-                <div>{formatDatetime(updatedAt)}</div>
               </div>
             </div>
           );
         })}
+
+        <div className='entry__updated-at'>{formatDatetime(updatedAt)}</div>
       </div>
 
       <div className="media-right">x</div>

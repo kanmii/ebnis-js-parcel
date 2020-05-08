@@ -21,6 +21,13 @@
     white-space: normal;
     font-weight: 500;
   }
+
+  .entry {
+    &__updated-at {
+      margin-top: 10px;
+      text-align: right;
+    }
+  }
 }
 
 .new-entry-trigger {
