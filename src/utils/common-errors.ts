@@ -1,4 +1,5 @@
 import { ApolloError } from "apollo-client";
+import { CommonError } from "./types";
 
 export function parseStringError(error: string | Error): string {
   if (error instanceof ApolloError) {
@@ -23,7 +24,7 @@ export const NO_CONNECTION_ERROR =
   "You are not connected - please check your internet connection and try again.";
 
 export interface StringyErrorPayload {
-  error: Error | string;
+  error: CommonError;
 }
 
 type ErrorField = string;
