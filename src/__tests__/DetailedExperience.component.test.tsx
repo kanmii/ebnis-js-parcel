@@ -10,10 +10,10 @@ import {
 import { DataTypes } from "../graphql/apollo-types/globalTypes";
 import { ExperienceFragment } from "../graphql/apollo-types/ExperienceFragment";
 import { EntryConnectionFragment } from "../graphql/apollo-types/EntryConnectionFragment";
-import { scrollIntoView } from "../utils/scroll-into-view";
+import { scrollDocumentToTop } from "../components/DetailExperience/detail-experience.injectables";
 
-jest.mock("../utils/scroll-into-view");
-const mockScrollIntoView = scrollIntoView as jest.Mock;
+jest.mock("../components/DetailExperience/detail-experience.injectables");
+const mockScrollDocumentToTop = scrollDocumentToTop as jest.Mock;
 
 const mockNewEntryId = "aa";
 const mockActionType = ActionType;
@@ -64,13 +64,13 @@ it("no entries", async () => {
 
   getNoEntryEl().click();
 
-  expect(mockScrollIntoView).not.toHaveBeenCalled();
+  expect(mockScrollDocumentToTop).not.toHaveBeenCalled();
 
   // new entry UI now visible
   (document.getElementById(mockNewEntryId) as HTMLElement).click();
   expect(document.getElementById(mockNewEntryId)).toBeNull();
   await wait(() => true);
-  expect(mockScrollIntoView).toHaveBeenCalled();
+  expect(mockScrollDocumentToTop).toHaveBeenCalled();
 });
 
 it("with entries", () => {
@@ -105,7 +105,7 @@ it("with entries", () => {
 
   expect(document.getElementById(mockNewEntryId)).toBeNull();
 
-  const newEntryToggleEl = getNewEntryTriggerEl()
+  const newEntryToggleEl = getNewEntryTriggerEl();
   newEntryToggleEl.click();
   expect(document.getElementById(mockNewEntryId)).not.toBeNull();
   newEntryToggleEl.click();

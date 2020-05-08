@@ -22,7 +22,6 @@ import {
 } from "../../graphql/apollo-types/EntryConnectionFragment";
 import { EntryFragment } from "../../graphql/apollo-types/EntryFragment";
 import { DataObjectFragment } from "../../graphql/apollo-types/DataObjectFragment";
-import { scrollIntoViewDomId } from "./detail-experience.dom";
 import { StateValue } from "../../utils/types";
 import { useRunEffects } from "../../utils/use-run-effects";
 
@@ -61,8 +60,6 @@ export function DetailExperience(props: Props) {
   return (
     <>
       <div className="container detailed-experience-component">
-        <span className="scroll-into-view" id={scrollIntoViewDomId} />
-
         {newEntryActiveState.value === StateValue.active && (
           <Suspense fallback={<Loading />}>
             <NewEntry
@@ -129,7 +126,7 @@ function EntryComponent(props: EntryProps) {
           );
         })}
 
-        <div className='entry__updated-at'>{formatDatetime(updatedAt)}</div>
+        <div className="entry__updated-at">{formatDatetime(updatedAt)}</div>
       </div>
 
       <div className="media-right">x</div>

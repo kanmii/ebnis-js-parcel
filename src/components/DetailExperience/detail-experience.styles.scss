@@ -8,11 +8,6 @@
     border: none;
   }
 
-  .scroll-into-view {
-    @extend %visually-hidden;
-    margin-bottom: 30px;
-  }
-
   .no-entry-alert {
     display: block;
     max-width: 95%;

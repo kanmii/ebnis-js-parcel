@@ -4,9 +4,7 @@
   @extend %modal;
 
   .scroll-into-view {
-    @extend %visually-hidden;
-    position: relative;
-    top: -40px;
+    @extend %modal-scroll-into-view;
   }
 
   .form {

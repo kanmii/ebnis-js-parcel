@@ -48,6 +48,16 @@
   display: block;
 }
 
+%scroll-into-view {
+  @extend %visually-hidden;
+}
+
+%modal-scroll-into-view {
+  @extend %scroll-into-view;
+  position: relative;
+  top: -$modal-card-body-padding;
+}
+
 %chevron-down {
   display: inline-block;
   width: 0;

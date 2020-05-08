@@ -14,9 +14,8 @@ import {
   getGeneralEffects,
   GenericEffectDefinition,
 } from "../../utils/effects";
-import { scrollIntoView } from "../../utils/scroll-into-view";
+import { scrollDocumentToTop } from "./detail-experience.injectables";
 import { StateValue } from "../../utils/types";
-import { scrollIntoViewDomId } from "./detail-experience.dom";
 
 export enum ActionType {
   TOGGLE_NEW_ENTRY_ACTIVE = "@detailed-experience/deactivate-new-entry",
@@ -79,25 +78,16 @@ function handleOnNewEntryCreated(proxy: DraftStateMachine) {
   const effects = getGeneralEffects<EffectType, DraftStateMachine>(proxy);
   effects.push({
     key: "scrollToViewEffect",
-    ownArgs: {
-      id: scrollIntoViewDomId,
-    },
+    ownArgs: {},
   });
 }
 ////////////////////////// END STATE UPDATE ////////////////////////////
 
-const scrollToViewEffect: DefScrollToViewEffect["func"] = ({ id }) => {
-  scrollIntoView(id, {
-    behavior: "smooth",
-  });
+const scrollToViewEffect: DefScrollToViewEffect["func"] = () => {
+  scrollDocumentToTop();
 };
 
-type DefScrollToViewEffect = EffectDefinition<
-  "scrollToViewEffect",
-  {
-    id: string;
-  }
->;
+type DefScrollToViewEffect = EffectDefinition<"scrollToViewEffect">;
 
 export const effectFunctions = {
   scrollToViewEffect,
@@ -176,7 +166,7 @@ export interface EffectArgs {
 
 type EffectDefinition<
   Key extends keyof typeof effectFunctions,
-  OwnArgs
+  OwnArgs = {}
 > = GenericEffectDefinition<EffectArgs, Props, Key, OwnArgs>;
 
 type EffectType = DefScrollToViewEffect;
