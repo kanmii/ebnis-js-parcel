@@ -3,6 +3,7 @@ import {
   MutationFunction,
   MutationFunctionOptions,
   MutationResult,
+  ExecutionResult,
 } from "@apollo/react-common";
 import {
   LocalResolverFn,
@@ -45,6 +46,10 @@ export interface CreateOfflineEntryMutationReturned {
     __typename: "Entry";
   };
 }
+
+export type CreateOfflineEntryResult = ExecutionResult<
+  CreateOfflineEntryMutationReturned
+>;
 
 const createOfflineEntryMutationResolver: LocalResolverFn<
   CreateOfflineEntryMutationVariables,
@@ -108,12 +113,12 @@ export const newEntryResolvers = {
 };
 
 function updateUnsynced(experienceId: string) {
-  // istanbul ignore next:
   if (isOfflineId(experienceId)) {
     return;
   }
 
   const unsyncedExperience = (getUnsyncedExperience(experienceId) ||
+    // istanbul ignore next:
     {}) as UnsyncedModifiedExperience;
 
   unsyncedExperience.newEntries = true;

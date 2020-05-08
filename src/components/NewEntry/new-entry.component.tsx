@@ -28,7 +28,11 @@ import { componentFromDataType } from "./component-from-data-type";
 import { DataTypes } from "../../graphql/apollo-types/globalTypes";
 import FormCtrlError from "../FormCtrlError/form-ctrl-error.component";
 import { DataDefinitionFragment } from "../../graphql/apollo-types/DataDefinitionFragment";
-import { submitBtnDomId, notificationId } from "./new-entry.dom";
+import {
+  submitBtnDomId,
+  notificationCloseId,
+  fieldErrorSelector,
+} from "./new-entry.dom";
 import { ActionType as DetailExperienceActionType } from "../DetailExperience/detail-experience.utils";
 import { StateValue } from "../../utils/types";
 import { errorClassName } from "../../utils/utils.dom";
@@ -124,13 +128,13 @@ export function NewEntry(props: Props) {
 
             {errorText && (
               <div
-                id={notificationId}
                 className={makeClassNames({
                   notification: true,
                   [errorClassName]: true,
                 })}
               >
                 <button
+                  id={notificationCloseId}
                   type="button"
                   className="delete"
                   onClick={onCloseNotification}
@@ -223,7 +227,9 @@ const DataComponent = React.memo(
 
         <div className="control">{component}</div>
 
-        {errors && <FormCtrlError>{errors}</FormCtrlError>}
+        {errors && (
+          <FormCtrlError className={fieldErrorSelector}>{errors}</FormCtrlError>
+        )}
       </div>
     );
   },
@@ -243,6 +249,7 @@ function makeDateChangedFn(dispatch: DispatchType, index: number) {
   };
 }
 
+// istanbul ignore next:
 export default (props: CallerProps) => {
   const [updateExperiencesOnline] = useUpdateExperiencesOnlineMutation();
   const [createOfflineEntry] = useCreateOfflineEntryMutation();

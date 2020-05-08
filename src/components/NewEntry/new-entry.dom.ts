@@ -8,14 +8,5 @@ export const singleLineInputDomSelector = `js-${domPrefix}-single-line-input`;
 export const multiLineInputDomSelector = `js-${domPrefix}-multi-line-input`;
 export const dateComponentDomSelector = `js-${domPrefix}-date-component`;
 export const datetimeComponentDomSelector = `js-${domPrefix}-datetime-component`;
-export const notificationId = `${domPrefix}-notification`
-
-export function makeFieldInputId(definitionId: Id) {
-  return `${domPrefix}-input-${definitionId}`;
-}
-
-export function makeInputErrorDomId(definitionId: Id) {
-  return `${domPrefix}-input-error-${definitionId}`;
-}
-
-type Id = string | number;
+export const notificationCloseId = `${domPrefix}-notification`;
+export const fieldErrorSelector = `js-${domPrefix}-field-error`

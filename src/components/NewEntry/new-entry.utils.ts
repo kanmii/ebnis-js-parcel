@@ -204,14 +204,38 @@ const createEntryEffect: DefCreateEntryEffect["func"] = async (
       },
     });
   } else {
-    createOfflineEntry({
-      variables: {
-        experienceId,
-        dataObjects: input.dataObjects as CreateDataObject[],
-      },
-    });
+    try {
+      const response = await createOfflineEntry({
+        variables: {
+          experienceId,
+          dataObjects: input.dataObjects as CreateDataObject[],
+        },
+      });
 
-    await persistor.persist();
+      const validResponse =
+        response && response.data && response.data.createOfflineEntry;
+
+      if (!validResponse) {
+        dispatch({
+          type: ActionType.ON_COMMON_ERROR,
+          error: GENERIC_SERVER_ERROR,
+        });
+
+        return;
+      }
+
+      detailedExperienceDispatch({
+        type: DetailedExperienceActionType.ON_NEW_ENTRY_CREATED,
+        entry: validResponse.entry,
+      });
+
+      await persistor.persist();
+    } catch (error) {
+      dispatch({
+        type: ActionType.ON_COMMON_ERROR,
+        error,
+      });
+    }
   }
 };
 
@@ -513,7 +537,7 @@ type Submission =
       value: InActiveVal;
     };
 
-interface SubmissionErrors {
+export interface SubmissionErrors {
   value: ErrorsVal;
   errors: {
     context: {
@@ -548,7 +572,7 @@ interface EffectContext {
 
 type EffectsList = (DefScrollToViewEffect | DefCreateEntryEffect)[];
 
-interface GeneralEffect {
+export interface GeneralEffect {
   value: HasEffectsVal;
   hasEffects: {
     context: {

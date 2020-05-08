@@ -40,6 +40,7 @@ export function upsertExperienceWithEntry(
   if (typeof experienceOrId === "string") {
     experience = readExperienceFragment(experienceOrId);
 
+    // istanbul ignore next:
     if (!experience) {
       return;
     }
