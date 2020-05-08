@@ -317,7 +317,7 @@ function handleFormChangedAction(
   } = proxy;
 
   const { fieldName, value } = payload;
-  let state = {} as ChangedState;
+  let state = {} as Draft<ChangedState>;
 
   if (payload.key === "non-def") {
     const field = fields[fieldName];
@@ -397,7 +397,7 @@ function validateForm(proxy: DraftState): FormValues {
     },
   } = proxy;
 
-  const submissionWarningState = submission as SubmissionWarning;
+  const submissionWarningState = submission as Draft<SubmissionWarning>;
 
   const input = {} as FormValues;
   let formUpdated = false;
@@ -434,7 +434,7 @@ function validateForm(proxy: DraftState): FormValues {
           // user can edit and hide the description field especially if
           // text is quite long.
 
-          const state = (fieldState as DescriptionFormFieldActive).active
+          const state = (fieldState as Draft<DescriptionFormFieldActive>).active
             .states;
 
           if (state.value === StateValue.changed) {
@@ -546,7 +546,7 @@ function putFormFieldErrorHelper(
   fieldState: FormField["states"],
   errors: FieldError,
 ) {
-  const fieldStateChanged = fieldState as ChangedState;
+  const fieldStateChanged = fieldState as Draft<ChangedState>;
   fieldStateChanged.value = StateValue.changed;
 
   const changed =
@@ -554,11 +554,11 @@ function putFormFieldErrorHelper(
     ({
       states: {},
       context: { formValue: "" },
-    } as ChangedState["changed"]);
+    } as Draft<ChangedState["changed"]>);
 
   fieldStateChanged.changed = changed;
 
-  const invalidState = changed.states as FieldInValid;
+  const invalidState = changed.states as Draft<FieldInValid>;
   invalidState.value = StateValue.invalid;
   invalidState.invalid = {
     context: {
@@ -570,7 +570,7 @@ function putFormFieldErrorHelper(
 function validateFormStringValuesHelper(
   proxy: DraftState,
   fieldName: string,
-  state: FormField["states"],
+  state: Draft<FormField["states"]>,
   emptyErrorText = EMPTY_ERROR_TEXT,
 ): [string, boolean, boolean] {
   let returnValue = "";
@@ -614,8 +614,9 @@ function handleOnCommonErrorAction(
 ) {
   const errors = parseStringError(payload.error);
 
-  const submissionErrorState = proxy.states
-    .submission as SubmissionCommonErrors;
+  const submissionErrorState = proxy.states.submission as Draft<
+    SubmissionCommonErrors
+  >;
 
   submissionErrorState.value = StateValue.commonErrors;
 
@@ -658,7 +659,7 @@ function handleResetFormFieldsAction(proxy: DraftState) {
           const inactiveState = fieldState as Draft<DescriptionFormField>;
           inactiveState.value = StateValue.active;
 
-          const state = (fieldState as DescriptionFormFieldActive).active
+          const state = (fieldState as Draft<DescriptionFormFieldActive>).active
             .states;
 
           state.value = StateValue.unchanged;
@@ -690,13 +691,13 @@ function handleResetFormFieldsAction(proxy: DraftState) {
   });
 }
 
-function clearFieldInvalidState(formField: FormField) {
+function clearFieldInvalidState(formField: Draft<FormField>) {
   const state = formField.states;
   state.value = StateValue.unchanged;
 
   /* istanbul ignore else*/
   if ((state as ChangedState).changed) {
-    (state as ChangedState).changed.states.value = StateValue.initial;
+    (state as Draft<ChangedState>).changed.states.value = StateValue.initial;
   }
 }
 
@@ -910,7 +911,7 @@ function handleOnServerErrorsAction(
       return acc;
     }, 0)
   ) {
-    const formInvalidState = validity as FormInValid;
+    const formInvalidState = validity as Draft<FormInValid>;
     formInvalidState.value = StateValue.invalid;
     const invalidErrors = [] as FieldError;
     formInvalidState.invalid = {
@@ -1035,103 +1036,125 @@ interface DefinitionChangedPayload {
 
 type DraftState = Draft<StateMachine>;
 
-export interface StateMachine extends Readonly<GenericGeneralEffect<EffectType>> {
-  readonly states: {
-    readonly submission: Submission;
-    readonly form: {
-      readonly validity: FormValidity;
-      readonly fields: {
-        readonly title: FormField;
-        readonly description: DescriptionFormField;
-        readonly dataDefinitions: DataDefinitionFieldsMap;
-      };
-    };
-  };
-}
+export type StateMachine = Readonly<GenericGeneralEffect<EffectType>> &
+  Readonly<{
+    states: Readonly<{
+      submission: Submission;
+      form: Readonly<{
+        validity: FormValidity;
+        fields: Readonly<{
+          title: FormField;
+          description: DescriptionFormField;
+          dataDefinitions: DataDefinitionFieldsMap;
+        }>;
+      }>;
+    }>;
+  }>;
 
-export type FormValidity = { value: InitialVal } | FormInValid;
+export type FormValidity = Readonly<
+  | {
+      value: InitialVal;
+    }
+  | FormInValid
+>;
 
-export type Submission =
+export type Submission = Readonly<
   | {
       value: InActiveVal;
     }
   | Submitting
   | SubmissionCommonErrors
-  | SubmissionWarning;
+  | SubmissionWarning
+>;
 
-interface Submitting {
+type Submitting = Readonly<{
   value: SubmissionVal;
-}
+}>;
 
-export interface SubmissionCommonErrors {
+export type SubmissionCommonErrors = Readonly<{
   value: CommonErrorsVal;
-  commonErrors: {
-    context: {
+  commonErrors: Readonly<{
+    context: Readonly<{
       errors: string;
-    };
-  };
-}
+    }>;
+  }>;
+}>;
 
-interface SubmissionWarning {
+type SubmissionWarning = Readonly<{
   value: WarningVal;
-  warning: {
-    context: {
+  warning: Readonly<{
+    context: Readonly<{
       warning: string;
-    };
-  };
-}
+    }>;
+  }>;
+}>;
 
-export type DescriptionFormField =
-  | { value: InActiveVal }
-  | DescriptionFormFieldActive;
+export type DescriptionFormField = Readonly<
+  | {
+      value: InActiveVal;
+    }
+  | DescriptionFormFieldActive
+>;
 
-interface DescriptionFormFieldActive {
-  readonly value: ActiveVal;
-  readonly active: FormField;
-}
+type DescriptionFormFieldActive = Readonly<{
+  value: ActiveVal;
+  active: FormField;
+}>;
 
 export interface DataDefinitionFieldsMap {
   [dataDefinitionDomId: string]: DataDefinitionFormField;
 }
 
-interface DataDefinitionFormField {
-  readonly index: number;
-  readonly id: string;
-  readonly name: FormField;
-  readonly type: FormField<DataTypes>;
-}
+type DataDefinitionFormField = Readonly<{
+  index: number;
+  id: string;
+  name: FormField;
+  type: FormField<DataTypes>;
+}>;
 
-export type FormField<Value = string> = {
-  states: { value: UnChangedVal } | ChangedState<Value>;
-};
+export type FormField<Value = string> = Readonly<{
+  states:
+    | {
+        value: UnChangedVal;
+      }
+    | ChangedState<Value>;
+}>;
 
-export interface ChangedState<Value = string> {
+export type ChangedState<Value = string> = Readonly<{
   value: ChangedVal;
-  changed: {
+  changed: Readonly<{
     context: {
       formValue: Value;
     };
-    states: { value: InitialVal } | { value: ValidVal } | FieldInValid;
-  };
-}
+    states: Readonly<
+      | {
+          value: InitialVal;
+        }
+      | {
+          value: ValidVal;
+        }
+      | FieldInValid
+    >;
+  }>;
+}>;
 
-export interface FieldInValid {
+export type FieldInValid = Readonly<{
   value: InvalidVal;
-  invalid: {
+  invalid: Readonly<{
     context: {
       errors: FieldError;
     };
-  };
-}
+  }>;
+}>;
 
-export interface FormInValid {
+export type FormInValid = Readonly<{
   value: InvalidVal;
-  invalid: {
-    context: {
+  invalid: Readonly<{
+    context: Readonly<{
       errors: FieldError;
-    };
-  };
-}
+    }>;
+  }>;
+}>;
 
 export interface EffectArgs {
   dispatch: DispatchType;
