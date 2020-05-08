@@ -162,10 +162,10 @@ const createEntryEffect: DefCreateEntryEffect["func"] = async (
       },
     ];
 
-    updateExperiencesOnlineEffectHelperFunc(
-      inputs,
+    updateExperiencesOnlineEffectHelperFunc({
+      input: inputs,
       updateExperiencesOnline,
-      async (experience) => {
+      onUpdateSuccess: async (experience) => {
         const { newEntries } = experience;
 
         if (newEntries && newEntries.length) {
@@ -195,8 +195,8 @@ const createEntryEffect: DefCreateEntryEffect["func"] = async (
           error: GENERIC_SERVER_ERROR,
         });
       },
-      async () => undefined,
-    );
+      onError: async () => undefined,
+    });
   } else {
     createOfflineEntry({
       variables: {

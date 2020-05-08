@@ -51,13 +51,21 @@ export function useUpdateExperiencesOnlineMutation(): UseUpdateExperiencesOnline
   return useMutation(UPDATE_EXPERIENCES_ONLINE_MUTATION);
 }
 
-export async function updateExperiencesOnlineEffectHelperFunc(
-  input: UpdateExperienceInput[],
-  updateExperiencesOnline: UpdateExperiencesOnlineMutationFn,
-  onUpdateSuccess: (arg: UpdateExperienceFragment) => void,
-  onError: (error?: CommonError) => void,
-  onDone?: () => void,
-) {
+interface UpdateExperiencesOnlineEffectHelperFunc {
+  input: UpdateExperienceInput[];
+  updateExperiencesOnline: UpdateExperiencesOnlineMutationFn;
+  onUpdateSuccess: (arg: UpdateExperienceFragment) => void;
+  onError: (error?: CommonError) => void;
+  onDone?: () => void;
+}
+
+export async function updateExperiencesOnlineEffectHelperFunc({
+  input,
+  updateExperiencesOnline,
+  onUpdateSuccess,
+  onError,
+  onDone,
+}: UpdateExperiencesOnlineEffectHelperFunc) {
   try {
     const response = await updateExperiencesOnline({
       variables: {
