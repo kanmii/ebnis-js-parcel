@@ -111,7 +111,11 @@ const DISPLAY_DATETIME_FORMAT_STRING =
   DISPLAY_DATE_FORMAT_STRING + DISPLAY_TIME_FORMAT_STRING;
 
 export function formatDatetime(date: Date | string) {
-  date = typeof date === "string" ? parseISO(date) : date;
+  date =
+    typeof date === "string"
+      ? parseISO(date)
+      : // istanbul ignore next:
+        date;
   return dateFnFormat(date, DISPLAY_DATETIME_FORMAT_STRING);
 }
 
