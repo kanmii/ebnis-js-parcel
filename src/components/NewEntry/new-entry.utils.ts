@@ -92,7 +92,7 @@ export function formObjToString(type: DataTypes, val: FormObjVal) {
       break;
   }
 
-  return (toString as string).trim();
+  return (toString as string).trim().replace(/"/g, '\\"');
 }
 
 export const reducer: Reducer<StateMachine, Action> = (state, action) =>
@@ -414,13 +414,14 @@ function dataObjectsFromFormValues(
 
       const { type, id: definitionId } = definition;
 
+      const data = `{"${type.toLowerCase()}":"${formObjToString(
+        type,
+        context.value,
+      )}"}`;
+
       acc.push({
         definitionId,
-
-        data: `{"${type.toLowerCase()}":"${formObjToString(
-          type,
-          context.value,
-        )}"}`,
+        data,
       });
 
       return acc;
