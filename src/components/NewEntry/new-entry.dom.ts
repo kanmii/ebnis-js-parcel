@@ -8,6 +8,7 @@ export const singleLineInputDomSelector = `js-${domPrefix}-single-line-input`;
 export const multiLineInputDomSelector = `js-${domPrefix}-multi-line-input`;
 export const dateComponentDomSelector = `js-${domPrefix}-date-component`;
 export const datetimeComponentDomSelector = `js-${domPrefix}-datetime-component`;
+export const notificationId = `${domPrefix}-notification`
 
 export function makeFieldInputId(definitionId: Id) {
   return `${domPrefix}-input-${definitionId}`;

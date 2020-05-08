@@ -195,7 +195,12 @@ const createEntryEffect: DefCreateEntryEffect["func"] = async (
           error: GENERIC_SERVER_ERROR,
         });
       },
-      onError: async () => undefined,
+      onError: (error) => {
+        dispatch({
+          type: ActionType.ON_COMMON_ERROR,
+          error: error || GENERIC_SERVER_ERROR,
+        });
+      },
     });
   } else {
     createOfflineEntry({

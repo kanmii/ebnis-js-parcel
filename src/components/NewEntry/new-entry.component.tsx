@@ -28,9 +28,10 @@ import { componentFromDataType } from "./component-from-data-type";
 import { DataTypes } from "../../graphql/apollo-types/globalTypes";
 import FormCtrlError from "../FormCtrlError/form-ctrl-error.component";
 import { DataDefinitionFragment } from "../../graphql/apollo-types/DataDefinitionFragment";
-import { submitBtnDomId } from "./new-entry.dom";
+import { submitBtnDomId, notificationId } from "./new-entry.dom";
 import { ActionType as DetailExperienceActionType } from "../DetailExperience/detail-experience.utils";
 import { StateValue } from "../../utils/types";
+import { errorClassName } from "../../utils/utils.dom";
 
 export function NewEntry(props: Props) {
   const { experience, client, detailedExperienceDispatch } = props;
@@ -86,6 +87,12 @@ export function NewEntry(props: Props) {
 
   const { dataDefinitions, title } = experience;
 
+  let errorText = "";
+
+  if (submissionState.value === StateValue.errors) {
+    errorText = submissionState.errors.context.errors;
+  }
+
   return (
     <>
       <form
@@ -114,6 +121,23 @@ export function NewEntry(props: Props) {
 
           <div className="modal-card-body">
             <span className="scroll-into-view" />
+
+            {errorText && (
+              <div
+                id={notificationId}
+                className={makeClassNames({
+                  notification: true,
+                  [errorClassName]: true,
+                })}
+              >
+                <button
+                  type="button"
+                  className="delete"
+                  onClick={onCloseNotification}
+                />
+                {errorText}
+              </div>
+            )}
 
             {dataDefinitions.map((obj, index) => {
               const definition = obj as DataDefinitionFragment;
