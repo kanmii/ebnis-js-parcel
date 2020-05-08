@@ -87,6 +87,7 @@ export type InvalidVal = "invalid";
 export type InitialVal = "initial";
 export type UnChangedVal = "unchanged";
 export type ChangedVal = "changed";
+export type ErrorsVal = "errors";
 
 export const StateValue = {
   noEffect: "noEffect" as NoEffectVal,
@@ -101,4 +102,5 @@ export const StateValue = {
   valid: "valid" as ValidVal,
   invalid: "invalid" as InvalidVal,
   initial: "initial" as InitialVal,
+  errors: "errors" as ErrorsVal,
 } as const;

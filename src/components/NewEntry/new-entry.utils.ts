@@ -35,6 +35,14 @@ import {
   DetailedExperienceChildDispatchProps,
   ActionType as DetailedExperienceActionType,
 } from "../DetailExperience/detail-experience.utils";
+import {
+  NoEffectVal,
+  HasEffectsVal,
+  ActiveVal,
+  InActiveVal,
+  ErrorsVal,
+  StateValue,
+} from "../../utils/types";
 
 const NEW_LINE_REGEX = /\n/g;
 export const ISO_DATE_FORMAT = "yyyy-MM-dd";
@@ -47,14 +55,6 @@ export enum ActionType {
   ON_SUBMIT = "@new-entry/on-submit",
   ON_COMMON_ERROR = "@new-entry/on-common-error",
 }
-
-export const StateValue = {
-  noEffect: "noEffect" as NoEffectVal,
-  hasEffects: "hasEffects" as HasEffects,
-  active: "active" as ActiveValue,
-  inactive: "inactive" as InActiveValue,
-  errors: "errors" as ErrorsVal,
-};
 
 export function toISODateString(date: Date) {
   return dateFnFormat(date, ISO_DATE_FORMAT);
@@ -501,9 +501,9 @@ interface StateMachine {
 
 type Submission =
   | SubmissionErrors
-  | { value: ActiveValue }
+  | { value: ActiveVal }
   | {
-      value: InActiveValue;
+      value: InActiveVal;
     };
 
 interface SubmissionErrors {
@@ -535,14 +535,6 @@ type Action =
 
 export type DispatchType = Dispatch<Action>;
 
-////////////////////////// STRINGY TYPES SECTION /////////////
-type NoEffectVal = "noEffect";
-type HasEffects = "hasEffects";
-type InActiveValue = "inactive";
-type ActiveValue = "active";
-type ErrorsVal = "errors";
-/////////////////////// END STRINGY TYPES SECTION /////////////
-
 interface EffectContext {
   effectsArgsObj: Props;
 }
@@ -550,7 +542,7 @@ interface EffectContext {
 type EffectsList = (DefScrollToViewEffect | DefCreateEntryEffect)[];
 
 interface GeneralEffect {
-  value: HasEffects;
+  value: HasEffectsVal;
   hasEffects: {
     context: {
       effects: EffectsList;

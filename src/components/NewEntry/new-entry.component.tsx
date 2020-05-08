@@ -12,7 +12,6 @@ import {
   CallerProps,
   Props,
   effectFunctions,
-  StateValue,
   reducer,
   initState,
   ActionType,
@@ -31,6 +30,7 @@ import FormCtrlError from "../FormCtrlError/form-ctrl-error.component";
 import { DataDefinitionFragment } from "../../graphql/apollo-types/DataDefinitionFragment";
 import { submitBtnDomId } from "./new-entry.dom";
 import { ActionType as DetailExperienceActionType } from "../DetailExperience/detail-experience.utils";
+import { StateValue } from "../../utils/types";
 
 export function NewEntry(props: Props) {
   const { experience, client, detailedExperienceDispatch } = props;
