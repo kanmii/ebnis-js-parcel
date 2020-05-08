@@ -4,10 +4,6 @@
 .detailed-experience-component {
   padding-bottom: $floating-circular-bottom * 1.5;
 
-  .new-entry-trigger {
-    @extend %floating-circular;
-  }
-
   .data-object {
     border: none;
   }
@@ -16,4 +12,8 @@
     @extend %visually-hidden;
     margin-bottom: 30px;
   }
+}
+
+.new-entry-trigger {
+  @extend %floating-circular;
 }

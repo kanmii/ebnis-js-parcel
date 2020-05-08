@@ -58,34 +58,36 @@ export function DetailExperience(props: Props) {
   );
 
   return (
-    <div className="container detailed-experience-component">
-      <span className="scroll-into-view" id={scrollIntoViewDomId} />
+    <>
+      <div className="container detailed-experience-component">
+        <span className="scroll-into-view" id={scrollIntoViewDomId} />
 
-      {newEntryActiveState.value === StateValue.active && (
-        <Suspense fallback={<Loading />}>
-          <NewEntry
-            experience={experience}
-            detailedExperienceDispatch={dispatch}
-          />
-        </Suspense>
-      )}
-
-      <div className="entries">
-        {entryConnectionToNodes(experience.entries).map((entry) => {
-          return (
-            <EntryComponent
-              key={entry.id}
-              entry={entry}
-              dataDefinitionIdToNameMap={dataDefinitionIdToNameMap}
+        {newEntryActiveState.value === StateValue.active && (
+          <Suspense fallback={<Loading />}>
+            <NewEntry
+              experience={experience}
+              detailedExperienceDispatch={dispatch}
             />
-          );
-        })}
+          </Suspense>
+        )}
+
+        <div className="entries">
+          {entryConnectionToNodes(experience.entries).map((entry) => {
+            return (
+              <EntryComponent
+                key={entry.id}
+                entry={entry}
+                dataDefinitionIdToNameMap={dataDefinitionIdToNameMap}
+              />
+            );
+          })}
+        </div>
       </div>
 
       <div className="new-entry-trigger" onClick={onOpenNewEntry}>
         <span>+</span>
       </div>
-    </div>
+    </>
   );
 }
 

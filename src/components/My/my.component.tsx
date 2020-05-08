@@ -75,40 +75,42 @@ export function My(props: Props) {
   }, []);
 
   return (
-    <div id={domPrefix} className="container my-component">
-      {newExperienceActivated.value === StateValue.active && (
-        <>
-          <Suspense fallback={<Loading />}>
-            <NewExperience myDispatch={dispatch} />
-          </Suspense>
-        </>
-      )}
+    <>
+      <div id={domPrefix} className="container my-component">
+        {newExperienceActivated.value === StateValue.active && (
+          <>
+            <Suspense fallback={<Loading />}>
+              <NewExperience myDispatch={dispatch} />
+            </Suspense>
+          </>
+        )}
 
-      {noExperiences ? (
-        <div className="no-experiences">
-          <div className="notification is-info is-light no-experiences__notification">
-            <div className="no-experiences__title">No experiences!</div>
-            <button
-              id={noExperiencesActivateNewDomId}
-              onClick={onNewExperienceActivated}
-              className="button is-success"
-              type="button"
-            >
-              Create New
-            </button>
+        {noExperiences ? (
+          <div className="no-experiences">
+            <div className="notification is-info is-light no-experiences__notification">
+              <div className="no-experiences__title">No experiences!</div>
+              <button
+                id={noExperiencesActivateNewDomId}
+                onClick={onNewExperienceActivated}
+                className="button is-success"
+                type="button"
+              >
+                Create New
+              </button>
+            </div>
           </div>
-        </div>
-      ) : (
-        <>
-          <SearchComponent state={search} dispatch={dispatch} />
+        ) : (
+          <>
+            <SearchComponent state={search} dispatch={dispatch} />
 
-          <ExperiencesComponent
-            dispatch={dispatch}
-            experiences={experiences}
-            experiencesStates={descriptionsActive}
-          />
-        </>
-      )}
+            <ExperiencesComponent
+              dispatch={dispatch}
+              experiences={experiences}
+              experiencesStates={descriptionsActive}
+            />
+          </>
+        )}
+      </div>
 
       <div
         id={activateNewDomId}
@@ -117,7 +119,7 @@ export function My(props: Props) {
       >
         <span>+</span>
       </div>
-    </div>
+    </>
   );
 }
 

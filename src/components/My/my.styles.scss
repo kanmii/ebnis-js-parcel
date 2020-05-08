@@ -43,10 +43,6 @@
       }
     }
 
-    .new-experience-trigger {
-      @extend %floating-circular;
-    }
-
     .media-content {
       overflow-x: auto;
     }
@@ -136,4 +132,8 @@
       }
     }
   }
+}
+
+.new-experience-trigger {
+  @extend %floating-circular;
 }
