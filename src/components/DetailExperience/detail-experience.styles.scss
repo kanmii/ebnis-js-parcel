@@ -12,6 +12,15 @@
     @extend %visually-hidden;
     margin-bottom: 30px;
   }
+
+  .no-entry-alert {
+    display: block;
+    max-width: 95%;
+    margin: 0 auto;
+    height: initial;
+    white-space: normal;
+    font-weight: 500;
+  }
 }
 
 .new-entry-trigger {

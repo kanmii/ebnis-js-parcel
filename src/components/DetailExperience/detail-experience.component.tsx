@@ -29,6 +29,7 @@ import { useRunEffects } from "../../utils/use-run-effects";
 export function DetailExperience(props: Props) {
   const { experience } = props;
   const [stateMachine, dispatch] = useReducer(reducer, undefined, initState);
+  const entries = entryConnectionToNodes(experience.entries);
 
   const {
     states: { newEntryActive: newEntryActiveState },
@@ -71,17 +72,23 @@ export function DetailExperience(props: Props) {
           </Suspense>
         )}
 
-        <div className="entries">
-          {entryConnectionToNodes(experience.entries).map((entry) => {
-            return (
-              <EntryComponent
-                key={entry.id}
-                entry={entry}
-                dataDefinitionIdToNameMap={dataDefinitionIdToNameMap}
-              />
-            );
-          })}
-        </div>
+        {entries.length === 0 ? (
+          <button className="button no-entry-alert" onClick={onOpenNewEntry}>
+            Click here to create your first entry
+          </button>
+        ) : (
+          <div className="entries">
+            {entries.map((entry) => {
+              return (
+                <EntryComponent
+                  key={entry.id}
+                  entry={entry}
+                  dataDefinitionIdToNameMap={dataDefinitionIdToNameMap}
+                />
+              );
+            })}
+          </div>
+        )}
       </div>
 
       <div className="new-entry-trigger" onClick={onOpenNewEntry}>
