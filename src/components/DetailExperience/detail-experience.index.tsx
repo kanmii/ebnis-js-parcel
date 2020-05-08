@@ -16,9 +16,7 @@ export default (props: CallerProps) => {
     entriesPagination: entriesPaginationVariables.entriesPagination,
   });
 
-  const experience = (data &&
-    data.getExperience &&
-    data.getExperience) as ExperienceFragment;
+  const experience = (data && data.getExperience) as ExperienceFragment;
 
   return (
     <>
