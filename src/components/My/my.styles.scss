@@ -49,11 +49,11 @@
 
     .experience {
       &--is-danger {
-        box-shadow: 0 0.5em 1em -0.125em $danger, 0 0px 0 1px $danger;
+        box-shadow: $media-shadow-1 $danger, $media-shadow-2 $danger;
       }
 
       &--is-warning {
-        box-shadow: 0 0.5em 1em -0.125em $warning, 0 0px 0 1px $warning;
+        box-shadow: $media-shadow-1 $warning, $media-shadow-2 $warning;
       }
 
       &__title {
