@@ -26,6 +26,8 @@ import { DataObjectFragment } from "../../graphql/apollo-types/DataObjectFragmen
 import { StateValue } from "../../utils/types";
 import { useRunEffects } from "../../utils/use-run-effects";
 import { notificationCloseId } from "./detail-experience.dom";
+import { isOfflineId } from "../../utils/offlines";
+import makeClassNames from "classnames";
 
 export function DetailExperience(props: Props) {
   const { experience } = props;
@@ -137,12 +139,17 @@ export function DetailExperience(props: Props) {
 
 function EntryComponent(props: EntryProps) {
   const { entry, dataDefinitionIdToNameMap } = props;
-  const { updatedAt, dataObjects: dObjects } = entry;
-
+  const { updatedAt, dataObjects: dObjects, id: entryId } = entry;
   const dataObjects = dObjects as DataObjectFragment[];
+  const isOffline = isOfflineId(entryId);
 
   return (
-    <div className="box media entry">
+    <div
+      className={makeClassNames({
+        "box media entry": true,
+        "entry--is-danger": isOffline,
+      })}
+    >
       <div className="media-content">
         {dataObjects.map((d) => {
           const { id, definitionId, data } = d;

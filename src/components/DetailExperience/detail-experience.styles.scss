@@ -18,6 +18,10 @@
   }
 
   .entry {
+    &--is-danger {
+      box-shadow: $media-shadow-1 $danger, $media-shadow-2 $danger;
+    }
+
     &__updated-at {
       margin-top: 10px;
       text-align: right;

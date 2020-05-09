@@ -13,6 +13,7 @@ import { EntryFragment } from "../graphql/apollo-types/EntryFragment";
 import { notificationCloseId } from "../components/DetailExperience/detail-experience.dom";
 import { act } from "react-dom/test-utils";
 import { defaultExperience } from "../tests.utils";
+import { makeOfflineId } from "../utils/offlines";
 
 jest.mock("../components/DetailExperience/detail-experience.injectables");
 const mockScrollDocumentToTop = scrollDocumentToTop as jest.Mock;
@@ -49,6 +50,7 @@ afterEach(() => {
 });
 
 const timeout = 100000;
+const entryOfflineClassName = "entry--is-danger";
 
 it("no entries/entry added/auto close notification", async () => {
   const { ui } = makeComp();
@@ -93,7 +95,7 @@ it("no entries/entry added/auto close notification", async () => {
   expect(getNotificationEl()).toBeNull();
 });
 
-it("with entries", async () => {
+it("with online entry", async () => {
   const { ui } = makeComp({
     props: {
       experience: {
@@ -130,6 +132,47 @@ it("with entries", async () => {
   expect(document.getElementById(mockNewEntryId)).not.toBeNull();
   newEntryToggleEl.click();
   expect(document.getElementById(mockNewEntryId)).toBeNull();
+
+  const entryEl = document.querySelector(".entry") as HTMLElement;
+
+  expect(entryEl.classList).not.toContain(entryOfflineClassName);
+});
+
+
+it("with offline entry", () => {
+  const id = makeOfflineId(1);
+
+  const { ui } = makeComp({
+    props: {
+      experience: {
+        ...defaultExperience,
+        entries: {
+          edges: [
+            {
+              node: {
+                id,
+                dataObjects: [
+                  {
+                    id,
+                    definitionId: "1",
+                    data: `{"integer":1}`,
+                  },
+                ],
+                updatedAt: "2020-05-08T01:40:07.160Z",
+              },
+            },
+          ],
+        } as EntryConnectionFragment,
+      },
+    },
+  });
+
+  render(ui);
+  const entryEl = document.querySelector(
+    `.entry.${entryOfflineClassName}`,
+  ) as HTMLElement;
+
+  expect(entryEl.classList).toContain(entryOfflineClassName);
 });
 
 ////////////////////////// HELPER FUNCTIONS ///////////////////////////
