@@ -141,13 +141,26 @@ export const reducer: Reducer<StateMachine, Action> = (state, action) =>
 
 export const GENERIC_SERVER_ERROR = "Something went wrong - please try again.";
 
-const createEntryEffect: DefCreateEntryEffect["func"] = async (
+const createEntryEffect: DefCreateEntryEffect["func"] = (
   ownArgs,
   props,
   effectArgs,
 ) => {
+  const { input } = ownArgs;
+
+  if (isConnected()) {
+    createOnlineEntry(input, props, effectArgs);
+  } else {
+    createOfflineEntryEffect(input, props, effectArgs);
+  }
+};
+
+async function createOnlineEntry(
+  input: CreateEntryInput,
+  props: Props,
+  effectArgs: EffectArgs,
+) {
   const {
-    createOfflineEntry,
     persistor,
     experience: { id: experienceId },
     updateExperiencesOnline,
@@ -155,92 +168,104 @@ const createEntryEffect: DefCreateEntryEffect["func"] = async (
   } = props;
 
   const { dispatch } = effectArgs;
-  const { input } = ownArgs;
 
-  if (isConnected()) {
-    const inputs = [
-      {
-        experienceId,
-        addEntries: [input],
-      },
-    ];
+  const inputs = [
+    {
+      experienceId,
+      addEntries: [input],
+    },
+  ];
 
-    updateExperiencesOnlineEffectHelperFunc({
-      input: inputs,
-      updateExperiencesOnline,
-      onUpdateSuccess: async (experience) => {
-        const { newEntries } = experience;
+  updateExperiencesOnlineEffectHelperFunc({
+    input: inputs,
+    updateExperiencesOnline,
+    onUpdateSuccess: async (experience) => {
+      const { newEntries } = experience;
 
-        if (newEntries && newEntries.length) {
-          const entry0 = newEntries[0];
+      if (newEntries && newEntries.length) {
+        const entry0 = newEntries[0];
 
-          if (entry0.__typename === "CreateEntryErrors") {
-            const { errors } = entry0;
-            dispatch({
-              type: ActionType.ON_CREATE_ENTRY_ERRORS,
-              ...errors,
-            });
-
-            return;
-          }
-
-          await persistor.persist();
-
-          detailedExperienceDispatch({
-            type: DetailedExperienceActionType.ON_NEW_ENTRY_CREATED,
-            entry: entry0.entry,
+        if (entry0.__typename === "CreateEntryErrors") {
+          const { errors } = entry0;
+          dispatch({
+            type: ActionType.ON_CREATE_ENTRY_ERRORS,
+            ...errors,
           });
 
           return;
         }
 
-        dispatch({
-          type: ActionType.ON_COMMON_ERROR,
-          error: GENERIC_SERVER_ERROR,
-        });
-      },
-      onError: (error) => {
-        dispatch({
-          type: ActionType.ON_COMMON_ERROR,
-          error: error || GENERIC_SERVER_ERROR,
-        });
-      },
-    });
-  } else {
-    try {
-      const response = await createOfflineEntry({
-        variables: {
-          experienceId,
-          dataObjects: input.dataObjects as CreateDataObject[],
-        },
-      });
+        await persistor.persist();
 
-      const validResponse =
-        response && response.data && response.data.createOfflineEntry;
-
-      if (!validResponse) {
-        dispatch({
-          type: ActionType.ON_COMMON_ERROR,
-          error: GENERIC_SERVER_ERROR,
+        detailedExperienceDispatch({
+          type: DetailedExperienceActionType.ON_NEW_ENTRY_CREATED,
+          entry: entry0.entry,
         });
 
         return;
       }
 
-      detailedExperienceDispatch({
-        type: DetailedExperienceActionType.ON_NEW_ENTRY_CREATED,
-        entry: validResponse.entry,
-      });
-
-      await persistor.persist();
-    } catch (error) {
       dispatch({
         type: ActionType.ON_COMMON_ERROR,
-        error,
+        error: GENERIC_SERVER_ERROR,
       });
+    },
+    onError: (error) => {
+      dispatch({
+        type: ActionType.ON_COMMON_ERROR,
+        error: error || GENERIC_SERVER_ERROR,
+      });
+    },
+  });
+}
+
+async function createOfflineEntryEffect(
+  input: CreateEntryInput,
+  props: Props,
+  effectArgs: EffectArgs,
+) {
+  const {
+    createOfflineEntry,
+    persistor,
+    experience: { id: experienceId },
+    detailedExperienceDispatch,
+  } = props;
+
+  const { dispatch } = effectArgs;
+
+  try {
+    const response = await createOfflineEntry({
+      variables: {
+        experienceId,
+        dataObjects: input.dataObjects as CreateDataObject[],
+      },
+    });
+
+    const validResponse =
+      response && response.data && response.data.createOfflineEntry;
+
+    if (!validResponse) {
+      dispatch({
+        type: ActionType.ON_COMMON_ERROR,
+        error: GENERIC_SERVER_ERROR,
+      });
+
+      return;
     }
+
+    detailedExperienceDispatch({
+      type: DetailedExperienceActionType.ON_NEW_ENTRY_CREATED,
+      entry: validResponse.entry,
+    });
+
+    await persistor.persist();
+  } catch (error) {
+    dispatch({
+      type: ActionType.ON_COMMON_ERROR,
+      error,
+    });
   }
-};
+}
 
 interface CreateEntryEffectArgs {
   input: CreateEntryInput;
