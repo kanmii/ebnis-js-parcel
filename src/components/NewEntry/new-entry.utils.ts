@@ -267,21 +267,6 @@ export const effectFunctions = {
   scrollToViewEffect,
 };
 
-export function runEffects(
-  effects: EffectsList,
-  props: Props,
-  thirdArgs: EffectArgs,
-) {
-  for (const { key, ownArgs } of effects) {
-    effectFunctions[key](
-      /* eslint-disable-next-line @typescript-eslint/no-explicit-any*/
-      ownArgs as any,
-      props,
-      thirdArgs,
-    );
-  }
-}
-
 ////////////////////////// END EFFECTS SECTION ////////////////////////////
 
 ////////////////////////// STATE UPDATE SECTION ////////////////////////////

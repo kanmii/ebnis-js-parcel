@@ -38,7 +38,7 @@ export const CREATE_OFFLINE_ENTRY_MUTATION = gql`
   ${ENTRY_FRAGMENT}
 `;
 
-export interface CreateOfflineEntryMutationReturned {
+interface CreateOfflineEntryMutationReturned {
   createOfflineEntry: {
     id: string;
     entry: EntryFragment;

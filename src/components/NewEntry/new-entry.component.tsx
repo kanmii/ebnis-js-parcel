@@ -163,7 +163,6 @@ export function NewEntry(props: Props) {
               className="button submit-btn"
               id={submitBtnDomId}
               type="submit"
-              color="green"
             >
               Submit
             </button>
@@ -188,11 +187,10 @@ const DataComponent = React.memo(
     } = props;
 
     const { name: fieldTitle, type, id } = definition;
-    const inputId = id; // makeFieldInputId(id);
 
     const generic = {
-      id: inputId,
-      name: inputId,
+      id,
+      name: id,
       value: currentValue,
       onChange:
         type === DataTypes.DATE || type === DataTypes.DATETIME
@@ -222,7 +220,7 @@ const DataComponent = React.memo(
       >
         <label
           className="label form__label"
-          htmlFor={inputId}
+          htmlFor={id}
         >{`[${type}] ${fieldTitle}`}</label>
 
         <div className="control">{component}</div>
