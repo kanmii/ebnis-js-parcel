@@ -349,7 +349,7 @@ describe("component", () => {
     expect(
       mockCreateOfflineEntry.mock.calls[0][0].variables.dataObjects[0],
     ).toEqual({
-      data: `{"decimal":"1"}`,
+      data: `{"decimal":"1.0"}`,
       definitionId: "1",
     });
   });
