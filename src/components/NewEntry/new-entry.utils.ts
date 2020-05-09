@@ -531,11 +531,6 @@ export interface SubmissionErrors {
   };
 }
 
-interface RunOnceEffectState<IEffect> {
-  run: boolean;
-  effect: IEffect;
-}
-
 type Action =
   | { type: ActionType.ON_SUBMIT }
   | { type: ActionType.DISMISS_NOTIFICATION }
