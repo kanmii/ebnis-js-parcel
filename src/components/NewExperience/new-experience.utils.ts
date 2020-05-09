@@ -1162,7 +1162,7 @@ export interface EffectArgs {
 
 type EffectDefinition<
   Key extends keyof typeof effectFunctions,
-  OwnArgs
+  OwnArgs = {}
 > = GenericEffectDefinition<EffectArgs, Props, Key, OwnArgs>;
 
 type EffectType = DefScrollToViewEffect | DefSubmissionEffect;
