@@ -149,13 +149,13 @@ const createEntryEffect: DefCreateEntryEffect["func"] = (
   const { input } = ownArgs;
 
   if (isConnected()) {
-    createOnlineEntry(input, props, effectArgs);
+    createOnlineEntryEffect(input, props, effectArgs);
   } else {
     createOfflineEntryEffect(input, props, effectArgs);
   }
 };
 
-async function createOnlineEntry(
+async function createOnlineEntryEffect(
   input: CreateEntryInput,
   props: Props,
   effectArgs: EffectArgs,
