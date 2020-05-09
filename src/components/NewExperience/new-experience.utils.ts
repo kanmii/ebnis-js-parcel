@@ -1,7 +1,7 @@
 import { Reducer, Dispatch } from "react";
 import immer, { Draft } from "immer";
 import {
-  CreateExperienceInput as FormValues,
+  CreateExperienceInput,
   CreateDataDefinition,
   DataTypes,
 } from "../../graphql/apollo-types/globalTypes";
@@ -227,7 +227,7 @@ const submissionEffect: DefSubmissionEffect["func"] = async (
 type DefSubmissionEffect = EffectDefinition<
   "submissionEffect",
   {
-    input: FormValues;
+    input: CreateExperienceInput;
   }
 >;
 
@@ -389,7 +389,7 @@ function handleSubmissionAction(proxy: DraftState) {
 
 const EMPTY_ERROR_TEXT = "is a required field";
 
-function validateForm(proxy: DraftState): FormValues {
+function validateForm(proxy: DraftState): CreateExperienceInput {
   const {
     states: {
       submission,
@@ -399,7 +399,7 @@ function validateForm(proxy: DraftState): FormValues {
 
   const submissionWarningState = submission as Draft<SubmissionWarning>;
 
-  const input = {} as FormValues;
+  const input = {} as CreateExperienceInput;
   let formUpdated = false;
   let hasErrors = false;
 
