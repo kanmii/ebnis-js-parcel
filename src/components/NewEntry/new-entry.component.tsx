@@ -223,7 +223,22 @@ const DataComponent = React.memo(
         <div className="control">{component}</div>
 
         {errors && (
-          <FormCtrlError className={fieldErrorSelector}>{errors}</FormCtrlError>
+          <FormCtrlError className={fieldErrorSelector}>
+            {errors.map(([k, v]) => {
+              return (
+                <div key={k}>
+                  <span
+                    style={{
+                      fontWeight: 700,
+                    }}
+                  >
+                    {k}:
+                  </span>{" "}
+                  <span>{v}</span>
+                </div>
+              );
+            })}
+          </FormCtrlError>
         )}
       </div>
     );
