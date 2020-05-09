@@ -2,7 +2,6 @@
 import React, { ComponentType } from "react";
 import { render, cleanup, waitForElement } from "@testing-library/react";
 import My from "../components/My/my.index";
-import { isConnected } from "../utils/connections";
 import { manuallyFetchExperienceConnectionMini } from "../utils/experience.gql.types";
 import {
   fetchExperiencesErrorsDomId,
@@ -17,7 +16,6 @@ jest.mock("../components/Loading/loading.component", () => () => (
 ));
 
 jest.mock("../utils/connections");
-const mockIsConnected = isConnected as jest.Mock;
 
 jest.mock("../utils/experience.gql.types");
 
@@ -45,9 +43,7 @@ const dataResult = {
   },
 };
 
-it("not connected/re fetch on error", async () => {
-  mockIsConnected.mockReturnValue(null);
-
+it("re fetch on error", async () => {
   mockManuallyFetchExperienceConnectionMini.mockRejectedValueOnce(
     new Error("a"),
   );
@@ -59,9 +55,7 @@ it("not connected/re fetch on error", async () => {
   expect(getErrorEl()).not.toBeNull();
   expect(getDataEl()).toBeNull();
 
-  expect(mockManuallyFetchExperienceConnectionMini.mock.calls[0][0]).toBe(
-    "cache-only",
-  );
+  expect(mockManuallyFetchExperienceConnectionMini).toHaveBeenCalled();
 
   // re fetch
   const fetchEl = document.getElementById(fetchErrorRetryDomId) as HTMLElement;
@@ -79,8 +73,6 @@ it("not connected/re fetch on error", async () => {
 });
 
 it("data", async () => {
-  mockIsConnected.mockReturnValue(true);
-
   mockManuallyFetchExperienceConnectionMini.mockResolvedValue(dataResult);
 
   const { ui } = makeComp();

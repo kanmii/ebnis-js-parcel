@@ -5,9 +5,8 @@ import { ExperienceMiniFragment } from "../../graphql/apollo-types/ExperienceMin
 import fuzzysort from "fuzzysort";
 import { GetExperienceConnectionMini } from "../../graphql/apollo-types/GetExperienceConnectionMini";
 import { GetExperienceConnectionMini_getExperiences_edges } from "../../graphql/apollo-types/GetExperienceConnectionMini";
-import { FetchPolicy, ApolloQueryResult } from "apollo-client";
+import { ApolloQueryResult } from "apollo-client";
 import { manuallyFetchExperienceConnectionMini } from "../../utils/experience.gql.types";
-import { isConnected } from "../../utils/connections";
 import { parseStringError } from "../../utils/common-errors";
 
 export enum ActionType {
@@ -413,9 +412,7 @@ export function initIndexState(): IndexStateMachine {
             effects: [
               {
                 key: "fetchExperiencesEffect",
-                ownArgs: {
-                  initial: "initial",
-                },
+                ownArgs: {},
               },
             ],
           },
@@ -486,19 +483,13 @@ type DefFetchExperiencesEffect = EffectDefinition<
 >;
 
 const fetchExperiencesEffect: DefFetchExperiencesEffect["func"] = async (
-  { initial },
+  _,
   { dispatch },
 ) => {
   try {
-    let fetchPolicy = undefined;
+    const data = await manuallyFetchExperienceConnectionMini("cache-first");
 
-    if (initial) {
-      fetchPolicy = isConnected() ? "cache-first" : "cache-only";
-    }
-
-    const data = await manuallyFetchExperienceConnectionMini(
-      fetchPolicy as FetchPolicy,
-    );
+    debugger;
 
     dispatch({
       type: ActionType.ON_DATA_RECEIVED,
