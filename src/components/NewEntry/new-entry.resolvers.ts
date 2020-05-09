@@ -54,9 +54,7 @@ export type CreateOfflineEntryResult = ExecutionResult<
 const createOfflineEntryMutationResolver: LocalResolverFn<
   CreateOfflineEntryMutationVariables,
   CreateOfflineEntryMutationReturned["createOfflineEntry"]
-> = (_, variables, context) => {
-  const { cache } = context;
-
+> = (_, variables) => {
   const { experienceId } = variables;
   const today = new Date();
   const timestamps = today.toJSON();
@@ -89,7 +87,6 @@ const createOfflineEntryMutationResolver: LocalResolverFn<
   };
 
   const experience = upsertExperienceWithEntry(
-    cache,
     entry,
     experienceId,
   ) as ExperienceFragment;

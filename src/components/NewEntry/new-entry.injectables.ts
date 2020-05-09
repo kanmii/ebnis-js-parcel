@@ -8,7 +8,6 @@ import {
   ExperienceFragment_entries_edges_node,
   ExperienceFragment_entries_edges,
 } from "../../graphql/apollo-types/ExperienceFragment";
-import { DataProxy } from "apollo-cache";
 import { readExperienceFragment } from "../../apollo/read-experience-fragment";
 import { entryToEdge } from "./entry-to-edge";
 import { EntryFragment } from "../../graphql/apollo-types/EntryFragment";
@@ -30,7 +29,6 @@ export function addResolvers(client: ApolloClient<{}>) {
  * query
  */
 export function upsertExperienceWithEntry(
-  dataProxy: DataProxy,
   entry: EntryFragment,
   experienceOrId: string | ExperienceFragment,
   onDone?: () => void,

@@ -15,8 +15,6 @@ const mockFloatExperienceToTheTopInGetExperiencesMiniQuery = floatExperienceToTh
 jest.mock("../apollo/read-experience-fragment");
 const mockReadExperienceFragment = readExperienceFragment as jest.Mock;
 
-const dataProxy = null as any;
-
 afterEach(() => {
   jest.resetAllMocks();
 });
@@ -33,7 +31,7 @@ it("inserts with id/no onDone", () => {
 
   expect(mockWriteExperienceFragmentToCache).not.toHaveBeenCalled();
 
-  upsertExperienceWithEntry(dataProxy, entry, "1");
+  upsertExperienceWithEntry(entry, "1");
 
   expect(mockWriteExperienceFragmentToCache).toHaveBeenCalled();
 
@@ -73,7 +71,7 @@ it("inserts with experience/onDone", () => {
 
   const mockOnDone = jest.fn();
 
-  upsertExperienceWithEntry(dataProxy, entry, experience, mockOnDone);
+  upsertExperienceWithEntry(entry, experience, mockOnDone);
 
   expect(
     mockFloatExperienceToTheTopInGetExperiencesMiniQuery,
