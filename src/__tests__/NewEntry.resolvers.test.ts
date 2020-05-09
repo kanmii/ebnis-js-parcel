@@ -30,6 +30,8 @@ afterEach(() => {
   jest.resetAllMocks();
 });
 
+const obj = null as any;
+
 it("online experience/creates entry/has unsynced", () => {
   mockGetUnsyncedExperience.mockReturnValue({});
 
@@ -43,11 +45,11 @@ it("online experience/creates entry/has unsynced", () => {
 
   const {
     entry: { id, dataObjects },
-  } = createOfflineEntryMutationResolver(null, variables, context);
+  } = createOfflineEntryMutationResolver(obj, variables, context);
 
   expect(mockUpsertExperienceWithEntry).toHaveBeenCalled();
   expect(isOfflineId(id));
-  expect(isOfflineId(dataObjects[0].id));
+  expect(isOfflineId((dataObjects[0] as any).id));
   expect(mockWriteUnsyncedExperience.mock.calls[0]).toEqual([
     "1",
     {
@@ -65,7 +67,7 @@ it("offline experience/creates entry/no unsynced", () => {
     dataObjects: [{}],
   } as CreateOfflineEntryMutationVariables;
 
-  createOfflineEntryMutationResolver(null, variables, context);
+  createOfflineEntryMutationResolver(obj, variables, context);
 
   expect(mockWriteUnsyncedExperience).not.toHaveBeenCalled();
   expect(mockUpsertExperienceWithEntry).toHaveBeenCalled();
