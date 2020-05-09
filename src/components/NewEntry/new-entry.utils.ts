@@ -500,36 +500,44 @@ interface FieldErrors {
 
 type DraftState = Draft<StateMachine>;
 
-interface StateMachine {
-  readonly context: {
-    readonly experience: ExperienceFragment;
+type StateMachine = Readonly<{
+  context: {
+    experience: Readonly<ExperienceFragment>;
   };
-  readonly effects: {
-    readonly general: GeneralEffect | { value: NoEffectVal };
-  };
-  readonly states: {
-    readonly submission: Submission;
-    readonly form: {
-      readonly fields: FormFields;
-    };
-  };
-}
+  effects: Readonly<{
+    general: Readonly<
+      | GeneralEffect
+      | {
+          value: NoEffectVal;
+        }
+    >;
+  }>;
+  states: Readonly<{
+    submission: Submission;
+    form: Readonly<{
+      fields: FormFields;
+    }>;
+  }>;
+}>;
 
-type Submission =
+type Submission = Readonly<
   | SubmissionErrors
-  | { value: ActiveVal }
+  | {
+      value: ActiveVal;
+    }
   | {
       value: InActiveVal;
-    };
+    }
+>;
 
-export interface SubmissionErrors {
+export type SubmissionErrors = Readonly<{
   value: ErrorsVal;
-  errors: {
+  errors: Readonly<{
     context: {
       errors: string;
     };
-  };
-}
+  }>;
+}>;
 
 type Action =
   | { type: ActionType.ON_SUBMIT }
