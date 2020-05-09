@@ -73,7 +73,6 @@ export function DetailExperience(props: Props) {
 
   useEffect(() => {
     return () => {
-
       // istanbul ignore else
       if (autoCloseNotificationTimeoutId) {
         clearTimeout(autoCloseNotificationTimeoutId);
@@ -136,15 +135,6 @@ export function DetailExperience(props: Props) {
   );
 }
 
-interface EntryProps {
-  entry: EntryFragment;
-  dataDefinitionIdToNameMap: DataDefinitionIdToNameMap;
-}
-
-interface DataDefinitionIdToNameMap {
-  [dataDefinitionId: string]: string;
-}
-
 function EntryComponent(props: EntryProps) {
   const { entry, dataDefinitionIdToNameMap } = props;
   const { updatedAt, dataObjects: dObjects } = entry;
@@ -180,4 +170,13 @@ function entryConnectionToNodes(entries: EntryConnectionFragment) {
     const edge = e as EntryConnectionFragment_edges;
     return edge.node as EntryFragment;
   });
+}
+
+interface EntryProps {
+  entry: EntryFragment;
+  dataDefinitionIdToNameMap: DataDefinitionIdToNameMap;
+}
+
+interface DataDefinitionIdToNameMap {
+  [dataDefinitionId: string]: string;
 }
