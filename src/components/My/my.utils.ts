@@ -489,8 +489,6 @@ const fetchExperiencesEffect: DefFetchExperiencesEffect["func"] = async (
   try {
     const data = await manuallyFetchExperienceConnectionMini("cache-first");
 
-    debugger;
-
     dispatch({
       type: ActionType.ON_DATA_RECEIVED,
       key: StateValue.data,
