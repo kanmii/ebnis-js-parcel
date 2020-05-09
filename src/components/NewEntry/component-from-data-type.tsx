@@ -19,6 +19,7 @@ const componentsObject: {
     <input
       className={"input is-rounded form__control " + decimalInputDomSelector}
       type="number"
+      step="any"
       {...props}
     />
   ),

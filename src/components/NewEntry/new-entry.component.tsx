@@ -196,15 +196,12 @@ const DataComponent = React.memo(
         type === DataTypes.DATE || type === DataTypes.DATETIME
           ? makeDateChangedFn(dispatch, index)
           : (e: ChangeEvent<HTMLInputElement>) => {
-              const inputVal = e.currentTarget.value;
+              let value = e.currentTarget.value;
 
               dispatch({
                 type: ActionType.ON_FORM_FIELD_CHANGED,
                 fieldIndex: index,
-                value:
-                  type === DataTypes.DECIMAL || type === DataTypes.INTEGER
-                    ? Number(inputVal)
-                    : inputVal,
+                value,
               });
             },
     };
