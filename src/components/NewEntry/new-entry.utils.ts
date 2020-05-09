@@ -36,13 +36,16 @@ import {
   ActionType as DetailedExperienceActionType,
 } from "../DetailExperience/detail-experience.utils";
 import {
-  NoEffectVal,
   HasEffectsVal,
   ActiveVal,
   InActiveVal,
   ErrorsVal,
   StateValue,
 } from "../../utils/types";
+import {
+  GenericGeneralEffect,
+  GenericEffectDefinition,
+} from "../../utils/effects";
 
 const NEW_LINE_REGEX = /\n/g;
 export const ISO_DATE_FORMAT = "yyyy-MM-dd";
@@ -500,25 +503,18 @@ interface FieldErrors {
 
 type DraftState = Draft<StateMachine>;
 
-type StateMachine = Readonly<{
-  context: {
-    experience: Readonly<ExperienceFragment>;
-  };
-  effects: Readonly<{
-    general: Readonly<
-      | GeneralEffect
-      | {
-          value: NoEffectVal;
-        }
-    >;
-  }>;
-  states: Readonly<{
-    submission: Submission;
-    form: Readonly<{
-      fields: FormFields;
+type StateMachine = Readonly<GenericGeneralEffect<EffectType>> &
+  Readonly<{
+    context: {
+      experience: Readonly<ExperienceFragment>;
+    };
+    states: Readonly<{
+      submission: Submission;
+      form: Readonly<{
+        fields: FormFields;
+      }>;
     }>;
   }>;
-}>;
 
 type Submission = Readonly<
   | SubmissionErrors
@@ -558,7 +554,8 @@ interface EffectContext {
   effectsArgsObj: Props;
 }
 
-type EffectsList = (DefScrollToViewEffect | DefCreateEntryEffect)[];
+type EffectType = DefScrollToViewEffect | DefCreateEntryEffect;
+type EffectsList = EffectType[];
 
 export interface GeneralEffect {
   value: HasEffectsVal;
@@ -573,15 +570,7 @@ interface EffectArgs {
   dispatch: DispatchType;
 }
 
-interface EffectDefinition<
+type EffectDefinition<
   Key extends keyof typeof effectFunctions,
   OwnArgs = {}
-> {
-  key: Key;
-  ownArgs: OwnArgs;
-  func?: (
-    ownArgs: OwnArgs,
-    props: Props,
-    thirdArgs: EffectArgs,
-  ) => void | Promise<void | (() => void)> | (() => void);
-}
+> = GenericEffectDefinition<EffectArgs, Props, Key, OwnArgs>;

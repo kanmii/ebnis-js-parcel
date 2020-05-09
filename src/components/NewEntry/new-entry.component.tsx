@@ -36,6 +36,7 @@ import {
 import { ActionType as DetailExperienceActionType } from "../DetailExperience/detail-experience.utils";
 import { StateValue } from "../../utils/types";
 import { errorClassName } from "../../utils/utils.dom";
+import { useRunEffects } from "../../utils/use-run-effects";
 
 export function NewEntry(props: Props) {
   const { experience, client, detailedExperienceDispatch } = props;
@@ -47,22 +48,7 @@ export function NewEntry(props: Props) {
     effects: { general: generalEffects },
   } = stateMachine;
 
-  useEffect(() => {
-    if (generalEffects.value !== StateValue.hasEffects) {
-      return;
-    }
-
-    for (const { key, ownArgs } of generalEffects.hasEffects.context.effects) {
-      effectFunctions[key](
-        /* eslint-disable-next-line @typescript-eslint/no-explicit-any*/
-        ownArgs as any,
-        props,
-        { dispatch },
-      );
-    }
-
-    /* eslint-disable-next-line react-hooks/exhaustive-deps*/
-  }, [generalEffects]);
+  useRunEffects(generalEffects, effectFunctions, props, { dispatch });
 
   const onSubmit = useCallback((e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
