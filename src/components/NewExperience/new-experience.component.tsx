@@ -1,6 +1,5 @@
 import React, {
   useReducer,
-  useContext,
   useEffect,
   useCallback,
   FormEvent,
@@ -44,7 +43,6 @@ import {
   disposeComponentDomId,
   domPrefix,
 } from "./new-experience.dom";
-import { EbnisAppContext } from "../../utils/app-context";
 import { useCreateExperienceOfflineMutation } from "./new-experience.resolvers";
 import { useCreateExperiencesMutation } from "../../utils/experience.gql.types";
 import { DataTypes } from "../../graphql/apollo-types/globalTypes";
@@ -62,7 +60,7 @@ import { StateValue } from "../../utils/types";
 import { useRunEffects } from "../../utils/use-run-effects";
 
 export function NewExperience(props: Props) {
-  const { client, myDispatch: parentDispatch } = props;
+  const { myDispatch: parentDispatch } = props;
   const [stateMachine, dispatch] = useReducer(reducer, undefined, initState);
 
   const {
@@ -83,7 +81,7 @@ export function NewExperience(props: Props) {
   useRunEffects(generalEffects, effectFunctions, props, { dispatch });
 
   useEffect(() => {
-    addResolvers(client);
+    addResolvers(window.____ebnis.client);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -619,15 +617,12 @@ function DataDefinitions(props: DataDefinitionsProps) {
 export default (props: CallerProps) => {
   const [createExperienceOffline] = useCreateExperienceOfflineMutation();
   const [createExperiences] = useCreateExperiencesMutation();
-  const { client, persistor } = useContext(EbnisAppContext);
 
   return (
     <NewExperience
       {...props}
-      client={client}
       createExperiences={createExperiences}
       createExperienceOffline={createExperienceOffline}
-      persistor={persistor}
     />
   );
 };

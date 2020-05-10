@@ -42,6 +42,7 @@ import { AppPersistor } from "../utils/app-context";
 import { scrollIntoView } from "../utils/scroll-into-view";
 import { CreateExperiences_createExperiences_CreateExperienceErrors_errors } from "../graphql/apollo-types/CreateExperiences";
 import { CreateExperienceOfflineMutationResult } from "../components/NewExperience/new-experience.resolvers";
+import { E2EWindowObject } from "../utils/types";
 
 jest.mock("../components/NewExperience/new-experience.injectables");
 
@@ -62,6 +63,19 @@ const mockPersistFn = jest.fn();
 const persistor = {
   persist: mockPersistFn as any,
 } as AppPersistor;
+
+const globals = {
+  persistor,
+  client: {} as any,
+} as E2EWindowObject;
+
+beforeAll(() => {
+  window.____ebnis = globals;
+});
+
+afterAll(() => {
+  delete window.____ebnis;
+});
 
 afterEach(() => {
   cleanup();
@@ -356,7 +370,6 @@ describe("reducer", () => {
     });
 
     const props = {
-      persistor,
       createExperienceOffline: mockCreateOfflineExperience as any,
     } as Props;
 
@@ -414,7 +427,6 @@ describe("reducer", () => {
     });
 
     const props = {
-      persistor,
       createExperienceOffline: mockCreateOfflineExperience as any,
     } as Props;
 
@@ -455,7 +467,6 @@ describe("reducer", () => {
     });
 
     const props = {
-      persistor,
       createExperienceOffline: mockCreateOfflineExperience as any,
     } as Props;
 
@@ -480,7 +491,7 @@ describe("reducer", () => {
     } as CreateExperienceOfflineMutationResult);
 
     expect(mockDispatch).not.toHaveBeenCalled();
-     effectFn(effect.ownArgs as any, props, effectArgs);
+    effectFn(effect.ownArgs as any, props, effectArgs);
     await wait(() => true);
 
     expect(mockWindowChangeUrl).not.toHaveBeenCalled();
@@ -506,7 +517,6 @@ describe("reducer", () => {
     });
 
     const props = {
-      persistor,
       createExperiences: mockCreateExperiencesOnline as any,
     } as Props;
 
@@ -524,7 +534,7 @@ describe("reducer", () => {
     });
 
     expect(mockDispatch).not.toHaveBeenCalled();
-     effectFn(effect.ownArgs as any, props, effectArgs);
+    effectFn(effect.ownArgs as any, props, effectArgs);
     await wait(() => true);
 
     expect(mockDispatch.mock.calls[0][0].type).toEqual(
@@ -653,7 +663,6 @@ function makeComp({ props = {} }: { props?: Partial<{}> } = {}) {
     ui: (
       <NewExperienceP
         createExperiences={mockCreateExperiencesOnline}
-        persistor={persistor}
         createExperienceOffline={mockCreateOfflineExperience}
         myDispatch={mockParentDispatch}
         {...props}

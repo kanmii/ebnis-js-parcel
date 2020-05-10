@@ -5,7 +5,6 @@ import {
   CreateDataDefinition,
   DataTypes,
 } from "../../graphql/apollo-types/globalTypes";
-import ApolloClient from "apollo-client";
 import { wrapReducer } from "../../logger";
 import {
   StringyErrorPayload,
@@ -34,7 +33,6 @@ import { scrollIntoViewDomId } from "./new-experience.dom";
 import { CreateExperienceOfflineMutationComponentProps } from "./new-experience.resolvers";
 import { makeDetailedExperienceRoute } from "../../utils/urls";
 import { windowChangeUrl, ChangeUrlType } from "../../utils/global-window";
-import { AppPersistor } from "../../utils/app-context";
 import { uuid } from "uuidv4";
 import { MyChildDispatchProps } from "../My/my.utils";
 import {
@@ -166,7 +164,7 @@ async function createExperienceOfflineEffect(
   props: Props,
   effectArgs: EffectArgs,
 ) {
-  const { createExperienceOffline, persistor } = props;
+  const { createExperienceOffline } = props;
   const { dispatch } = effectArgs;
   const variables = ceateExperienceInputMutationFunctionVariable(input);
 
@@ -191,7 +189,7 @@ async function createExperienceOfflineEffect(
         });
       } else {
         const experienceId = validResponse.experience.id;
-        await persistor.persist();
+        await window.____ebnis.persistor.persist();
         windowChangeUrl(
           makeDetailedExperienceRoute(experienceId),
           ChangeUrlType.goTo,
@@ -211,7 +209,7 @@ async function createExperienceOnlineEffect(
   props: Props,
   effectArgs: EffectArgs,
 ) {
-  const { createExperiences, persistor } = props;
+  const { createExperiences } = props;
   const { dispatch } = effectArgs;
   const variables = ceateExperienceInputMutationFunctionVariable(input);
 
@@ -244,7 +242,7 @@ async function createExperienceOnlineEffect(
       });
     } else {
       const { experience } = response;
-      await persistor.persist();
+      await window.____ebnis.persistor.persist();
       windowChangeUrl(
         makeDetailedExperienceRoute(experience.id),
         ChangeUrlType.goTo,
@@ -998,10 +996,7 @@ export type CallerProps = MyChildDispatchProps;
 
 export type Props = CreateExperiencesComponentProps &
   CreateExperienceOfflineMutationComponentProps &
-  CallerProps & {
-    client: ApolloClient<{}>;
-    persistor: AppPersistor;
-  };
+  CallerProps;
 
 export type Action =
   | ({
