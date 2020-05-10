@@ -42,10 +42,12 @@ import {
   InActiveVal,
   ErrorsVal,
   StateValue,
+  SyncOfflineExperienceErrorsVal,
 } from "../../utils/types";
 import {
   GenericGeneralEffect,
   GenericEffectDefinition,
+  getGeneralEffects,
 } from "../../utils/effects";
 import { isOfflineId } from "../../utils/offlines";
 import {
@@ -56,6 +58,13 @@ import { EntryFragment } from "../../graphql/apollo-types/EntryFragment";
 import { DataObjectFragment } from "../../graphql/apollo-types/DataObjectFragment";
 import { createExperienceOnlineEffect } from "../NewExperience/new-experience.utils";
 import { DataDefinitionFragment } from "../../graphql/apollo-types/DataDefinitionFragment";
+import {
+  writeSyncingExperience,
+  SyncingExperience,
+} from "../NewExperience/new-experience.resolvers";
+import { windowChangeUrl, ChangeUrlType } from "../../utils/global-window";
+import { makeDetailedExperienceRoute } from "../../utils/urls";
+import { CreateExperienceErrorsFragment_errors } from "../../graphql/apollo-types/CreateExperienceErrorsFragment";
 
 const NEW_LINE_REGEX = /\n/g;
 export const ISO_DATE_FORMAT = "yyyy-MM-dd";
@@ -67,6 +76,7 @@ export enum ActionType {
   DISMISS_NOTIFICATION = "@new-entry/unset-server-errors",
   ON_SUBMIT = "@new-entry/on-submit",
   ON_COMMON_ERROR = "@new-entry/on-common-error",
+  ON_SYNC_OFFLINE_EXPERIENCE_ERRORS = "@new-entry/on-sync-offline-experience-errors",
 }
 
 export function toISODateString(date: Date) {
@@ -140,6 +150,13 @@ export const reducer: Reducer<StateMachine, Action> = (state, action) =>
           case ActionType.ON_COMMON_ERROR:
             handleOnCommonErrorAction(proxy, payload as StringyErrorPayload);
             break;
+
+          case ActionType.ON_SYNC_OFFLINE_EXPERIENCE_ERRORS:
+            handleOnSyncOfflineExperienceErrors(
+              proxy,
+              payload as SyncOfflineExperienceErrorsPayload,
+            );
+            break;
         }
       });
     },
@@ -163,7 +180,7 @@ const createEntryEffect: DefCreateEntryEffect["func"] = (
     const experienceId = experience.id;
 
     if (isOfflineId(experienceId)) {
-      syncOfflineExperienceEffect(experience, input, props, effectArgs);
+      syncOfflineExperienceEffect(input, props, effectArgs);
     } else {
       createOnlineEntryEffect(input, props, effectArgs);
     }
@@ -173,15 +190,14 @@ const createEntryEffect: DefCreateEntryEffect["func"] = (
 };
 
 function syncOfflineExperienceEffect(
-  experience: ExperienceFragment,
   input: CreateEntryInput,
   props: Props,
   effectArgs: EffectArgs,
 ) {
-  const { createExperiences, detailedExperienceDispatch } = props;
+  const { createExperiences, experience: offlineExperience } = props;
   const { dispatch } = effectArgs;
 
-  const createExperienceInput = experienceToCreateInput(experience);
+  const createExperienceInput = experienceToCreateInput(offlineExperience);
   createExperienceInput.entries = [input].concat(
     (createExperienceInput.entries ||
       // istanbul ignore next:
@@ -195,15 +211,23 @@ function syncOfflineExperienceEffect(
       switch (data.key) {
         case "ExperienceSuccess":
           {
-            await window.____ebnis.persistor.persist();
             const { experience, entriesErrors } = data;
+            const { id } = experience;
+            const syncingData = {
+              offlineExperienceId: offlineExperience.id,
+            } as SyncingExperience;
 
-            /**
-             * 1. redirect to newly created experience
-             * 2. deal with entriesErrors at newly created experience page
-             */
+            if (entriesErrors) {
+              syncingData.entriesErrors = entriesErrors;
+            }
 
-            //
+            writeSyncingExperience(id, syncingData);
+            await window.____ebnis.persistor.persist();
+
+            windowChangeUrl(
+              makeDetailedExperienceRoute(data.experience.id),
+              ChangeUrlType.replace,
+            );
           }
           break;
 
@@ -215,7 +239,10 @@ function syncOfflineExperienceEffect(
           break;
 
         case "CreateExperienceErrors":
-          // tell detailedExperience that experience can not be created
+          dispatch({
+            type: ActionType.ON_SYNC_OFFLINE_EXPERIENCE_ERRORS,
+            errors: data.errors,
+          });
           break;
 
         case "invalidResponse":
@@ -603,6 +630,33 @@ function handleFormFieldChangedAction(
   proxy.states.form.fields[fieldIndex].context.value = value;
 }
 
+function handleOnSyncOfflineExperienceErrors(
+  proxy: DraftState,
+  payload: SyncOfflineExperienceErrorsPayload,
+) {
+  const {
+    states: { submission },
+  } = proxy;
+
+  const { errors } = payload;
+  const state = submission as Draft<SyncOfflineExperienceErrors>;
+  state.value = StateValue.syncOfflineExperienceErrors;
+
+
+  state.syncOfflineExperienceErrors = {
+    context: {
+      errors,
+    },
+  };
+
+  const effects = getGeneralEffects(proxy);
+  effects.push({
+    key: "scrollToViewEffect",
+    ownArgs: {
+      id: scrollIntoViewNonFieldErrorDomId,
+    },
+  });
+}
 ////////////////////////// END STATE UPDATE SECTION /////////////////////
 
 ////////////////////////// TYPES SECTION ////////////////////////////
@@ -673,7 +727,17 @@ type Submission = Readonly<
   | {
       value: InActiveVal;
     }
+  | SyncOfflineExperienceErrors
 >;
+
+type SyncOfflineExperienceErrors = Readonly<{
+  value: SyncOfflineExperienceErrorsVal;
+  syncOfflineExperienceErrors: {
+    context: {
+      errors: CreateExperienceErrorsFragment_errors;
+    };
+  };
+}>;
 
 export type SubmissionErrors = Readonly<{
   value: ErrorsVal;
@@ -695,7 +759,14 @@ type Action =
     } & FieldChangedPayload)
   | ({
       type: ActionType.ON_COMMON_ERROR;
-    } & StringyErrorPayload);
+    } & StringyErrorPayload)
+  | ({
+      type: ActionType.ON_SYNC_OFFLINE_EXPERIENCE_ERRORS;
+    } & SyncOfflineExperienceErrorsPayload);
+
+interface SyncOfflineExperienceErrorsPayload {
+  errors: CreateExperienceErrorsFragment_errors;
+}
 
 export type DispatchType = Dispatch<Action>;
 

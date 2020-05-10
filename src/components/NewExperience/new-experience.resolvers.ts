@@ -239,7 +239,7 @@ interface SyncingExperiencesLedger {
   [experienceId: string]: SyncingExperience;
 }
 
-interface SyncingExperience {
+export interface SyncingExperience {
   entriesErrors?: CreateEntryErrorFragment[];
   offlineExperienceId: string;
 }

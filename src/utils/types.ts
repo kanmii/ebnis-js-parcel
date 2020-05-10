@@ -88,6 +88,7 @@ export type InitialVal = "initial";
 export type UnChangedVal = "unchanged";
 export type ChangedVal = "changed";
 export type ErrorsVal = "errors";
+export type SyncOfflineExperienceErrorsVal = "syncOfflineExperienceErrors";
 
 export const StateValue = {
   noEffect: "noEffect" as NoEffectVal,
@@ -103,4 +104,5 @@ export const StateValue = {
   invalid: "invalid" as InvalidVal,
   initial: "initial" as InitialVal,
   errors: "errors" as ErrorsVal,
+  syncOfflineExperienceErrors: "syncOfflineExperienceErrors" as SyncOfflineExperienceErrorsVal,
 } as const;
