@@ -364,8 +364,8 @@ describe("reducer", () => {
       dispatch: mockDispatch,
     } as EffectArgs;
 
-    const effect = (state.effects.general as EffectState).hasEffects
-      .context.effects[0];
+    const effect = (state.effects.general as EffectState).hasEffects.context
+      .effects[0];
 
     const effectFn = effectFunctions[effect.key];
 
@@ -381,7 +381,8 @@ describe("reducer", () => {
 
     expect(mockWindowChangeUrl).not.toHaveBeenCalled();
     expect(mockPersistFn).not.toHaveBeenCalled();
-    await effectFn(effect.ownArgs as any, props, effectArgs);
+    effectFn(effect.ownArgs as any, props, effectArgs);
+    await wait(() => true);
 
     expect(mockWindowChangeUrl).toHaveBeenCalled();
     expect(mockPersistFn).toHaveBeenCalled();
@@ -431,7 +432,8 @@ describe("reducer", () => {
     });
 
     expect(mockDispatch).not.toHaveBeenCalled();
-    await effectFn(effect.ownArgs as any, props, effectArgs);
+    effectFn(effect.ownArgs as any, props, effectArgs);
+    await wait(() => true);
 
     expect(mockWindowChangeUrl).not.toHaveBeenCalled();
     expect(mockPersistFn).not.toHaveBeenCalled();
@@ -478,7 +480,8 @@ describe("reducer", () => {
     } as CreateExperienceOfflineMutationResult);
 
     expect(mockDispatch).not.toHaveBeenCalled();
-    await effectFn(effect.ownArgs as any, props, effectArgs);
+     effectFn(effect.ownArgs as any, props, effectArgs);
+    await wait(() => true);
 
     expect(mockWindowChangeUrl).not.toHaveBeenCalled();
     expect(mockPersistFn).not.toHaveBeenCalled();
@@ -521,7 +524,8 @@ describe("reducer", () => {
     });
 
     expect(mockDispatch).not.toHaveBeenCalled();
-    await effectFn(effect.ownArgs as any, props, effectArgs);
+     effectFn(effect.ownArgs as any, props, effectArgs);
+    await wait(() => true);
 
     expect(mockDispatch.mock.calls[0][0].type).toEqual(
       ActionType.ON_COMMON_ERROR,

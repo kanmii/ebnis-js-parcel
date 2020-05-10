@@ -140,48 +140,82 @@ export const reducer: Reducer<StateMachine, Action> = (state, action) =>
 
 ////////////////////////// EFFECTS SECTION /////////////////////////
 
-const submissionEffect: DefSubmissionEffect["func"] = async (
+const submissionEffect: DefSubmissionEffect["func"] = (
   { input },
   props,
   effectArgs,
 ) => {
-  const { createExperiences, createExperienceOffline, persistor } = props;
+  if (!isConnected()) {
+    createExperienceOfflineEffect(input, props, effectArgs);
+  } else {
+    createExperienceOnlineEffect(input, props, effectArgs);
+  }
+};
+
+function ceateExperienceInputMutationFunctionVariable(
+  input: CreateExperienceInput,
+) {
+  return {
+    input: [input],
+    ...entriesPaginationVariables,
+  };
+}
+
+async function createExperienceOfflineEffect(
+  input: CreateExperienceInput,
+  props: Props,
+  effectArgs: EffectArgs,
+) {
+  const { createExperienceOffline, persistor } = props;
   const { dispatch } = effectArgs;
-  const variables = { input: [input], ...entriesPaginationVariables };
+  const variables = ceateExperienceInputMutationFunctionVariable(input);
 
   try {
-    if (!isConnected()) {
-      const result = await createExperienceOffline({
-        variables,
+    const result = await createExperienceOffline({
+      variables,
+    });
+
+    const validResponse =
+      result && result.data && result.data.createOfflineExperience;
+
+    if (!validResponse) {
+      dispatch({
+        type: ActionType.ON_COMMON_ERROR,
+        error: GENERIC_SERVER_ERROR,
       });
-
-      const validResponse =
-        result && result.data && result.data.createOfflineExperience;
-
-      if (!validResponse) {
+    } else {
+      if (validResponse.__typename === "CreateExperienceErrors") {
         dispatch({
-          type: ActionType.ON_COMMON_ERROR,
-          error: GENERIC_SERVER_ERROR,
+          type: ActionType.ON_SERVER_ERRORS,
+          errors: validResponse.errors,
         });
       } else {
-        if (validResponse.__typename === "CreateExperienceErrors") {
-          dispatch({
-            type: ActionType.ON_SERVER_ERRORS,
-            errors: validResponse.errors,
-          });
-        } else {
-          const experienceId = validResponse.experience.id;
-          await persistor.persist();
-          windowChangeUrl(
-            makeDetailedExperienceRoute(experienceId),
-            ChangeUrlType.goTo,
-          );
-        }
+        const experienceId = validResponse.experience.id;
+        await persistor.persist();
+        windowChangeUrl(
+          makeDetailedExperienceRoute(experienceId),
+          ChangeUrlType.goTo,
+        );
       }
-
-      return;
     }
+  } catch (error) {
+    dispatch({
+      type: ActionType.ON_COMMON_ERROR,
+      error,
+    });
+  }
+}
 
+async function createExperienceOnlineEffect(
+  input: CreateExperienceInput,
+  props: Props,
+  effectArgs: EffectArgs,
+) {
+  const { createExperiences, persistor } = props;
+  const { dispatch } = effectArgs;
+  const variables = ceateExperienceInputMutationFunctionVariable(input);
+
+  try {
     const responses = await createExperiences({
       variables,
       update: createExperiencesManualUpdate,
@@ -222,7 +256,7 @@ const submissionEffect: DefSubmissionEffect["func"] = async (
       error,
     });
   }
-};
+}
 
 type DefSubmissionEffect = EffectDefinition<
   "submissionEffect",
