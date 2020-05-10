@@ -133,7 +133,7 @@ export function useCreateExperiencesMutation(): UseCreateExperiencesMutation {
   return useMutation(CREATE_EXPERIENCES_MUTATION);
 }
 
-type CreateExperiencesMutationFn = MutationFunction<
+export type CreateExperiencesMutationFn = MutationFunction<
   CreateExperiences,
   CreateExperiencesVariables
 >;

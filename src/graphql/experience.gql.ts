@@ -377,6 +377,37 @@ export const UPDATE_EXPERIENCES_ONLINE_MUTATION = gql`
 
 ////////////////////////// END UPDATE EXPERIENCES SECTION //////////////////
 
+const CREATE_EXPERIENCE_SUCCESS_FRAGMENT = gql`
+  fragment CreateExperienceSuccessFragment on ExperienceSuccess {
+    experience {
+      ...ExperienceFragment
+    }
+    entriesErrors {
+      ...CreateEntryErrorFragment
+    }
+  }
+`;
+
+const CREATE_EXPERIENCE_ERRORS_FRAGMENT = gql`
+  fragment CreateExperienceErrorsFragment on CreateExperienceErrors {
+    errors {
+      meta {
+        index
+        clientId
+      }
+      error
+      title
+      user
+      clientId
+      dataDefinitions {
+        index
+        name
+        type
+      }
+    }
+  }
+`;
+
 export const CREATE_EXPERIENCES_MUTATION = gql`
   mutation CreateExperiences(
     $input: [CreateExperienceInput!]!
@@ -385,32 +416,15 @@ export const CREATE_EXPERIENCES_MUTATION = gql`
     createExperiences(input: $input) {
       __typename
       ... on ExperienceSuccess {
-        experience {
-          ...ExperienceFragment
-        }
-        entriesErrors {
-          ...CreateEntryErrorFragment
-        }
+        ...CreateExperienceSuccessFragment
       }
       ... on CreateExperienceErrors {
-        errors {
-          meta {
-            index
-            clientId
-          }
-          error
-          title
-          user
-          clientId
-          dataDefinitions {
-            index
-            name
-            type
-          }
-        }
+        ...CreateExperienceErrorsFragment
       }
     }
   }
+  ${CREATE_EXPERIENCE_SUCCESS_FRAGMENT}
+  ${CREATE_EXPERIENCE_ERRORS_FRAGMENT}
   ${EXPERIENCE_FRAGMENT}
   ${CREATE_ENTRY_ERROR_FRAGMENT}
 `;
@@ -475,7 +489,6 @@ export const PRE_FETCH_EXPERIENCES_QUERY = gql`
 
   ${EXPERIENCE_CONNECTION_PRE_FETCH_FRAGMENT}
 `;
-
 
 ////////////////////////// GET EXPERIENCE DETAIL //////////////////
 export const GET_DETAIL_EXPERIENCE_QUERY = gql`

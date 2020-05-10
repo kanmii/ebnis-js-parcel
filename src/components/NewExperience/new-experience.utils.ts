@@ -21,7 +21,10 @@ import {
   GenericHasEffect,
 } from "../../utils/effects";
 import { scrollIntoView } from "../../utils/scroll-into-view";
-import { CreateExperiencesComponentProps } from "../../utils/experience.gql.types";
+import {
+  CreateExperiencesComponentProps,
+  CreateExperiencesMutationFn,
+} from "../../utils/experience.gql.types";
 import { entriesPaginationVariables } from "../../graphql/entry.gql";
 import { isConnected } from "../../utils/connections";
 import {
@@ -48,6 +51,12 @@ import {
   InvalidVal,
   StateValue,
 } from "../../utils/types";
+import {
+  CreateExperienceErrorsFragment,
+  CreateExperienceErrorsFragment_errors,
+} from "../../graphql/apollo-types/CreateExperienceErrorsFragment";
+import { CreateExperienceSuccessFragment } from "../../graphql/apollo-types/CreateExperienceSuccessFragment";
+import { ExperienceFragment } from "../../graphql/apollo-types/ExperienceFragment";
 
 export const fieldTypeKeys = Object.values(DataTypes);
 
@@ -146,7 +155,46 @@ const submissionEffect: DefSubmissionEffect["func"] = (
   if (!isConnected()) {
     createExperienceOfflineEffect(input, props, effectArgs);
   } else {
-    createExperienceOnlineEffect(input, props, effectArgs);
+    const { createExperiences } = props;
+    const { dispatch } = effectArgs;
+
+    createExperienceOnlineEffect(
+      input,
+      createExperiences,
+      async (data: CreateExperienceOnlineEvents) => {
+        switch (data.key) {
+          case "ExperienceSuccess":
+            await window.____ebnis.persistor.persist();
+
+            windowChangeUrl(
+              makeDetailedExperienceRoute(data.experience.id),
+              ChangeUrlType.goTo,
+            );
+            break;
+
+          case "exception":
+            dispatch({
+              type: ActionType.ON_COMMON_ERROR,
+              error: data.error,
+            });
+            break;
+
+          case "CreateExperienceErrors":
+            dispatch({
+              type: ActionType.ON_SERVER_ERRORS,
+              errors: data.errors,
+            });
+            break;
+
+          case "invalidResponse":
+            dispatch({
+              type: ActionType.ON_COMMON_ERROR,
+              error: GENERIC_SERVER_ERROR,
+            });
+            break;
+        }
+      },
+    );
   }
 };
 
@@ -204,13 +252,28 @@ async function createExperienceOfflineEffect(
   }
 }
 
-async function createExperienceOnlineEffect(
+type CreateExperienceOnlineEvents =
+  | {
+      key: "invalidResponse";
+    }
+  | {
+      key: CreateExperienceErrorsFragment["__typename"];
+      errors: CreateExperienceErrorsFragment_errors;
+    }
+  | {
+      key: CreateExperienceSuccessFragment["__typename"];
+      experience: ExperienceFragment;
+    }
+  | {
+      key: "exception";
+      error: Error;
+    };
+
+export async function createExperienceOnlineEffect(
   input: CreateExperienceInput,
-  props: Props,
-  effectArgs: EffectArgs,
+  createExperiences: CreateExperiencesMutationFn,
+  onEvent: (data: CreateExperienceOnlineEvents) => void,
 ) {
-  const { createExperiences } = props;
-  const { dispatch } = effectArgs;
   const variables = ceateExperienceInputMutationFunctionVariable(input);
 
   try {
@@ -223,9 +286,8 @@ async function createExperienceOnlineEffect(
       responses && responses.data && responses.data.createExperiences;
 
     if (!validResponses) {
-      dispatch({
-        type: ActionType.ON_COMMON_ERROR,
-        error: GENERIC_SERVER_ERROR,
+      onEvent({
+        key: "invalidResponse",
       });
 
       return;
@@ -236,21 +298,21 @@ async function createExperienceOnlineEffect(
     if (response.__typename === "CreateExperienceErrors") {
       const { errors } = response;
 
-      dispatch({
-        type: ActionType.ON_SERVER_ERRORS,
+      onEvent({
+        key: "CreateExperienceErrors",
         errors,
       });
     } else {
       const { experience } = response;
-      await window.____ebnis.persistor.persist();
-      windowChangeUrl(
-        makeDetailedExperienceRoute(experience.id),
-        ChangeUrlType.goTo,
-      );
+
+      onEvent({
+        key: "ExperienceSuccess",
+        experience,
+      });
     }
   } catch (error) {
-    dispatch({
-      type: ActionType.ON_COMMON_ERROR,
+    onEvent({
+      key: "exception",
       error,
     });
   }
