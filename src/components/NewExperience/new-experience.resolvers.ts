@@ -33,6 +33,7 @@ import {
   GetExperienceConnectionMini_getExperiences_edges,
   GetExperienceConnectionMini_getExperiences_edges_node,
 } from "../../graphql/apollo-types/GetExperienceConnectionMini";
+import { CreateEntryErrorFragment } from "../../graphql/apollo-types/CreateEntryErrorFragment";
 
 const createOfflineExperienceResolver: LocalResolverFn<
   CreateExperiencesVariables,
@@ -191,3 +192,55 @@ export const experienceDefinitionResolvers = {
 
   Query: {},
 };
+
+///////////////////////// New entries errors section ///////////////////////
+const syncingExperiencesLedgerQueryName = "syncingExperiencesLedger";
+
+const SYNCING_EXPERIENCES_LEDGER_QUERY = gql`
+  query {
+    syncingExperiencesLedger @client
+  }
+`;
+
+function getSyncingExperiencesLedger() {
+  const { cache } = window.____ebnis;
+  const data = cache.readQuery<SyncingExperiencesLedgerQueryResult>({
+    query: SYNCING_EXPERIENCES_LEDGER_QUERY,
+  });
+  const string = data && data[syncingExperiencesLedgerQueryName];
+  return (string ? JSON.parse(string) : {}) as SyncingExperiencesLedger;
+}
+
+function writeSyncingExperiencesLedger(ledger: SyncingExperiencesLedger) {
+  const { cache } = window.____ebnis;
+  cache.writeData({
+    data: {
+      [syncingExperiencesLedgerQueryName]: JSON.stringify(ledger),
+    },
+  });
+}
+
+export function writeSyncingExperience(id: string, data: SyncingExperience) {
+  const ledger = getSyncingExperiencesLedger();
+  ledger[id] = data;
+  writeSyncingExperiencesLedger(ledger);
+}
+
+export function getSyncingExperience(id: string): SyncingExperience | null {
+  const ledger = getSyncingExperiencesLedger();
+  return ledger[id] || null;
+}
+
+interface SyncingExperiencesLedgerQueryResult {
+  syncingExperiencesLedger: string;
+}
+
+interface SyncingExperiencesLedger {
+  [experienceId: string]: SyncingExperience;
+}
+
+interface SyncingExperience {
+  entriesErrors?: CreateEntryErrorFragment[];
+  offlineExperienceId: string;
+}
+//////////////////////////// END new entries errors sections ////////////
