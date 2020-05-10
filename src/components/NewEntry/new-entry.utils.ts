@@ -8,6 +8,8 @@ import {
   DataTypes,
   CreateEntryInput,
   CreateDataObject,
+  CreateExperienceInput,
+  CreateDataDefinition,
 } from "../../graphql/apollo-types/globalTypes";
 import dateFnFormat from "date-fns/format";
 import parseISO from "date-fns/parseISO";
@@ -19,6 +21,7 @@ import { scrollIntoViewNonFieldErrorDomId } from "./new-entry.dom";
 import {
   UpdateExperiencesOnlineComponentProps,
   updateExperiencesOnlineEffectHelperFunc,
+  CreateExperiencesComponentProps,
 } from "../../utils/experience.gql.types";
 import {
   StringyErrorPayload,
@@ -44,6 +47,15 @@ import {
   GenericGeneralEffect,
   GenericEffectDefinition,
 } from "../../utils/effects";
+import { isOfflineId } from "../../utils/offlines";
+import {
+  EntryConnectionFragment,
+  EntryConnectionFragment_edges,
+} from "../../graphql/apollo-types/EntryConnectionFragment";
+import { EntryFragment } from "../../graphql/apollo-types/EntryFragment";
+import { DataObjectFragment } from "../../graphql/apollo-types/DataObjectFragment";
+import { createExperienceOnlineEffect } from "../NewExperience/new-experience.utils";
+import { DataDefinitionFragment } from "../../graphql/apollo-types/DataDefinitionFragment";
 
 const NEW_LINE_REGEX = /\n/g;
 export const ISO_DATE_FORMAT = "yyyy-MM-dd";
@@ -147,11 +159,129 @@ const createEntryEffect: DefCreateEntryEffect["func"] = (
   const { input } = ownArgs;
 
   if (isConnected()) {
-    createOnlineEntryEffect(input, props, effectArgs);
+    const { experience } = props;
+    const experienceId = experience.id;
+
+    if (isOfflineId(experienceId)) {
+      syncOfflineExperienceEffect(experience, input, props, effectArgs);
+    } else {
+      createOnlineEntryEffect(input, props, effectArgs);
+    }
   } else {
     createOfflineEntryEffect(input, props, effectArgs);
   }
 };
+
+function syncOfflineExperienceEffect(
+  experience: ExperienceFragment,
+  input: CreateEntryInput,
+  props: Props,
+  effectArgs: EffectArgs,
+) {
+  const { createExperiences, detailedExperienceDispatch } = props;
+  const { dispatch } = effectArgs;
+
+  const createExperienceInput = experienceToCreateInput(experience);
+  createExperienceInput.entries = [input].concat(
+    (createExperienceInput.entries ||
+      // istanbul ignore next:
+      []) as CreateEntryInput[],
+  );
+
+  createExperienceOnlineEffect(
+    createExperienceInput,
+    createExperiences,
+    async (data) => {
+      switch (data.key) {
+        case "ExperienceSuccess":
+          {
+            await window.____ebnis.persistor.persist();
+            const { experience, entriesErrors } = data;
+
+            /**
+             * 1. redirect to newly created experience
+             * 2. deal with entriesErrors at newly created experience page
+             */
+
+            //
+          }
+          break;
+
+        case "exception":
+          dispatch({
+            type: ActionType.ON_COMMON_ERROR,
+            error: data.error,
+          });
+          break;
+
+        case "CreateExperienceErrors":
+          // tell detailedExperience that experience can not be created
+          break;
+
+        case "invalidResponse":
+          dispatch({
+            type: ActionType.ON_COMMON_ERROR,
+            error: GENERIC_SERVER_ERROR,
+          });
+          break;
+      }
+    },
+  );
+}
+
+function experienceToCreateInput(experience: ExperienceFragment) {
+  const createExperienceInput = {
+    clientId: experience.id,
+    description: experience.description,
+    title: experience.title,
+    insertedAt: experience.insertedAt,
+    updatedAt: experience.updatedAt,
+    dataDefinitions: (experience.dataDefinitions as DataDefinitionFragment[]).map(
+      (d) => {
+        const input = {
+          clientId: d.id,
+          name: d.name,
+          type: d.type,
+        } as CreateDataDefinition;
+        return input;
+      },
+    ),
+  } as CreateExperienceInput;
+
+  const createEntriesInput = entriesConnectionToCreateInput(experience.entries);
+
+  if (createEntriesInput.length) {
+    createExperienceInput.entries = createEntriesInput;
+  }
+
+  return createExperienceInput;
+}
+
+function entriesConnectionToCreateInput(entries: EntryConnectionFragment) {
+  return ((entries.edges ||
+    // istanbul ignore next:
+    []) as EntryConnectionFragment_edges[]).map((edge) => {
+    const entry = edge.node as EntryFragment;
+    const input = {
+      clientId: entry.id,
+      experienceId: entry.experienceId,
+      insertedAt: entry.insertedAt,
+      updatedAt: entry.updatedAt,
+      dataObjects: (entry.dataObjects as DataObjectFragment[]).map((d) => {
+        const input = {
+          clientId: d.id,
+          data: d.data,
+          definitionId: d.definitionId,
+          insertedAt: d.insertedAt,
+          updatedAt: d.updatedAt,
+        } as CreateDataObject;
+        return input;
+      }),
+    } as CreateEntryInput;
+
+    return input;
+  });
+}
 
 async function createOnlineEntryEffect(
   input: CreateEntryInput,
@@ -483,7 +613,8 @@ export interface CallerProps extends DetailedExperienceChildDispatchProps {
 
 export type Props = CallerProps &
   UpdateExperiencesOnlineComponentProps &
-  CreateOfflineEntryMutationComponentProps;
+  CreateOfflineEntryMutationComponentProps &
+  CreateExperiencesComponentProps;
 
 export type FormObjVal = Date | string | number;
 
