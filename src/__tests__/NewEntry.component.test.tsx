@@ -27,6 +27,7 @@ import { scrollIntoView } from "../utils/scroll-into-view";
 import { CreateOfflineEntryResult } from "../components/NewEntry/new-entry.resolvers";
 import { AppPersistor } from "../utils/app-context";
 import { GENERIC_SERVER_ERROR } from "../utils/common-errors";
+import { E2EWindowObject } from "../utils/types";
 
 jest.mock("../utils/scroll-into-view");
 const mockScrollIntoView = scrollIntoView as jest.Mock;
@@ -76,9 +77,23 @@ const mockCreateOfflineEntry = jest.fn();
 const mockUpdateExperiencesOnline = jest.fn();
 const mockDetailedExperienceDispatch = jest.fn();
 const mockPersistFn = jest.fn();
+
 const persistor = {
   persist: mockPersistFn as any,
 } as AppPersistor;
+
+const globals = {
+  persistor,
+  client: null as any,
+} as E2EWindowObject;
+
+beforeAll(() => {
+  window.____ebnis = globals;
+});
+
+afterAll(() => {
+  delete window.____ebnis;
+});
 
 afterEach(() => {
   cleanup();
@@ -373,7 +388,6 @@ describe("reducer", () => {
   const props = {
     updateExperiencesOnline: mockUpdateExperiencesOnline as any,
     detailedExperienceDispatch: mockDetailedExperienceDispatch as any,
-    persistor,
     experience,
   } as Props;
 
@@ -491,7 +505,6 @@ function makeComp({ props = {} }: { props?: Partial<Props> } = {}) {
         updateExperiencesOnline={mockUpdateExperiencesOnline}
         experience={experience}
         detailedExperienceDispatch={mockDetailedExperienceDispatch}
-        persistor={persistor as any}
       />
     ),
   };

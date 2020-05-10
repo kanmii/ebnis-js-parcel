@@ -4,7 +4,6 @@ import {
   ExperienceFragment_dataDefinitions,
 } from "../../graphql/apollo-types/ExperienceFragment";
 import immer, { Draft } from "immer";
-import ApolloClient from "apollo-client";
 import {
   DataTypes,
   CreateEntryInput,
@@ -16,7 +15,6 @@ import { CreateOfflineEntryMutationComponentProps } from "./new-entry.resolvers"
 import { wrapReducer } from "../../logger";
 import { isConnected } from "../../utils/connections";
 import { scrollIntoView } from "../../utils/scroll-into-view";
-import { AppPersistor } from "../../utils/app-context";
 import { scrollIntoViewNonFieldErrorDomId } from "./new-entry.dom";
 import {
   UpdateExperiencesOnlineComponentProps,
@@ -161,7 +159,6 @@ async function createOnlineEntryEffect(
   effectArgs: EffectArgs,
 ) {
   const {
-    persistor,
     experience: { id: experienceId },
     updateExperiencesOnline,
     detailedExperienceDispatch,
@@ -195,7 +192,7 @@ async function createOnlineEntryEffect(
           return;
         }
 
-        await persistor.persist();
+        await window.____ebnis.persistor.persist();
 
         detailedExperienceDispatch({
           type: DetailedExperienceActionType.ON_NEW_ENTRY_CREATED,
@@ -226,7 +223,6 @@ async function createOfflineEntryEffect(
 ) {
   const {
     createOfflineEntry,
-    persistor,
     experience: { id: experienceId },
     detailedExperienceDispatch,
   } = props;
@@ -258,7 +254,7 @@ async function createOfflineEntryEffect(
       entry: validResponse.entry,
     });
 
-    await persistor.persist();
+    await window.____ebnis.persistor.persist();
   } catch (error) {
     dispatch({
       type: ActionType.ON_COMMON_ERROR,
@@ -487,10 +483,7 @@ export interface CallerProps extends DetailedExperienceChildDispatchProps {
 
 export type Props = CallerProps &
   UpdateExperiencesOnlineComponentProps &
-  CreateOfflineEntryMutationComponentProps & {
-    client: ApolloClient<{}>;
-    persistor: AppPersistor;
-  };
+  CreateOfflineEntryMutationComponentProps;
 
 export type FormObjVal = Date | string | number;
 

@@ -1,5 +1,4 @@
 import React, {
-  useContext,
   useEffect,
   useReducer,
   useCallback,
@@ -21,7 +20,6 @@ import {
 } from "./new-entry.utils";
 import { useUpdateExperiencesOnlineMutation } from "../../utils/experience.gql.types";
 import { useCreateOfflineEntryMutation } from "./new-entry.resolvers";
-import { EbnisAppContext } from "../../utils/app-context";
 import { addResolvers } from "./new-entry.injectables";
 import Loading from "../Loading/loading.component";
 import { componentFromDataType } from "./component-from-data-type";
@@ -39,7 +37,7 @@ import { errorClassName } from "../../utils/utils.dom";
 import { useRunEffects } from "../../utils/use-run-effects";
 
 export function NewEntry(props: Props) {
-  const { experience, client, detailedExperienceDispatch } = props;
+  const { experience, detailedExperienceDispatch } = props;
 
   const [stateMachine, dispatch] = useReducer(reducer, experience, initState);
 
@@ -71,7 +69,7 @@ export function NewEntry(props: Props) {
   }, []);
 
   useEffect(() => {
-    addResolvers(client);
+    addResolvers(window.____ebnis.client);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -249,15 +247,12 @@ function makeDateChangedFn(dispatch: DispatchType, index: number) {
 export default (props: CallerProps) => {
   const [updateExperiencesOnline] = useUpdateExperiencesOnlineMutation();
   const [createOfflineEntry] = useCreateOfflineEntryMutation();
-  const { client, persistor } = useContext(EbnisAppContext);
 
   return (
     <NewEntry
       {...props}
       updateExperiencesOnline={updateExperiencesOnline}
       createOfflineEntry={createOfflineEntry}
-      client={client}
-      persistor={persistor}
     />
   );
 };
