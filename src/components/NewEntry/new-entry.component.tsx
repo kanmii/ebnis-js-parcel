@@ -17,8 +17,12 @@ import {
   DispatchType,
   FieldState,
   FormObjVal,
+  Submission,
 } from "./new-entry.utils";
-import { useUpdateExperiencesOnlineMutation } from "../../utils/experience.gql.types";
+import {
+  useUpdateExperiencesOnlineMutation,
+  useCreateExperiencesMutation,
+} from "../../utils/experience.gql.types";
 import { useCreateOfflineEntryMutation } from "./new-entry.resolvers";
 import { addResolvers } from "./new-entry.injectables";
 import Loading from "../Loading/loading.component";
@@ -75,12 +79,6 @@ export function NewEntry(props: Props) {
 
   const { dataDefinitions, title } = experience;
 
-  let errorText = "";
-
-  if (submissionState.value === StateValue.errors) {
-    errorText = submissionState.errors.context.errors;
-  }
-
   return (
     <>
       <form
@@ -110,22 +108,10 @@ export function NewEntry(props: Props) {
           <div className="modal-card-body">
             <span className="scroll-into-view" />
 
-            {errorText && (
-              <div
-                className={makeClassNames({
-                  notification: true,
-                  [errorClassName]: true,
-                })}
-              >
-                <button
-                  id={notificationCloseId}
-                  type="button"
-                  className="delete"
-                  onClick={onCloseNotification}
-                />
-                {errorText}
-              </div>
-            )}
+            <Notification
+              submissionState={submissionState}
+              onCloseNotification={onCloseNotification}
+            />
 
             {dataDefinitions.map((obj, index) => {
               const definition = obj as DataDefinitionFragment;
@@ -233,6 +219,62 @@ const DataComponent = React.memo(
   },
 );
 
+function Notification({
+  submissionState,
+  onCloseNotification,
+}: {
+  submissionState: Submission;
+  onCloseNotification: () => void;
+}) {
+  let errorNode = "" as React.ReactNode;
+
+  switch (submissionState.value) {
+    case StateValue.errors:
+      errorNode = submissionState.errors.context.errors;
+      break;
+
+    case StateValue.syncOfflineExperienceErrors:
+      errorNode = submissionState.syncOfflineExperienceErrors.context.errors.map(
+        ([label, key, val], index) => {
+          return (
+            <div key={index}>
+              <span>{label} &nbsp;</span>
+              <span>{key}: &nbsp;</span>
+              <span>{val}</span>
+            </div>
+          );
+        },
+      );
+      break;
+  }
+
+  return errorNode ? (
+    <div
+      className={makeClassNames({
+        notification: true,
+        [errorClassName]: true,
+      })}
+    >
+      <button
+        id={notificationCloseId}
+        type="button"
+        className="delete"
+        onClick={onCloseNotification}
+      />
+      <div>
+        <strong>
+          <p>
+            Following errors were received while trying to create the experience
+          </p>
+        </strong>
+      </div>
+      <hr />
+      <div>Experience:</div>
+      {errorNode}
+    </div>
+  ) : null;
+}
+
 function makeDateChangedFn(dispatch: DispatchType, index: number) {
   return function makeDateChangedFnInner(fieldName: string, value: FormObjVal) {
     dispatch({
@@ -247,12 +289,14 @@ function makeDateChangedFn(dispatch: DispatchType, index: number) {
 export default (props: CallerProps) => {
   const [updateExperiencesOnline] = useUpdateExperiencesOnlineMutation();
   const [createOfflineEntry] = useCreateOfflineEntryMutation();
+  const [createExperiences] = useCreateExperiencesMutation();
 
   return (
     <NewEntry
       {...props}
       updateExperiencesOnline={updateExperiencesOnline}
       createOfflineEntry={createOfflineEntry}
+      createExperiences={createExperiences}
     />
   );
 };

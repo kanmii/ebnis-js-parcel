@@ -3,6 +3,7 @@ import gql from "graphql-tag";
 import {
   LocalResolverFn,
   MUTATION_NAME_createExperienceOffline,
+  SYNCING_EXPERIENCES_LEDGER_CACHE_KEY,
 } from "../../apollo/resolvers";
 import { CreateDataDefinition } from "../../graphql/apollo-types/globalTypes";
 import { makeOfflineId } from "../../utils/offlines";
@@ -194,7 +195,6 @@ export const experienceDefinitionResolvers = {
 };
 
 ///////////////////////// New entries errors section ///////////////////////
-const syncingExperiencesLedgerQueryName = "syncingExperiencesLedger";
 
 const SYNCING_EXPERIENCES_LEDGER_QUERY = gql`
   query {
@@ -207,7 +207,7 @@ function getSyncingExperiencesLedger() {
   const data = cache.readQuery<SyncingExperiencesLedgerQueryResult>({
     query: SYNCING_EXPERIENCES_LEDGER_QUERY,
   });
-  const string = data && data[syncingExperiencesLedgerQueryName];
+  const string = data && data[SYNCING_EXPERIENCES_LEDGER_CACHE_KEY];
   return (string ? JSON.parse(string) : {}) as SyncingExperiencesLedger;
 }
 
@@ -215,14 +215,27 @@ function writeSyncingExperiencesLedger(ledger: SyncingExperiencesLedger) {
   const { cache } = window.____ebnis;
   cache.writeData({
     data: {
-      [syncingExperiencesLedgerQueryName]: JSON.stringify(ledger),
+      [SYNCING_EXPERIENCES_LEDGER_CACHE_KEY]: JSON.stringify(ledger),
     },
   });
 }
 
-export function writeSyncingExperience(id: string, data: SyncingExperience) {
+/**
+ * When called with 2 arguments === put
+ * when called with 1 argument == remove
+ */
+export function putOrRemoveSyncingExperience(
+  id: string,
+  data?: SyncingExperience,
+) {
   const ledger = getSyncingExperiencesLedger();
-  ledger[id] = data;
+
+  if (data) {
+    ledger[id] = data;
+  } else {
+    delete ledger[id];
+  }
+
   writeSyncingExperiencesLedger(ledger);
 }
 

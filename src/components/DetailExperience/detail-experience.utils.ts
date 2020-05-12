@@ -17,6 +17,11 @@ import {
 import { scrollDocumentToTop } from "./detail-experience.injectables";
 import { StateValue } from "../../utils/types";
 import { EntryFragment } from "../../graphql/apollo-types/EntryFragment";
+import {
+  getSyncingExperience,
+  putOrRemoveSyncingExperience,
+} from "../NewExperience/new-experience.resolvers";
+import { replaceExperiencesInGetExperiencesMiniQuery } from "../../apollo/update-get-experiences-mini-query";
 
 export enum ActionType {
   TOGGLE_NEW_ENTRY_ACTIVE = "@detailed-experience/deactivate-new-entry",
@@ -57,12 +62,22 @@ export const reducer: Reducer<StateMachine, Action> = (state, action) =>
   );
 
 ////////////////////////// STATE UPDATE SECTION ////////////////////////////
-export function initState(): StateMachine {
+export function initState(props: Props): StateMachine {
   return {
     context: {},
     effects: {
       general: {
-        value: StateValue.noEffect,
+        value: StateValue.hasEffects,
+        hasEffects: {
+          context: {
+            effects: [
+              {
+                key: "purgeMatchingOfflineExperienceEffect",
+                ownArgs: {},
+              },
+            ],
+          },
+        },
       },
     },
     states: {
@@ -169,9 +184,38 @@ type DefAutoCloseNotificationEffect = EffectDefinition<
   }
 >;
 
+const purgeMatchingOfflineExperienceEffect: DefPurgeMatchingOfflineExperienceEffect["func"] = (
+  _,
+  props,
+  effectArgs,
+) => {
+  const {
+    experience: { id },
+  } = props;
+
+  const ledger = getSyncingExperience(id);
+
+  // istanbul ignore else
+  if (ledger) {
+    const { offlineExperienceId } = ledger;
+
+    replaceExperiencesInGetExperiencesMiniQuery({
+      [offlineExperienceId]: null,
+    });
+
+    putOrRemoveSyncingExperience(id);
+    window.____ebnis.persistor.persist();
+  }
+};
+
+type DefPurgeMatchingOfflineExperienceEffect = EffectDefinition<
+  "purgeMatchingOfflineExperienceEffect"
+>;
+
 export const effectFunctions = {
   scrollDocToTopEffect,
   autoCloseNotificationEffect,
+  purgeMatchingOfflineExperienceEffect,
 };
 ////////////////////////// END EFFECTS SECTION ////////////////////////////
 
@@ -288,5 +332,8 @@ type EffectDefinition<
   OwnArgs = {}
 > = GenericEffectDefinition<EffectArgs, Props, Key, OwnArgs>;
 
-type EffectType = DefScrollDocToTopEffect | DefAutoCloseNotificationEffect;
+type EffectType =
+  | DefScrollDocToTopEffect
+  | DefAutoCloseNotificationEffect
+  | DefPurgeMatchingOfflineExperienceEffect;
 type EffectList = EffectType[];

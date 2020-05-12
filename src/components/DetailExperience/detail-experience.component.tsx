@@ -31,7 +31,7 @@ import makeClassNames from "classnames";
 
 export function DetailExperience(props: Props) {
   const { experience } = props;
-  const [stateMachine, dispatch] = useReducer(reducer, undefined, initState);
+  const [stateMachine, dispatch] = useReducer(reducer, props, initState);
   const entries = entryConnectionToNodes(experience.entries);
 
   const {

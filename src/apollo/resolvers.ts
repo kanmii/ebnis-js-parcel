@@ -8,6 +8,7 @@ export const UNSYNCED_LEDGER_CACHE_KEY = "unsyncedLedger";
 export const MUTATION_NAME_createExperienceOffline = "createOfflineExperience";
 export const MUTATION_NAME_createOfflineEntry = "createOfflineEntry";
 export const QUERY_NAME_getExperience = "getExperience";
+export const SYNCING_EXPERIENCES_LEDGER_CACHE_KEY = "syncingExperiencesLedger";
 
 export function initState() {
   return {
@@ -17,6 +18,7 @@ export function initState() {
       [LOGGED_OUT_USER_CACHE_KEY]: null,
       [LOGGED_IN_USER_CACHE_KEY]: null,
       [UNSYNCED_LEDGER_CACHE_KEY]: null,
+      [SYNCING_EXPERIENCES_LEDGER_CACHE_KEY]: null,
     },
   };
 }

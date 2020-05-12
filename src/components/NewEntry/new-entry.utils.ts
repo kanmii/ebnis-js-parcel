@@ -59,12 +59,16 @@ import { DataObjectFragment } from "../../graphql/apollo-types/DataObjectFragmen
 import { createExperienceOnlineEffect } from "../NewExperience/new-experience.utils";
 import { DataDefinitionFragment } from "../../graphql/apollo-types/DataDefinitionFragment";
 import {
-  writeSyncingExperience,
+  putOrRemoveSyncingExperience,
   SyncingExperience,
 } from "../NewExperience/new-experience.resolvers";
 import { windowChangeUrl, ChangeUrlType } from "../../utils/global-window";
 import { makeDetailedExperienceRoute } from "../../utils/urls";
-import { CreateExperienceErrorsFragment_errors } from "../../graphql/apollo-types/CreateExperienceErrorsFragment";
+import {
+  CreateExperienceErrorsFragment_errors,
+  CreateExperienceErrorsFragment_errors_dataDefinitions,
+} from "../../graphql/apollo-types/CreateExperienceErrorsFragment";
+import { removeUnsyncedExperience } from "../../apollo/unsynced-ledger";
 
 const NEW_LINE_REGEX = /\n/g;
 export const ISO_DATE_FORMAT = "yyyy-MM-dd";
@@ -213,15 +217,17 @@ function syncOfflineExperienceEffect(
           {
             const { experience, entriesErrors } = data;
             const { id } = experience;
+            const { id: offlineExperienceId } = offlineExperience;
             const syncingData = {
-              offlineExperienceId: offlineExperience.id,
+              offlineExperienceId,
             } as SyncingExperience;
 
             if (entriesErrors) {
               syncingData.entriesErrors = entriesErrors;
             }
 
-            writeSyncingExperience(id, syncingData);
+            removeUnsyncedExperience(offlineExperienceId);
+            putOrRemoveSyncingExperience(id, syncingData);
             await window.____ebnis.persistor.persist();
 
             windowChangeUrl(
@@ -638,14 +644,55 @@ function handleOnSyncOfflineExperienceErrors(
     states: { submission },
   } = proxy;
 
-  const { errors } = payload;
   const state = submission as Draft<SyncOfflineExperienceErrors>;
   state.value = StateValue.syncOfflineExperienceErrors;
 
+  const errorsList: [string, string, string][] = [];
+
+  const {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    __typename,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    meta,
+    dataDefinitions: dataDefinitionsErrors,
+    ...errors
+  } = payload.errors;
+
+  Object.entries(errors).forEach(([k, v]) => {
+    // istanbul ignore else
+    if (v) {
+      errorsList.push(["", k, v]);
+    }
+  });
+
+  // istanbul ignore else
+  if (dataDefinitionsErrors) {
+    dataDefinitionsErrors.forEach((d) => {
+      const {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        __typename,
+        index,
+        name,
+        type,
+      } = d as CreateExperienceErrorsFragment_errors_dataDefinitions;
+
+      const label = `data definition - ${index}`;
+
+      // istanbul ignore else
+      if (name) {
+        errorsList.push([label, "name", name]);
+      }
+
+      // istanbul ignore else
+      if (type) {
+        errorsList.push([label, "type", type]);
+      }
+    });
+  }
 
   state.syncOfflineExperienceErrors = {
     context: {
-      errors,
+      errors: errorsList,
     },
   };
 
@@ -719,7 +766,7 @@ type StateMachine = Readonly<GenericGeneralEffect<EffectType>> &
     }>;
   }>;
 
-type Submission = Readonly<
+export type Submission = Readonly<
   | SubmissionErrors
   | {
       value: ActiveVal;
@@ -734,7 +781,7 @@ type SyncOfflineExperienceErrors = Readonly<{
   value: SyncOfflineExperienceErrorsVal;
   syncOfflineExperienceErrors: {
     context: {
-      errors: CreateExperienceErrorsFragment_errors;
+      errors: [string, string, string][];
     };
   };
 }>;
