@@ -190,14 +190,16 @@ const purgeMatchingOfflineExperienceEffect: DefPurgeMatchingOfflineExperienceEff
   effectArgs,
 ) => {
   const {
-    experience: { id },
+    experience: { id, entries },
   } = props;
+
+  // const { dispatch } = effectArgs;
 
   const ledger = getSyncingExperience(id);
 
   // istanbul ignore else
   if (ledger) {
-    const { offlineExperienceId } = ledger;
+    const { offlineExperienceId, newEntryClientId, entriesErrors } = ledger;
 
     replaceExperiencesInGetExperiencesMiniQuery({
       [offlineExperienceId]: null,

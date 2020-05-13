@@ -218,13 +218,12 @@ function syncOfflineExperienceEffect(
             const { experience, entriesErrors } = data;
             const { id } = experience;
             const { id: offlineExperienceId } = offlineExperience;
+
             const syncingData = {
               offlineExperienceId,
+              entriesErrors,
+              newEntryClientId: input.clientId as string,
             } as SyncingExperience;
-
-            if (entriesErrors) {
-              syncingData.entriesErrors = entriesErrors;
-            }
 
             removeUnsyncedExperience(offlineExperienceId);
             putOrRemoveSyncingExperience(id, syncingData);

@@ -252,8 +252,9 @@ interface SyncingExperiencesLedger {
   [experienceId: string]: SyncingExperience;
 }
 
-export interface SyncingExperience {
-  entriesErrors?: CreateEntryErrorFragment[];
+export type SyncingExperience = {
   offlineExperienceId: string;
-}
+  newEntryClientId: string;
+  entriesErrors?: CreateEntryErrorFragment[]
+};
 //////////////////////////// END new entries errors sections ////////////
