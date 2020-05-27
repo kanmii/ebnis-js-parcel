@@ -18,11 +18,18 @@ import { act } from "react-dom/test-utils";
 import { defaultExperience } from "../tests.utils";
 import { makeOfflineId } from "../utils/offlines";
 import { CreateEntryErrorFragment } from "../graphql/apollo-types/CreateEntryErrorFragment";
+import { getSyncingExperience } from "../components/NewExperience/new-experience.resolvers";
+import { replaceExperiencesInGetExperiencesMiniQuery } from "../apollo/update-get-experiences-mini-query";
+import { E2EWindowObject } from "../utils/types";
 
 jest.mock("../components/DetailExperience/detail-experience.injectables");
 const mockScrollDocumentToTop = scrollDocumentToTop as jest.Mock;
 
 jest.mock("../components/NewExperience/new-experience.resolvers");
+const mockGetSyncingExperience = getSyncingExperience as jest.Mock;
+
+jest.mock("../apollo/update-get-experiences-mini-query");
+const mockReplaceExperiencesInGetExperiencesMiniQuery = replaceExperiencesInGetExperiencesMiniQuery as jest.Mock;
 
 jest.mock("../apollo/sync-entries-errors-ledger");
 
@@ -68,6 +75,21 @@ jest.mock("../components/DetailExperience/detail-experience.lazy", () => {
   };
 });
 
+const mockPersistFunc = jest.fn();
+const ebnisObject = {
+  persistor: {
+    persist: mockPersistFunc as any,
+  },
+} as E2EWindowObject;
+
+beforeAll(() => {
+  window.____ebnis = ebnisObject;
+});
+
+afterAll(() => {
+  delete window.____ebnis;
+});
+
 beforeEach(() => {
   jest.useFakeTimers();
 });
@@ -105,14 +127,14 @@ it("no entries/entry added/auto close notification", async () => {
   newEntryEl.click();
   expect(document.getElementById(mockNewEntryId)).toBeNull();
   let newEntryNotificationEl = await waitForElement(getNewEntryNotificationEl);
-  const entriesErrorsNotificationEl = getEntriesErrorsNotificationEl()
+  const entriesErrorsNotificationEl = getEntriesErrorsNotificationEl();
 
   expect(mockScrollDocumentToTop).toHaveBeenCalled();
 
   newEntryNotificationEl.click();
   expect(getNewEntryNotificationEl()).toBeNull();
 
-  entriesErrorsNotificationEl.click()
+  entriesErrorsNotificationEl.click();
   expect(getEntriesErrorsNotificationEl()).toBeNull();
 
   // simulate auto close notification
@@ -171,6 +193,11 @@ it("with online entry", async () => {
 });
 
 it("with offline entry", () => {
+  mockGetSyncingExperience.mockReturnValue({
+    offlineExperienceId: "1",
+    newEntryClientId: "3",
+  });
+
   const id = makeOfflineId(1);
 
   const { ui } = makeComp({
@@ -193,6 +220,14 @@ it("with offline entry", () => {
                 updatedAt: "2020-05-08T01:40:07.160Z",
               },
             },
+            {
+              node: {
+                id: "2",
+                clientId: "3",
+                dataObjects: [],
+                updatedAt: "2020-05-08T01:40:07.160Z",
+              },
+            },
           ],
         } as EntryConnectionFragment,
       },
@@ -209,6 +244,8 @@ it("with offline entry", () => {
   ) as HTMLElement;
 
   expect(entryEl.classList).toContain(entryOfflineClassName);
+
+  expect(mockReplaceExperiencesInGetExperiencesMiniQuery).toHaveBeenCalled();
 });
 
 ////////////////////////// HELPER FUNCTIONS ///////////////////////////
