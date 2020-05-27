@@ -10,15 +10,21 @@ import {
 import { EntryConnectionFragment } from "../graphql/apollo-types/EntryConnectionFragment";
 import { scrollDocumentToTop } from "../components/DetailExperience/detail-experience.injectables";
 import { EntryFragment } from "../graphql/apollo-types/EntryFragment";
-import { newEntryCreatedNotificationCloseId } from "../components/DetailExperience/detail-experience.dom";
+import {
+  newEntryCreatedNotificationCloseId,
+  entriesErrorsNotificationCloseId,
+} from "../components/DetailExperience/detail-experience.dom";
 import { act } from "react-dom/test-utils";
 import { defaultExperience } from "../tests.utils";
 import { makeOfflineId } from "../utils/offlines";
+import { CreateEntryErrorFragment } from "../graphql/apollo-types/CreateEntryErrorFragment";
 
 jest.mock("../components/DetailExperience/detail-experience.injectables");
 const mockScrollDocumentToTop = scrollDocumentToTop as jest.Mock;
 
 jest.mock("../components/NewExperience/new-experience.resolvers");
+
+jest.mock("../apollo/sync-entries-errors-ledger");
 
 const mockNewEntryId = "aa";
 const mockActionType = ActionType;
@@ -36,6 +42,25 @@ jest.mock("../components/DetailExperience/detail-experience.lazy", () => {
             mayBeNewEntry: {
               updatedAt: "2020-05-08T06:49:19Z",
             } as EntryFragment,
+            mayBeEntriesErrors: [
+              {
+                meta: {
+                  index: 1,
+                  clientId: "b",
+                },
+                error: "a",
+                experienceId: null,
+                dataObjects: [
+                  {
+                    meta: {
+                      index: 2,
+                    },
+                    data: "a",
+                    definition: null,
+                  },
+                ],
+              } as CreateEntryErrorFragment,
+            ],
           });
         }}
       />
@@ -69,7 +94,8 @@ it("no entries/entry added/auto close notification", async () => {
 
   expect(mockScrollDocumentToTop).not.toHaveBeenCalled();
 
-  expect(getNotificationEl()).toBeNull();
+  expect(getNewEntryNotificationEl()).toBeNull();
+  expect(getEntriesErrorsNotificationEl()).toBeNull();
 
   // new entry UI now visible: let's simulate new entry created
   const newEntryEl = await waitForElement(() => {
@@ -78,24 +104,28 @@ it("no entries/entry added/auto close notification", async () => {
 
   newEntryEl.click();
   expect(document.getElementById(mockNewEntryId)).toBeNull();
-  let notificationEl = await waitForElement(getNotificationEl);
+  let newEntryNotificationEl = await waitForElement(getNewEntryNotificationEl);
+  const entriesErrorsNotificationEl = getEntriesErrorsNotificationEl()
 
   expect(mockScrollDocumentToTop).toHaveBeenCalled();
 
-  notificationEl.click();
-  expect(getNotificationEl()).toBeNull();
+  newEntryNotificationEl.click();
+  expect(getNewEntryNotificationEl()).toBeNull();
+
+  entriesErrorsNotificationEl.click()
+  expect(getEntriesErrorsNotificationEl()).toBeNull();
 
   // simulate auto close notification
   const newEntryToggleEl = getNewEntryTriggerEl();
   newEntryToggleEl.click();
   (document.getElementById(mockNewEntryId) as HTMLElement).click();
-  await waitForElement(getNotificationEl); // exists
+  await waitForElement(getNewEntryNotificationEl); // exists
 
   act(() => {
     jest.advanceTimersByTime(timeout);
   });
 
-  expect(getNotificationEl()).toBeNull();
+  expect(getNewEntryNotificationEl()).toBeNull();
 });
 
 it("with online entry", async () => {
@@ -152,6 +182,7 @@ it("with offline entry", () => {
             {
               node: {
                 id,
+                clientId: id,
                 dataObjects: [
                   {
                     id,
@@ -164,6 +195,9 @@ it("with offline entry", () => {
             },
           ],
         } as EntryConnectionFragment,
+      },
+      syncEntriesErrors: {
+        [id]: [],
       },
     },
   });
@@ -212,8 +246,14 @@ function getNewEntryTriggerEl() {
     .item(0) as HTMLElement;
 }
 
-function getNotificationEl() {
+function getNewEntryNotificationEl() {
   return document.getElementById(
     newEntryCreatedNotificationCloseId,
+  ) as HTMLElement;
+}
+
+function getEntriesErrorsNotificationEl() {
+  return document.getElementById(
+    entriesErrorsNotificationCloseId,
   ) as HTMLElement;
 }
