@@ -9,12 +9,17 @@ import {
   EmitActionConnectionChangedPayload,
   EmitPayload,
 } from "../../utils/types";
+import { manageCachedMutations } from "../../apollo/managed-cached-mutations";
 
 export function WithEmitter(
-  props: PropsWithChildren<{ observable: Observable<EmitPayload> }>
+  props: PropsWithChildren<{ observable: Observable<EmitPayload> }>,
 ) {
   const { observable, children } = props;
   const [state, setState] = useState(false);
+
+  useEffect(() => {
+    manageCachedMutations();
+  });
 
   useEffect(() => {
     const subscription = observable.subscribe({
