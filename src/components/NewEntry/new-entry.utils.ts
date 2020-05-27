@@ -316,6 +316,7 @@ function experienceToCreateInput(experience: ExperienceFragment) {
 
   const createEntriesInput = entriesConnectionToCreateInput(experience.entries);
 
+  // istanbul ignore else:
   if (createEntriesInput.length) {
     createExperienceInput.entries = createEntriesInput;
   }

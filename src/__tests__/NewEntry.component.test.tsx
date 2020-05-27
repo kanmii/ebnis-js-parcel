@@ -33,6 +33,10 @@ import { AppPersistor } from "../utils/app-context";
 import { GENERIC_SERVER_ERROR } from "../utils/common-errors";
 import { E2EWindowObject } from "../utils/types";
 import { makeOfflineId } from "../utils/offlines";
+import { windowChangeUrl } from "../utils/global-window";
+import { removeUnsyncedExperience } from "../apollo/unsynced-ledger";
+import { putOrRemoveSyncingExperience } from "../components/NewExperience/new-experience.resolvers";
+import { ExperienceFragment } from "../graphql/apollo-types/ExperienceFragment";
 
 jest.mock("../utils/scroll-into-view");
 const mockScrollIntoView = scrollIntoView as jest.Mock;
@@ -76,6 +80,15 @@ jest.mock("../components/DateTimeField/date-time-field.component", () => {
     },
   };
 });
+
+jest.mock("../utils/global-window");
+const mockWindowChangeUrl = windowChangeUrl as jest.Mock;
+
+jest.mock("../apollo/unsynced-ledger");
+const mockRemoveUnsyncedExperience = removeUnsyncedExperience as jest.Mock;
+
+jest.mock("../components/NewExperience/new-experience.resolvers");
+const mockPutOrRemoveSyncingExperience = putOrRemoveSyncingExperience as jest.Mock;
 
 const mockDispatch = jest.fn();
 const mockCreateOfflineEntry = jest.fn();
@@ -558,6 +571,288 @@ describe("reducer", () => {
     expect(
       (state.states.submission as SubmissionErrors).errors.context.errors,
     ).toBe(GENERIC_SERVER_ERROR);
+  });
+
+  it("sync offline experience: invalid createOfflineEntry response", async () => {
+    mockIsConnected.mockResolvedValue(true);
+
+    const experienceId = makeOfflineId(experience.id);
+
+    const offlineExperience = {
+      ...experience,
+      id: experienceId,
+    };
+
+    let state = initState(offlineExperience);
+
+    state = reducer(state, {
+      type: ActionType.ON_SUBMIT,
+    });
+
+    const { key, ownArgs } = (state.effects
+      .general as GeneralEffect).hasEffects.context.effects[0];
+
+    mockCreateOfflineEntry.mockResolvedValue({
+      data: {},
+    } as CreateOfflineEntryResult);
+
+    expect(mockDispatch).not.toHaveBeenCalled();
+
+    effectFunctions[key](ownArgs as any, props, effectArgs);
+    await wait(() => true);
+    expect(mockDispatch.mock.calls[0][0].type).toBe(ActionType.ON_COMMON_ERROR);
+  });
+
+  it("sync offline experience: ExperienceSuccess", async () => {
+    mockIsConnected.mockResolvedValue(true);
+
+    const experienceId = makeOfflineId(experience.id);
+
+    const offlineExperience = {
+      ...experience,
+      id: experienceId,
+      entries: {
+        edges: [
+          {
+            node: {
+              dataObjects: [
+                {
+                  id: "1",
+                },
+              ],
+            },
+          },
+        ],
+      },
+    } as ExperienceFragment;
+
+    let state = initState(offlineExperience);
+
+    state = reducer(state, {
+      type: ActionType.ON_SUBMIT,
+    });
+
+    const { key, ownArgs } = (state.effects
+      .general as GeneralEffect).hasEffects.context.effects[0];
+
+    mockCreateOfflineEntry.mockResolvedValue({
+      data: {
+        createOfflineEntry: {
+          experience: offlineExperience,
+          entry: {},
+        },
+      },
+    } as CreateOfflineEntryResult);
+
+    mockCreateExperiencesOnline.mockResolvedValue({
+      data: {
+        createExperiences: [
+          {
+            __typename: "ExperienceSuccess",
+            experience: {
+              id: "aa",
+            },
+          },
+        ],
+      },
+    } as CreateExperiencesMutationResult);
+
+    expect(mockWindowChangeUrl).not.toHaveBeenCalled();
+    expect(mockRemoveUnsyncedExperience).not.toHaveBeenCalled();
+    expect(mockPutOrRemoveSyncingExperience).not.toHaveBeenCalled();
+    expect(mockPersistFn).not.toHaveBeenCalled();
+
+    effectFunctions[key](
+      ownArgs as any,
+      {
+        ...props,
+        experience: offlineExperience,
+        createOfflineEntry: mockCreateOfflineEntry,
+        createExperiences: mockCreateExperiencesOnline,
+      },
+      effectArgs,
+    );
+
+    await wait(() => true);
+    expect(mockWindowChangeUrl).toHaveBeenCalled();
+    expect(mockRemoveUnsyncedExperience.mock.calls[0][0]).toBe(experienceId);
+    expect(mockPutOrRemoveSyncingExperience.mock.calls[0][0]).toBe("aa");
+    expect(mockPersistFn).toHaveBeenCalled();
+    expect(mockDispatch).not.toHaveBeenCalled();
+  });
+
+  it("sync offline experience: exception", async () => {
+    mockIsConnected.mockResolvedValue(true);
+
+    const experienceId = makeOfflineId(experience.id);
+
+    const offlineExperience = {
+      ...experience,
+      id: experienceId,
+      entries: {
+        edges: [
+          {
+            node: {
+              dataObjects: [
+                {
+                  id: "1",
+                },
+              ],
+            },
+          },
+        ],
+      },
+    } as ExperienceFragment;
+
+    let state = initState(offlineExperience);
+
+    state = reducer(state, {
+      type: ActionType.ON_SUBMIT,
+    });
+
+    const { key, ownArgs } = (state.effects
+      .general as GeneralEffect).hasEffects.context.effects[0];
+
+    mockCreateOfflineEntry.mockResolvedValue({
+      data: {
+        createOfflineEntry: {
+          experience: offlineExperience,
+          entry: {},
+        },
+      },
+    } as CreateOfflineEntryResult);
+
+    mockCreateExperiencesOnline.mockRejectedValue(new Error("a"));
+
+    effectFunctions[key](
+      ownArgs as any,
+      {
+        ...props,
+        experience: offlineExperience,
+        createOfflineEntry: mockCreateOfflineEntry,
+        createExperiences: mockCreateExperiencesOnline,
+      },
+      effectArgs,
+    );
+
+    await wait(() => true);
+    expect(mockWindowChangeUrl).not.toHaveBeenCalled();
+    expect(mockDispatch.mock.calls[0][0].type).toBe(ActionType.ON_COMMON_ERROR);
+  });
+
+  it("sync offline experience: invalid createExperiences response", async () => {
+    mockIsConnected.mockResolvedValue(true);
+
+    const experienceId = makeOfflineId(experience.id);
+
+    const offlineExperience = {
+      ...experience,
+      id: experienceId,
+    } as ExperienceFragment;
+
+    let state = initState(offlineExperience);
+
+    state = reducer(state, {
+      type: ActionType.ON_SUBMIT,
+    });
+
+    const { key, ownArgs } = (state.effects
+      .general as GeneralEffect).hasEffects.context.effects[0];
+
+    mockCreateOfflineEntry.mockResolvedValue({
+      data: {
+        createOfflineEntry: {
+          experience: offlineExperience,
+          entry: {},
+        },
+      },
+    } as CreateOfflineEntryResult);
+
+    mockCreateExperiencesOnline.mockResolvedValue({});
+
+    effectFunctions[key](
+      ownArgs as any,
+      {
+        ...props,
+        experience: offlineExperience,
+        createOfflineEntry: mockCreateOfflineEntry,
+        createExperiences: mockCreateExperiencesOnline,
+      },
+      effectArgs,
+    );
+
+    await wait(() => true);
+    expect(mockDispatch.mock.calls[0][0].type).toBe(ActionType.ON_COMMON_ERROR);
+  });
+
+  it("sync offline experience: invalid createOfflineEntry response", async () => {
+    mockIsConnected.mockResolvedValue(true);
+
+    const experienceId = makeOfflineId(experience.id);
+
+    const offlineExperience = {
+      ...experience,
+      id: experienceId,
+    } as ExperienceFragment;
+
+    let state = initState(offlineExperience);
+
+    state = reducer(state, {
+      type: ActionType.ON_SUBMIT,
+    });
+
+    const { key, ownArgs } = (state.effects
+      .general as GeneralEffect).hasEffects.context.effects[0];
+
+    mockCreateOfflineEntry.mockResolvedValue({} as CreateOfflineEntryResult);
+
+    effectFunctions[key](
+      ownArgs as any,
+      {
+        ...props,
+        experience: offlineExperience,
+        createOfflineEntry: mockCreateOfflineEntry,
+      },
+      effectArgs,
+    );
+
+    await wait(() => true);
+    expect(mockDispatch.mock.calls[0][0].type).toBe(ActionType.ON_COMMON_ERROR);
+  });
+
+  it("sync offline experience: createOfflineEntry exception", async () => {
+    mockIsConnected.mockResolvedValue(true);
+
+    const experienceId = makeOfflineId(experience.id);
+
+    const offlineExperience = {
+      ...experience,
+      id: experienceId,
+    } as ExperienceFragment;
+
+    let state = initState(offlineExperience);
+
+    state = reducer(state, {
+      type: ActionType.ON_SUBMIT,
+    });
+
+    const { key, ownArgs } = (state.effects
+      .general as GeneralEffect).hasEffects.context.effects[0];
+
+    mockCreateOfflineEntry.mockRejectedValue(new Error("a"));
+
+    effectFunctions[key](
+      ownArgs as any,
+      {
+        ...props,
+        experience: offlineExperience,
+        createOfflineEntry: mockCreateOfflineEntry,
+      },
+      effectArgs,
+    );
+
+    await wait(() => true);
+    expect(mockDispatch.mock.calls[0][0].type).toBe(ActionType.ON_COMMON_ERROR);
   });
 });
 
