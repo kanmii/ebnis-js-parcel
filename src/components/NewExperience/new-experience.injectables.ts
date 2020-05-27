@@ -1,7 +1,7 @@
-/* istanbul ignore file */
 import ApolloClient from "apollo-client";
 import { experienceDefinitionResolvers } from "./new-experience.resolvers";
 
+// istanbul ignore next:
 export function addResolvers(client: ApolloClient<{}>) {
   if (window.____ebnis.experienceDefinitionResolversAdded) {
     return;
@@ -9,10 +9,4 @@ export function addResolvers(client: ApolloClient<{}>) {
 
   client.addResolvers(experienceDefinitionResolvers);
   window.____ebnis.experienceDefinitionResolversAdded = true;
-}
-
-let dataDefinitionId = 1;
-
-export function makeDefinitionId() {
-  return "" + dataDefinitionId++;
 }
