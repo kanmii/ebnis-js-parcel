@@ -182,10 +182,6 @@ export interface CreateExperienceOfflineMutationComponentProps {
   createExperienceOffline: CreateExperienceOfflineMutationFn;
 }
 
-//////////////////////////// QUERIES /////////////////////////////////
-
-//////////////////////////// END QUERIES ////////////////////////////
-
 export const experienceDefinitionResolvers = {
   Mutation: {
     [MUTATION_NAME_createExperienceOffline]: createOfflineExperienceResolver,
@@ -193,8 +189,6 @@ export const experienceDefinitionResolvers = {
 
   Query: {},
 };
-
-///////////////////////// New entries errors section ///////////////////////
 
 const SYNCING_EXPERIENCES_LEDGER_QUERY = gql`
   query {
@@ -255,6 +249,5 @@ interface SyncingExperiencesLedger {
 export type SyncingExperience = {
   offlineExperienceId: string;
   newEntryClientId: string;
-  entriesErrors?: CreateEntryErrorFragment[]
+  entriesErrors?: CreateEntryErrorFragment[];
 };
-//////////////////////////// END new entries errors sections ////////////
