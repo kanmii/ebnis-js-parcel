@@ -23,6 +23,8 @@ jest.mock("../components/DetailExperience/detail-experience.component", () => {
   };
 });
 
+jest.mock("../apollo/sync-entries-errors-ledger");
+
 afterEach(() => {
   cleanup();
 });
@@ -44,9 +46,7 @@ it("renders loading", () => {
 });
 
 it("renders data", () => {
-  mockUseGetExperienceDetail.mockReturnValue({ data: {
-
-  } });
+  mockUseGetExperienceDetail.mockReturnValue({ data: {} });
   const { ui } = makeComp();
   render(ui);
   expect(document.getElementById(mockDetailedExperienceDomId)).not.toBeNull();
