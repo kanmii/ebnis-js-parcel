@@ -194,7 +194,7 @@ export function floatExperiencesToTopInGetExperiencesMiniQuery(ids: {
  * When null is supplied in the map, it means the experience will be removed
  * from the query
  */
-export function replaceExperiencesInGetExperiencesMiniQuery(experiencesMap: {
+export function replaceOrRemoveExperiencesInGetExperiencesMiniQuery(experiencesMap: {
   [k: string]: ExperienceFragment | null;
 }) {
   const { client } = window.____ebnis;

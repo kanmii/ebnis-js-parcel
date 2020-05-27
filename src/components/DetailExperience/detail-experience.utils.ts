@@ -21,7 +21,7 @@ import {
   getSyncingExperience,
   putOrRemoveSyncingExperience,
 } from "../NewExperience/new-experience.resolvers";
-import { replaceExperiencesInGetExperiencesMiniQuery } from "../../apollo/update-get-experiences-mini-query";
+import { replaceOrRemoveExperiencesInGetExperiencesMiniQuery } from "../../apollo/update-get-experiences-mini-query";
 import { EntryConnectionFragment_edges } from "../../graphql/apollo-types/EntryConnectionFragment";
 import {
   CreateEntryErrorFragment,
@@ -301,7 +301,7 @@ const purgeMatchingOfflineExperienceEffect: DefPurgeMatchingOfflineExperienceEff
   if (ledger) {
     const { offlineExperienceId, newEntryClientId, entriesErrors } = ledger;
 
-    replaceExperiencesInGetExperiencesMiniQuery({
+    replaceOrRemoveExperiencesInGetExperiencesMiniQuery({
       [offlineExperienceId]: null,
     });
 

@@ -19,7 +19,7 @@ import { defaultExperience } from "../tests.utils";
 import { makeOfflineId } from "../utils/offlines";
 import { CreateEntryErrorFragment } from "../graphql/apollo-types/CreateEntryErrorFragment";
 import { getSyncingExperience } from "../components/NewExperience/new-experience.resolvers";
-import { replaceExperiencesInGetExperiencesMiniQuery } from "../apollo/update-get-experiences-mini-query";
+import { replaceOrRemoveExperiencesInGetExperiencesMiniQuery } from "../apollo/update-get-experiences-mini-query";
 import { E2EWindowObject } from "../utils/types";
 
 jest.mock("../components/DetailExperience/detail-experience.injectables");
@@ -29,7 +29,7 @@ jest.mock("../components/NewExperience/new-experience.resolvers");
 const mockGetSyncingExperience = getSyncingExperience as jest.Mock;
 
 jest.mock("../apollo/update-get-experiences-mini-query");
-const mockReplaceExperiencesInGetExperiencesMiniQuery = replaceExperiencesInGetExperiencesMiniQuery as jest.Mock;
+const mockReplaceOrRemoveExperiencesInGetExperiencesMiniQuery = replaceOrRemoveExperiencesInGetExperiencesMiniQuery as jest.Mock;
 
 jest.mock("../apollo/sync-entries-errors-ledger");
 
@@ -245,7 +245,7 @@ it("with offline entry", () => {
 
   expect(entryEl.classList).toContain(entryOfflineClassName);
 
-  expect(mockReplaceExperiencesInGetExperiencesMiniQuery).toHaveBeenCalled();
+  expect(mockReplaceOrRemoveExperiencesInGetExperiencesMiniQuery).toHaveBeenCalled();
 });
 
 ////////////////////////// HELPER FUNCTIONS ///////////////////////////
