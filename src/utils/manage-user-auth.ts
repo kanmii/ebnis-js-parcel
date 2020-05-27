@@ -7,7 +7,6 @@ import {
 } from "../apollo/resolvers";
 import { useQuery } from "@apollo/react-hooks";
 import { USER_FRAGMENT } from "../graphql/user.gql";
-import { InMemoryCache } from "apollo-cache-inmemory";
 
 const TOKEN_KEY = "nOQhAH4V54h9MMBS3BSwtE/2eZeQWHRnPfoC4K+RDuWairX";
 
@@ -20,13 +19,8 @@ const LOGGED_IN_USER_QUERY = gql`
   ${USER_FRAGMENT}
 `;
 
-export function manageUserAuthentication(
-  user: UserFragment | null,
-  cache?: InMemoryCache,
-) {
-  if (!cache) {
-    cache = window.____ebnis.cache;
-  }
+export function manageUserAuthentication(user: UserFragment | null) {
+  const cache = window.____ebnis.cache;
 
   if (user) {
     // login

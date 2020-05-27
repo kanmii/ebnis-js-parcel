@@ -27,9 +27,8 @@ export async function registerUser(
       result.data.registerUser) as RegisterUserMutation_registerUser;
 
     if (data.__typename === "UserSuccess") {
-      const cache = Cypress.env(CYPRESS_APOLLO_KEY).cache;
       user = data.user;
-      manageUserAuthentication(user, cache);
+      manageUserAuthentication(user);
     }
 
     expect(user).not.eq(null);
