@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars*/
 import React, { ComponentType } from "react";
 import { render, cleanup, waitForElement, wait } from "@testing-library/react";
 import { NewEntry } from "../components/NewEntry/new-entry.component";
