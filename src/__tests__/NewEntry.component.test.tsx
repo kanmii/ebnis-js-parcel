@@ -22,12 +22,16 @@ import {
   fieldErrorSelector,
 } from "../components/NewEntry/new-entry.dom";
 import { isConnected } from "../utils/connections";
-import { UpdateExperiencesOnlineMutationResult } from "../utils/experience.gql.types";
+import {
+  UpdateExperiencesOnlineMutationResult,
+  CreateExperiencesMutationResult,
+} from "../utils/experience.gql.types";
 import { scrollIntoView } from "../utils/scroll-into-view";
 import { CreateOfflineEntryResult } from "../components/NewEntry/new-entry.resolvers";
 import { AppPersistor } from "../utils/app-context";
 import { GENERIC_SERVER_ERROR } from "../utils/common-errors";
 import { E2EWindowObject } from "../utils/types";
+import { makeOfflineId } from "../utils/offlines";
 
 jest.mock("../utils/scroll-into-view");
 const mockScrollIntoView = scrollIntoView as jest.Mock;
@@ -74,6 +78,7 @@ jest.mock("../components/DateTimeField/date-time-field.component", () => {
 
 const mockDispatch = jest.fn();
 const mockCreateOfflineEntry = jest.fn();
+const mockCreateExperiencesOnline = jest.fn();
 const mockUpdateExperiencesOnline = jest.fn();
 const mockDetailedExperienceDispatch = jest.fn();
 const mockPersistFn = jest.fn();
@@ -368,6 +373,71 @@ describe("component", () => {
       definitionId: "1",
     });
   });
+
+  it("connected/syncs offline experience/experience did not sync", async () => {
+    mockIsConnected.mockReturnValue(true);
+
+    const experienceId = makeOfflineId(1);
+
+    const experience = {
+      ...defaultExperience,
+      id: experienceId,
+      dataDefinitions: [
+        {
+          id: "1",
+          type: DataTypes.INTEGER,
+          name: "a",
+        },
+      ] as DataDefinitionFragment[],
+    };
+
+    mockCreateOfflineEntry.mockResolvedValue({
+      data: {
+        createOfflineEntry: {
+          experience,
+          entry: {},
+        },
+      },
+    } as CreateOfflineEntryResult);
+
+    mockCreateExperiencesOnline.mockResolvedValue({
+      data: {
+        createExperiences: [
+          {
+            __typename: "CreateExperienceErrors",
+            errors: {
+              error: "a",
+              dataDefinitions: [
+                {
+                  index: 0,
+                  name: "a",
+                  type: "b",
+                },
+              ],
+            },
+          },
+        ],
+      },
+    } as CreateExperiencesMutationResult);
+
+    const { ui } = makeComp({
+      props: {
+        experience,
+      },
+    });
+
+    const { debug } = render(ui);
+
+    const inputEl = document.getElementById("1") as HTMLInputElement;
+    const submitEl = document.getElementById(submitBtnDomId) as HTMLElement;
+    fillField(inputEl, "1");
+    expect(getNotificationEl()).toBeNull();
+    expect(getFieldError()).toBeNull();
+
+    submitEl.click();
+    await wait(() => true);
+    await waitForElement(getNotificationEl);
+  });
 });
 
 describe("reducer", () => {
@@ -505,6 +575,7 @@ function makeComp({ props = {} }: { props?: Partial<Props> } = {}) {
         updateExperiencesOnline={mockUpdateExperiencesOnline}
         experience={experience}
         detailedExperienceDispatch={mockDetailedExperienceDispatch}
+        createExperiences={mockCreateExperiencesOnline}
       />
     ),
   };

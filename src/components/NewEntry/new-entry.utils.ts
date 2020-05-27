@@ -239,6 +239,7 @@ async function syncOfflineExperienceEffect(
       createExperienceInput,
       createExperiences,
       async (data) => {
+
         switch (data.key) {
           case "ExperienceSuccess":
             {
@@ -390,7 +391,8 @@ async function createOnlineEntryEffect(
         await window.____ebnis.persistor.persist();
 
         detailedExperienceDispatch({
-          type: DetailedExperienceActionType.ON_NEW_ENTRY_CREATED_OR_OFFLINE_EXPERIENCE_SYNCED,
+          type:
+            DetailedExperienceActionType.ON_NEW_ENTRY_CREATED_OR_OFFLINE_EXPERIENCE_SYNCED,
           mayBeNewEntry: entry0.entry,
         });
 
@@ -445,7 +447,8 @@ async function createOfflineEntryEffect(
     }
 
     detailedExperienceDispatch({
-      type: DetailedExperienceActionType.ON_NEW_ENTRY_CREATED_OR_OFFLINE_EXPERIENCE_SYNCED,
+      type:
+        DetailedExperienceActionType.ON_NEW_ENTRY_CREATED_OR_OFFLINE_EXPERIENCE_SYNCED,
       mayBeNewEntry: validResponse.entry,
     });
 
