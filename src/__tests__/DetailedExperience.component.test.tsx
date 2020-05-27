@@ -31,8 +31,9 @@ jest.mock("../components/DetailExperience/detail-experience.lazy", () => {
         id={mockNewEntryId}
         onClick={() => {
           detailedExperienceDispatch({
-            type: mockActionType.ON_NEW_ENTRY_CREATED_OR_OFFLINE_EXPERIENCE_SYNCED,
-            entry: {
+            type:
+              mockActionType.ON_NEW_ENTRY_CREATED_OR_OFFLINE_EXPERIENCE_SYNCED,
+            mayBeNewEntry: {
               updatedAt: "2020-05-08T06:49:19Z",
             } as EntryFragment,
           });
@@ -182,9 +183,16 @@ const DetailExperienceP = DetailExperience as ComponentType<Partial<Props>>;
 
 function makeComp({ props = {} }: { props?: Partial<Props> } = {}) {
   const experience = props.experience || defaultExperience;
+  const syncEntriesErrors = props.syncEntriesErrors || {};
 
   return {
-    ui: <DetailExperienceP {...props} experience={experience} />,
+    ui: (
+      <DetailExperienceP
+        {...props}
+        experience={experience}
+        syncEntriesErrors={syncEntriesErrors}
+      />
+    ),
   };
 }
 
@@ -205,5 +213,7 @@ function getNewEntryTriggerEl() {
 }
 
 function getNotificationEl() {
-  return document.getElementById(newEntryCreatedNotificationCloseId) as HTMLElement;
+  return document.getElementById(
+    newEntryCreatedNotificationCloseId,
+  ) as HTMLElement;
 }
