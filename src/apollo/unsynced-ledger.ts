@@ -5,8 +5,6 @@ import {
   UnsyncedLedgerItem,
 } from "../utils/unsynced-ledger.types";
 
-// const KEY = 'XmyjKscDKE+McpWyPNtRLvs4s2N/mo0wvTpCNmCeocmq8F0EBYzzu536dMivCbNS'
-
 const UNSYNCED_LEDGER_QUERY = gql`
   query {
     unsyncedLedger @client
