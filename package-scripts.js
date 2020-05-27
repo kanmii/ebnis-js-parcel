@@ -57,6 +57,9 @@ module.exports = {
     },
     test: {
       default: `CI=true ${test}`,
+      d: `CI=true env-cmd -e test react-scripts --inspect-brk test --runInBand --no-cache  `, // debug
+      dw: `env-cmd -e test react-scripts --inspect-brk test --runInBand --no-cache`, // debug watch
+      // "node --inspect node_modules/.bin/jest --runInBand"
       w: test,
       wc: `${test} --coverage`,
       c: `rimraf coverage && CI=true ${test} --coverage`,
