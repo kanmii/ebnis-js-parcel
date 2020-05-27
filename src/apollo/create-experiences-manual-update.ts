@@ -18,38 +18,40 @@ export function createExperiencesManualUpdate(
     return;
   }
 
-  const toBeInserted = validResponses.reduce((acc, response) => {
+  const toBeInserted = validResponses.reduce((experiencesAcc, response) => {
     // istanbul ignore next:
     if (!response) {
-      return acc;
+      return experiencesAcc;
     }
 
     if (response.__typename === "ExperienceSuccess") {
       const { experience, entriesErrors } = response;
 
       if (!entriesErrors) {
-        acc.push(experience);
-        return acc;
+        experiencesAcc.push(experience);
+        return experiencesAcc;
       }
 
-      const cachedExperience = readExperienceFragment(experience.id);
+      const offlineExperience = readExperienceFragment(
+        experience.clientId as string,
+      );
 
       // fresh experience created directly online
-      if (!cachedExperience) {
-        acc.push(experience);
-        return acc;
+      if (!offlineExperience) {
+        experiencesAcc.push(experience);
+        return experiencesAcc;
       }
 
       // experience created offline now synced
 
-      const unsyncedEdges = cachedExperience.entries.edges;
+      const offlineEntriesEdges = offlineExperience.entries.edges;
 
-      if (!unsyncedEdges) {
-        acc.push(experience);
-        return acc;
+      if (!offlineEntriesEdges) {
+        experiencesAcc.push(experience);
+        return experiencesAcc;
       }
 
-      const errorsIndices = entriesErrors.reduce((acc, e) => {
+      const entriesErrorsIndices = entriesErrors.reduce((acc, e) => {
         const {
           meta: { index },
         } = e;
@@ -60,9 +62,9 @@ export function createExperiencesManualUpdate(
         return acc;
       }, [] as number[]);
 
-      const syncedAndUnsyncedEntries: ExperienceFragment_entries_edges[] = Array.from(
+      const syncedAndUnsyncedEntriesEdges: ExperienceFragment_entries_edges[] = Array.from(
         {
-          length: unsyncedEdges.length,
+          length: offlineEntriesEdges.length,
         },
       );
 
@@ -72,27 +74,27 @@ export function createExperiencesManualUpdate(
 
       let syncedIndex = 0;
 
-      unsyncedEdges.forEach((e, index) => {
+      offlineEntriesEdges.forEach((e, index) => {
         const edge = e as ExperienceFragment_entries_edges;
 
-        if (errorsIndices.includes(index)) {
-          syncedAndUnsyncedEntries[index] = edge;
+        if (entriesErrorsIndices.includes(index)) {
+          syncedAndUnsyncedEntriesEdges[index] = edge;
         } else {
-          syncedAndUnsyncedEntries[index] = syncedEdges[syncedIndex++];
+          syncedAndUnsyncedEntriesEdges[index] = syncedEdges[syncedIndex++];
         }
       });
 
       const updatedEntries = {
         ...experience.entries,
-        edges: syncedAndUnsyncedEntries,
+        edges: syncedAndUnsyncedEntriesEdges,
       };
 
       const updatedExperience = { ...experience, entries: updatedEntries };
-      acc.push(updatedExperience);
+      experiencesAcc.push(updatedExperience);
       writeExperienceFragmentToCache(updatedExperience);
     }
 
-    return acc;
+    return experiencesAcc;
   }, [] as ExperienceFragment[]);
 
   if (toBeInserted.length) {

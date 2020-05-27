@@ -13,6 +13,8 @@ import {
   ActionType,
   formatDatetime,
   effectFunctions,
+  StateMachine,
+  EntryErrorForNotification,
 } from "./detail-experience.utils";
 import { setUpRoutePage } from "../../utils/global-window";
 import { NewEntry } from "./detail-experience.lazy";
@@ -25,20 +27,20 @@ import { EntryFragment } from "../../graphql/apollo-types/EntryFragment";
 import { DataObjectFragment } from "../../graphql/apollo-types/DataObjectFragment";
 import { StateValue } from "../../utils/types";
 import { useRunEffects } from "../../utils/use-run-effects";
-import { notificationCloseId } from "./detail-experience.dom";
+import {
+  newEntryCreatedNotificationCloseId,
+  entriesErrorsNotificationCloseId,
+} from "./detail-experience.dom";
 import { isOfflineId } from "../../utils/offlines";
 import makeClassNames from "classnames";
 
 export function DetailExperience(props: Props) {
-  const { experience } = props;
+  const { experience, syncEntriesErrors } = props;
   const [stateMachine, dispatch] = useReducer(reducer, props, initState);
   const entries = entryConnectionToNodes(experience.entries);
 
   const {
-    states: {
-      newEntryActive: newEntryActiveState,
-      notification: notificationState,
-    },
+    states: { newEntryActive: newEntryActiveState },
     effects: { general: generalEffects },
     context,
   } = stateMachine;
@@ -65,9 +67,15 @@ export function DetailExperience(props: Props) {
     {} as DataDefinitionIdToNameMap,
   );
 
-  const onCloseNotification = useCallback(() => {
+  const onCloseNewEntryCreatedNotification = useCallback(() => {
     dispatch({
-      type: ActionType.ON_CLOSE_NOTIFICATION,
+      type: ActionType.ON_CLOSE_NEW_ENTRY_CREATED_NOTIFICATION,
+    });
+  }, []);
+
+  const onCloseEntriesErrorsNotification = useCallback(() => {
+    dispatch({
+      type: ActionType.ON_CLOSE_ENTRIES_ERRORS_NOTIFICATION,
     });
   }, []);
 
@@ -82,11 +90,6 @@ export function DetailExperience(props: Props) {
     };
   }, [autoCloseNotificationTimeoutId]);
 
-  let successText = "";
-  if (notificationState.value === StateValue.active) {
-    successText = notificationState.active.context.message;
-  }
-
   return (
     <>
       <div className="container detailed-experience-component">
@@ -99,17 +102,17 @@ export function DetailExperience(props: Props) {
           </Suspense>
         )}
 
-        {successText && (
-          <div className="notification is-success">
-            <button
-              id={notificationCloseId}
-              type="button"
-              className="delete"
-              onClick={onCloseNotification}
-            />
-            {successText}
-          </div>
-        )}
+        <EntriesErrorsNotification
+          state={stateMachine.states.entriesErrors}
+          onCloseEntriesErrorsNotification={onCloseEntriesErrorsNotification}
+        />
+
+        <NewEntryNotification
+          state={stateMachine.states.newEntryCreated}
+          onCloseNewEntryCreatedNotification={
+            onCloseNewEntryCreatedNotification
+          }
+        />
 
         {entries.length === 0 ? (
           <button className="button no-entry-alert" onClick={onOpenNewEntry}>
@@ -123,6 +126,7 @@ export function DetailExperience(props: Props) {
                   key={entry.id}
                   entry={entry}
                   dataDefinitionIdToNameMap={dataDefinitionIdToNameMap}
+                  entriesErrors={syncEntriesErrors[entry.clientId as string]}
                 />
               );
             })}
@@ -138,7 +142,7 @@ export function DetailExperience(props: Props) {
 }
 
 function EntryComponent(props: EntryProps) {
-  const { entry, dataDefinitionIdToNameMap } = props;
+  const { entry, dataDefinitionIdToNameMap, entriesErrors } = props;
   const { updatedAt, dataObjects: dObjects, id: entryId } = entry;
   const dataObjects = dObjects as DataObjectFragment[];
   const isOffline = isOfflineId(entryId);
@@ -165,6 +169,16 @@ function EntryComponent(props: EntryProps) {
         })}
 
         <div className="entry__updated-at">{formatDatetime(updatedAt)}</div>
+
+        {entriesErrors && (
+          <div>
+            <p>Did not sync because of errors</p>
+
+            <button type="button" className="button is-small">
+              Edit
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="media-right">x</div>
@@ -179,9 +193,87 @@ function entryConnectionToNodes(entries: EntryConnectionFragment) {
   });
 }
 
+function EntriesErrorsNotification(props: {
+  state: StateMachine["states"]["entriesErrors"];
+  onCloseEntriesErrorsNotification: () => void;
+}) {
+  const { state, onCloseEntriesErrorsNotification } = props;
+
+  if (state.value === StateValue.inactive) {
+    return null;
+  }
+
+  return (
+    <div className="message is-danger">
+      <div className="message-header">
+        <p>There were errors while syncing entry to our server</p>
+        <button
+          id={entriesErrorsNotificationCloseId}
+          className="delete"
+          aria-label="delete"
+          onClick={onCloseEntriesErrorsNotification}
+        />
+      </div>
+
+      <div className="message-body">
+        {Object.entries(state.active.context.errors).map(
+          ([id, entryErrorsList]) => {
+            return (
+              <div key={id} id={id}>
+                {entryErrorsList.map((entryErrors, entryErrorsIndex) => {
+                  const [label, errors] = entryErrors;
+
+                  return (
+                    <div key={entryErrorsIndex}>
+                      {label && <div> Data object: {label}</div>}
+
+                      {errors.map((entryError, index) => {
+                        const [key, value] = entryError;
+                        return (
+                          <div key={index}>
+                            <span>{key}</span>
+                            <span>{value}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          },
+        )}
+      </div>
+    </div>
+  );
+}
+
+function NewEntryNotification(props: {
+  state: StateMachine["states"]["newEntryCreated"];
+  onCloseNewEntryCreatedNotification: () => void;
+}) {
+  const { state, onCloseNewEntryCreatedNotification } = props;
+
+  if (state.value === StateValue.inactive) {
+    return null;
+  }
+
+  return (
+    <div className="notification is-danger">
+      <button
+        id={newEntryCreatedNotificationCloseId}
+        className="delete"
+        onClick={onCloseNewEntryCreatedNotification}
+      />
+      {state.active.context.message}
+    </div>
+  );
+}
+
 interface EntryProps {
   entry: EntryFragment;
   dataDefinitionIdToNameMap: DataDefinitionIdToNameMap;
+  entriesErrors: EntryErrorForNotification;
 }
 
 interface DataDefinitionIdToNameMap {

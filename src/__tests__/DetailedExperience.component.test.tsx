@@ -10,13 +10,15 @@ import {
 import { EntryConnectionFragment } from "../graphql/apollo-types/EntryConnectionFragment";
 import { scrollDocumentToTop } from "../components/DetailExperience/detail-experience.injectables";
 import { EntryFragment } from "../graphql/apollo-types/EntryFragment";
-import { notificationCloseId } from "../components/DetailExperience/detail-experience.dom";
+import { newEntryCreatedNotificationCloseId } from "../components/DetailExperience/detail-experience.dom";
 import { act } from "react-dom/test-utils";
 import { defaultExperience } from "../tests.utils";
 import { makeOfflineId } from "../utils/offlines";
 
 jest.mock("../components/DetailExperience/detail-experience.injectables");
 const mockScrollDocumentToTop = scrollDocumentToTop as jest.Mock;
+
+jest.mock("../components/NewExperience/new-experience.resolvers");
 
 const mockNewEntryId = "aa";
 const mockActionType = ActionType;
@@ -29,7 +31,7 @@ jest.mock("../components/DetailExperience/detail-experience.lazy", () => {
         id={mockNewEntryId}
         onClick={() => {
           detailedExperienceDispatch({
-            type: mockActionType.ON_NEW_ENTRY_CREATED,
+            type: mockActionType.ON_NEW_ENTRY_CREATED_OR_OFFLINE_EXPERIENCE_SYNCED,
             entry: {
               updatedAt: "2020-05-08T06:49:19Z",
             } as EntryFragment,
@@ -134,10 +136,8 @@ it("with online entry", async () => {
   expect(document.getElementById(mockNewEntryId)).toBeNull();
 
   const entryEl = document.querySelector(".entry") as HTMLElement;
-
   expect(entryEl.classList).not.toContain(entryOfflineClassName);
 });
-
 
 it("with offline entry", () => {
   const id = makeOfflineId(1);
@@ -168,6 +168,7 @@ it("with offline entry", () => {
   });
 
   render(ui);
+
   const entryEl = document.querySelector(
     `.entry.${entryOfflineClassName}`,
   ) as HTMLElement;
@@ -204,5 +205,5 @@ function getNewEntryTriggerEl() {
 }
 
 function getNotificationEl() {
-  return document.getElementById(notificationCloseId) as HTMLElement;
+  return document.getElementById(newEntryCreatedNotificationCloseId) as HTMLElement;
 }

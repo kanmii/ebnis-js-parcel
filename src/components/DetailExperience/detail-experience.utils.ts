@@ -22,12 +22,19 @@ import {
   putOrRemoveSyncingExperience,
 } from "../NewExperience/new-experience.resolvers";
 import { replaceExperiencesInGetExperiencesMiniQuery } from "../../apollo/update-get-experiences-mini-query";
+import { EntryConnectionFragment_edges } from "../../graphql/apollo-types/EntryConnectionFragment";
+import {
+  CreateEntryErrorFragment,
+  CreateEntryErrorFragment_dataObjects,
+} from "../../graphql/apollo-types/CreateEntryErrorFragment";
+import { writeSyncEntriesErrorsLedger } from "../../apollo/sync-entries-errors-ledger";
 
 export enum ActionType {
   TOGGLE_NEW_ENTRY_ACTIVE = "@detailed-experience/deactivate-new-entry",
-  ON_NEW_ENTRY_CREATED = "@detailed-experience/on-new-entry-created",
-  ON_CLOSE_NOTIFICATION = "@detailed-experience/on-close-notification",
+  ON_NEW_ENTRY_CREATED_OR_OFFLINE_EXPERIENCE_SYNCED = "@detailed-experience/on-new-entry-created/offline-experience-synced",
+  ON_CLOSE_NEW_ENTRY_CREATED_NOTIFICATION = "@detailed-experience/on-close-new-entry-created-notification",
   SET_TIMEOUT = "@detailed-experience/set-timeout",
+  ON_CLOSE_ENTRIES_ERRORS_NOTIFICATION = "@detailed-experience/on-close-entries-errors-notification",
 }
 
 export const reducer: Reducer<StateMachine, Action> = (state, action) =>
@@ -44,16 +51,23 @@ export const reducer: Reducer<StateMachine, Action> = (state, action) =>
             handleToggleNewEntryActiveAction(proxy);
             break;
 
-          case ActionType.ON_NEW_ENTRY_CREATED:
-            handleOnNewEntryCreated(proxy, payload as OnNewEntryCreatedPayload);
+          case ActionType.ON_NEW_ENTRY_CREATED_OR_OFFLINE_EXPERIENCE_SYNCED:
+            handleOnNewEntryCreatedOrOfflineExperienceSynced(
+              proxy,
+              payload as OnNewEntryCreatedOrOfflineExperienceSyncedPayload,
+            );
             break;
 
-          case ActionType.ON_CLOSE_NOTIFICATION:
-            handleOnCloseNotification(proxy);
+          case ActionType.ON_CLOSE_NEW_ENTRY_CREATED_NOTIFICATION:
+            handleOnCloseNewEntryCreatedNotification(proxy);
             break;
 
           case ActionType.SET_TIMEOUT:
             handleSetTimeout(proxy, payload as SetTimeoutPayload);
+            break;
+
+          case ActionType.ON_CLOSE_ENTRIES_ERRORS_NOTIFICATION:
+            handleOnCloseEntriesErrorsNotification(proxy);
             break;
         }
       });
@@ -87,6 +101,12 @@ export function initState(props: Props): StateMachine {
       notification: {
         value: StateValue.inactive,
       },
+      newEntryCreated: {
+        value: StateValue.inactive,
+      },
+      entriesErrors: {
+        value: StateValue.inactive,
+      },
     },
   };
 }
@@ -100,40 +120,117 @@ function handleToggleNewEntryActiveAction(proxy: DraftStateMachine) {
     value === StateValue.active ? StateValue.inactive : StateValue.active;
 }
 
-function handleOnNewEntryCreated(
+function handleOnNewEntryCreatedOrOfflineExperienceSynced(
   proxy: DraftStateMachine,
-  payload: OnNewEntryCreatedPayload,
+  payload: OnNewEntryCreatedOrOfflineExperienceSyncedPayload,
 ) {
   const { states, context } = proxy;
-  const { newEntryActive, notification } = states;
-  const { entry } = payload;
-
+  const {
+    newEntryActive,
+    notification,
+    newEntryCreated,
+    entriesErrors,
+  } = states;
   newEntryActive.value = StateValue.inactive;
-  const notificationState = notification as Draft<NotificationActive>;
-  notificationState.value = StateValue.active;
-  notificationState.active = {
-    context: {
-      message: `New entry created on: ${formatDatetime(entry.updatedAt)}`,
-    },
-  };
+  notification.value = StateValue.inactive;
 
   const effects = getGeneralEffects<EffectType, DraftStateMachine>(proxy);
-  effects.push(
-    {
-      key: "scrollDocToTopEffect",
-      ownArgs: {},
-    },
-    {
+
+  effects.push({
+    key: "scrollDocToTopEffect",
+    ownArgs: {},
+  });
+
+  const { mayBeNewEntry, mayBeEntriesErrors } = payload;
+
+  if (mayBeNewEntry) {
+    effects.push({
       key: "autoCloseNotificationEffect",
       ownArgs: {
         timeoutId: context.autoCloseNotificationTimeoutId,
       },
-    },
-  );
+    });
+
+    const newEntryState = newEntryCreated as Draft<NewEntryCreatedNotification>;
+    newEntryState.value = StateValue.active;
+
+    newEntryState.active = {
+      context: {
+        message: `New entry created on: ${formatDatetime(
+          mayBeNewEntry.updatedAt,
+        )}`,
+      },
+    };
+  }
+
+  if (mayBeEntriesErrors) {
+    const values = {} as SyncEntriesErrors;
+
+    const entriesErrorsState = entriesErrors as Draft<
+      EntriesErrorsNotification
+    >;
+
+    entriesErrorsState.value = StateValue.active;
+    entriesErrorsState.active = {
+      context: {
+        errors: values,
+      },
+    };
+
+    effects.push({
+      key: "putEntriesErrorsInLedgerEffect",
+      ownArgs: values,
+    });
+
+    mayBeEntriesErrors.forEach((entryError) => {
+      const {
+        /* eslint-disable-next-line @typescript-eslint/no-unused-vars*/
+        __typename,
+        meta: { clientId },
+        dataObjects,
+        ...otherErrors
+      } = entryError;
+
+      const errors: EntryErrorForNotification = [];
+
+      if (dataObjects) {
+        dataObjects.forEach((d) => {
+          const {
+            /* eslint-disable-next-line @typescript-eslint/no-unused-vars*/
+            __typename,
+            meta: { index },
+            ...otherDataErrors
+          } = d as CreateEntryErrorFragment_dataObjects;
+
+          const dataErrors: [string, string][] = [];
+
+          Object.entries(otherDataErrors).forEach(([k, v]) => {
+            if (v) {
+              dataErrors.push([k, v]);
+            }
+          });
+
+          errors.push([index + 1, dataErrors]);
+        });
+      }
+
+      Object.entries(otherErrors).forEach(([k, v]) => {
+        if (v) {
+          errors.push(["", [[k, v]]]);
+        }
+      });
+
+      values[clientId as string] = errors;
+    });
+  }
 }
 
-function handleOnCloseNotification(proxy: DraftStateMachine) {
-  proxy.states.notification.value = StateValue.inactive;
+function handleOnCloseNewEntryCreatedNotification(proxy: DraftStateMachine) {
+  proxy.states.newEntryCreated.value = StateValue.inactive;
+}
+
+function handleOnCloseEntriesErrorsNotification(proxy: DraftStateMachine) {
+  proxy.states.entriesErrors.value = StateValue.inactive;
 }
 
 function handleSetTimeout(
@@ -167,7 +264,7 @@ const autoCloseNotificationEffect: DefAutoCloseNotificationEffect["func"] = (
 
   const id = setTimeout(() => {
     dispatch({
-      type: ActionType.ON_CLOSE_NOTIFICATION,
+      type: ActionType.ON_CLOSE_NEW_ENTRY_CREATED_NOTIFICATION,
     });
   }, 10000);
 
@@ -193,7 +290,7 @@ const purgeMatchingOfflineExperienceEffect: DefPurgeMatchingOfflineExperienceEff
     experience: { id, entries },
   } = props;
 
-  // const { dispatch } = effectArgs;
+  const { dispatch } = effectArgs;
 
   const ledger = getSyncingExperience(id);
 
@@ -207,6 +304,19 @@ const purgeMatchingOfflineExperienceEffect: DefPurgeMatchingOfflineExperienceEff
 
     putOrRemoveSyncingExperience(id);
     window.____ebnis.persistor.persist();
+
+    const newEntryEdge = (entries.edges as EntryConnectionFragment_edges[]).find(
+      (edge) => {
+        const { id, clientId } = edge.node as EntryFragment;
+        return id !== clientId && clientId === newEntryClientId;
+      },
+    );
+
+    dispatch({
+      type: ActionType.ON_NEW_ENTRY_CREATED_OR_OFFLINE_EXPERIENCE_SYNCED,
+      mayBeNewEntry: newEntryEdge && newEntryEdge.node,
+      mayBeEntriesErrors: entriesErrors,
+    });
   }
 };
 
@@ -214,10 +324,22 @@ type DefPurgeMatchingOfflineExperienceEffect = EffectDefinition<
   "purgeMatchingOfflineExperienceEffect"
 >;
 
+const putEntriesErrorsInLedgerEffect: DefPutEntriesErrorsInLedgerEffect["func"] = (
+  ownArgs,
+) => {
+  writeSyncEntriesErrorsLedger(ownArgs);
+};
+
+type DefPutEntriesErrorsInLedgerEffect = EffectDefinition<
+  "putEntriesErrorsInLedgerEffect",
+  SyncEntriesErrors
+>;
+
 export const effectFunctions = {
   scrollDocToTopEffect,
   autoCloseNotificationEffect,
   purgeMatchingOfflineExperienceEffect,
+  putEntriesErrorsInLedgerEffect,
 };
 ////////////////////////// END EFFECTS SECTION ////////////////////////////
 
@@ -249,7 +371,7 @@ export function getOnlineStatus<T extends { id: string }>(experience: T) {
 
 type DraftStateMachine = Draft<StateMachine>;
 
-type StateMachine = GenericGeneralEffect<EffectType> &
+export type StateMachine = GenericGeneralEffect<EffectType> &
   Readonly<{
     context: StateContext;
   }> &
@@ -264,6 +386,20 @@ type StateMachine = GenericGeneralEffect<EffectType> &
           }
       >;
 
+      newEntryCreated: Readonly<
+        | {
+            value: InActiveVal;
+          }
+        | NewEntryCreatedNotification
+      >;
+
+      entriesErrors: Readonly<
+        | {
+            value: InActiveVal;
+          }
+        | EntriesErrorsNotification
+      >;
+
       notification: Readonly<
         | {
             value: InActiveVal;
@@ -272,6 +408,31 @@ type StateMachine = GenericGeneralEffect<EffectType> &
       >;
     }>;
   }>;
+
+type EntriesErrorsNotification = Readonly<{
+  value: ActiveVal;
+  active: {
+    context: {
+      errors: SyncEntriesErrors;
+    };
+  };
+}>;
+
+export interface SyncEntriesErrors {
+  [offlineEntryId: string]: EntryErrorForNotification;
+}
+
+// [index/label, [errorKey, errorValue][]][]
+export type EntryErrorForNotification = [string | number, [string, string][]][];
+
+type NewEntryCreatedNotification = Readonly<{
+  value: ActiveVal;
+  active: Readonly<{
+    context: Readonly<{
+      message: string;
+    }>;
+  }>;
+}>;
 
 type StateContext = Readonly<{
   autoCloseNotificationTimeoutId?: NodeJS.Timeout;
@@ -286,7 +447,9 @@ type NotificationActive = Readonly<{
   }>;
 }>;
 
-export type CallerProps = RouteChildrenProps<DetailExperienceRouteMatch>;
+export type CallerProps = RouteChildrenProps<DetailExperienceRouteMatch> & {
+  syncEntriesErrors: SyncEntriesErrors;
+};
 
 export type Props = CallerProps & {
   experience: ExperienceFragment;
@@ -298,17 +461,21 @@ type Action =
       type: ActionType.TOGGLE_NEW_ENTRY_ACTIVE;
     }
   | ({
-      type: ActionType.ON_NEW_ENTRY_CREATED;
-    } & OnNewEntryCreatedPayload)
+      type: ActionType.ON_NEW_ENTRY_CREATED_OR_OFFLINE_EXPERIENCE_SYNCED;
+    } & OnNewEntryCreatedOrOfflineExperienceSyncedPayload)
   | {
-      type: ActionType.ON_CLOSE_NOTIFICATION;
+      type: ActionType.ON_CLOSE_NEW_ENTRY_CREATED_NOTIFICATION;
     }
   | ({
       type: ActionType.SET_TIMEOUT;
-    } & SetTimeoutPayload);
+    } & SetTimeoutPayload)
+  | {
+      type: ActionType.ON_CLOSE_ENTRIES_ERRORS_NOTIFICATION;
+    };
 
-interface OnNewEntryCreatedPayload {
-  entry: EntryFragment;
+interface OnNewEntryCreatedOrOfflineExperienceSyncedPayload {
+  mayBeNewEntry?: EntryFragment | null;
+  mayBeEntriesErrors?: CreateEntryErrorFragment[] | null;
 }
 
 interface SetTimeoutPayload {
@@ -337,5 +504,6 @@ type EffectDefinition<
 type EffectType =
   | DefScrollDocToTopEffect
   | DefAutoCloseNotificationEffect
-  | DefPurgeMatchingOfflineExperienceEffect;
+  | DefPurgeMatchingOfflineExperienceEffect
+  | DefPutEntriesErrorsInLedgerEffect;
 type EffectList = EffectType[];

@@ -193,72 +193,105 @@ const createEntryEffect: DefCreateEntryEffect["func"] = (
   }
 };
 
-function syncOfflineExperienceEffect(
+async function syncOfflineExperienceEffect(
   input: CreateEntryInput,
   props: Props,
   effectArgs: EffectArgs,
 ) {
-  const { createExperiences, experience: offlineExperience } = props;
   const { dispatch } = effectArgs;
 
-  const createExperienceInput = experienceToCreateInput(offlineExperience);
-  createExperienceInput.entries = [input].concat(
-    (createExperienceInput.entries ||
-      // istanbul ignore next:
-      []) as CreateEntryInput[],
-  );
+  try {
+    const {
+      createExperiences,
+      experience: { id: experienceId },
+      createOfflineEntry,
+    } = props;
 
-  createExperienceOnlineEffect(
-    createExperienceInput,
-    createExperiences,
-    async (data) => {
-      switch (data.key) {
-        case "ExperienceSuccess":
-          {
-            const { experience, entriesErrors } = data;
-            const { id } = experience;
-            const { id: offlineExperienceId } = offlineExperience;
+    // first we create the entry as offline entry so that if sync fails, we have
+    // the entry stored and user can choose to fix problems
+    const response = await createOfflineEntry({
+      variables: {
+        experienceId,
+        dataObjects: input.dataObjects as CreateDataObject[],
+      },
+    });
 
-            const syncingData = {
-              offlineExperienceId,
-              entriesErrors,
-              newEntryClientId: input.clientId as string,
-            } as SyncingExperience;
+    const validResponse =
+      response && response.data && response.data.createOfflineEntry;
 
-            removeUnsyncedExperience(offlineExperienceId);
-            putOrRemoveSyncingExperience(id, syncingData);
-            await window.____ebnis.persistor.persist();
+    if (!validResponse) {
+      dispatch({
+        type: ActionType.ON_COMMON_ERROR,
+        error: GENERIC_SERVER_ERROR,
+      });
 
-            windowChangeUrl(
-              makeDetailedExperienceRoute(data.experience.id),
-              ChangeUrlType.replace,
-            );
-          }
-          break;
+      return;
+    }
 
-        case "exception":
-          dispatch({
-            type: ActionType.ON_COMMON_ERROR,
-            error: data.error,
-          });
-          break;
+    const {
+      experience: offlineExperience,
+      entry: offlineEntry,
+    } = validResponse;
 
-        case "CreateExperienceErrors":
-          dispatch({
-            type: ActionType.ON_SYNC_OFFLINE_EXPERIENCE_ERRORS,
-            errors: data.errors,
-          });
-          break;
+    const createExperienceInput = experienceToCreateInput(offlineExperience);
 
-        case "invalidResponse":
-          dispatch({
-            type: ActionType.ON_COMMON_ERROR,
-            error: GENERIC_SERVER_ERROR,
-          });
-          break;
-      }
-    },
-  );
+    createExperienceOnlineEffect(
+      createExperienceInput,
+      createExperiences,
+      async (data) => {
+        switch (data.key) {
+          case "ExperienceSuccess":
+            {
+              const { experience, entriesErrors } = data;
+              const { id } = experience;
+              const { id: offlineExperienceId } = offlineExperience;
+
+              const syncingData = {
+                offlineExperienceId,
+                entriesErrors,
+                newEntryClientId: offlineEntry.id,
+              } as SyncingExperience;
+
+              removeUnsyncedExperience(offlineExperienceId);
+              putOrRemoveSyncingExperience(id, syncingData);
+              await window.____ebnis.persistor.persist();
+
+              windowChangeUrl(
+                makeDetailedExperienceRoute(data.experience.id),
+                ChangeUrlType.replace,
+              );
+            }
+            break;
+
+          case "exception":
+            dispatch({
+              type: ActionType.ON_COMMON_ERROR,
+              error: data.error,
+            });
+            break;
+
+          case "CreateExperienceErrors":
+            dispatch({
+              type: ActionType.ON_SYNC_OFFLINE_EXPERIENCE_ERRORS,
+              errors: data.errors,
+            });
+            break;
+
+          case "invalidResponse":
+            dispatch({
+              type: ActionType.ON_COMMON_ERROR,
+              error: GENERIC_SERVER_ERROR,
+            });
+            break;
+        }
+      },
+    );
+  } catch (error) {
+    dispatch({
+      type: ActionType.ON_COMMON_ERROR,
+      error,
+    });
+  }
 }
 
 function experienceToCreateInput(experience: ExperienceFragment) {
@@ -357,8 +390,8 @@ async function createOnlineEntryEffect(
         await window.____ebnis.persistor.persist();
 
         detailedExperienceDispatch({
-          type: DetailedExperienceActionType.ON_NEW_ENTRY_CREATED,
-          entry: entry0.entry,
+          type: DetailedExperienceActionType.ON_NEW_ENTRY_CREATED_OR_OFFLINE_EXPERIENCE_SYNCED,
+          mayBeNewEntry: entry0.entry,
         });
 
         return;
@@ -412,8 +445,8 @@ async function createOfflineEntryEffect(
     }
 
     detailedExperienceDispatch({
-      type: DetailedExperienceActionType.ON_NEW_ENTRY_CREATED,
-      entry: validResponse.entry,
+      type: DetailedExperienceActionType.ON_NEW_ENTRY_CREATED_OR_OFFLINE_EXPERIENCE_SYNCED,
+      mayBeNewEntry: validResponse.entry,
     });
 
     await window.____ebnis.persistor.persist();

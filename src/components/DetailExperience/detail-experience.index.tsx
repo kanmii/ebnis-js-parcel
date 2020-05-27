@@ -7,6 +7,7 @@ import Loading from "../Loading/loading.component";
 import { DetailExperience } from "./detail-experience.component";
 import { parseStringError } from "../../utils/common-errors";
 import { ExperienceFragment } from "../../graphql/apollo-types/ExperienceFragment";
+import { getSyncEntriesErrorsLedger } from "../../apollo/sync-entries-errors-ledger";
 
 export default (props: CallerProps) => {
   const { experienceId } = (props.match as Match).params;
@@ -27,7 +28,11 @@ export default (props: CallerProps) => {
       ) : loading ? (
         <Loading />
       ) : (
-        <DetailExperience {...props} experience={experience} />
+        <DetailExperience
+          {...props}
+          experience={experience}
+          syncEntriesErrors={getSyncEntriesErrorsLedger()}
+        />
       )}
     </>
   );
