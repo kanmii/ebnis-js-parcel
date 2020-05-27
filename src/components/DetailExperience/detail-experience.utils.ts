@@ -143,6 +143,7 @@ function handleOnNewEntryCreatedOrOfflineExperienceSynced(
 
   const { mayBeNewEntry, mayBeEntriesErrors } = payload;
 
+  // istanbul ignore else:
   if (mayBeNewEntry) {
     effects.push({
       key: "autoCloseNotificationEffect",
@@ -163,6 +164,7 @@ function handleOnNewEntryCreatedOrOfflineExperienceSynced(
     };
   }
 
+  // istanbul ignore else:
   if (mayBeEntriesErrors) {
     const values = {} as SyncEntriesErrors;
 
@@ -193,6 +195,7 @@ function handleOnNewEntryCreatedOrOfflineExperienceSynced(
 
       const errors: EntryErrorForNotification = [];
 
+      // istanbul ignore else:
       if (dataObjects) {
         dataObjects.forEach((d) => {
           const {
