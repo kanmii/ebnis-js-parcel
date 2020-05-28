@@ -37,7 +37,10 @@ import { UnsyncableEntryError } from "../../utils/unsynced-ledger.types";
 
 export function DetailExperience(props: Props) {
   const { experience } = props;
-  const syncEntriesErrors = getSyncEntriesErrorsLedger(experience.id) || {};
+  const syncEntriesErrors =
+    getSyncEntriesErrorsLedger(experience.id) ||
+    // istanbul ignore next:
+    {};
   const [stateMachine, dispatch] = useReducer(reducer, props, initState);
   const entries = entryConnectionToNodes(experience.entries);
 
