@@ -236,15 +236,46 @@ export function replaceOrRemoveExperiencesInGetExperiencesMiniQuery(experiencesM
 }
 
 export function purgeExperiencesFromCache(ids: string[]) {
-  const cache = window.____ebnis.cache as any;
-  const data = cache.data.data;
+  const cache = window.____ebnis.cache;
+  const dataProxy = cache as any;
+  const data = dataProxy.data.data;
   const dataKeys = Object.keys(data);
 
-  ids.forEach((id) => {
-    dataKeys.forEach((key) => {
+  const experiencesMiniQuery = getExperiencesMiniQuery();
+  const edgesLen =
+    (experiencesMiniQuery &&
+      experiencesMiniQuery.edges &&
+      experiencesMiniQuery.edges.length) ||
+    -1;
+
+  const miniQueryKeyPart = `$ROOT_QUERY.getExperiences({"input":{"pagination":{"first":20000}}}).edges.`;
+  const miniQueryKeys: string[] = [];
+
+  dataKeys.forEach((key) => {
+    for (const id of ids) {
       if (key.includes(id)) {
+        delete data[key];
+        break;
+      }
+    }
+
+    if (key.startsWith(miniQueryKeyPart)) {
+      miniQueryKeys.push(key);
+    }
+  });
+
+  if (edgesLen > 0) {
+    const pattern = /\.(\d+)$/;
+
+    miniQueryKeys.forEach((key) => {
+      const patternExec = pattern.exec(key) as RegExpExecArray;
+
+      const index = +patternExec[1];
+      if (index >= edgesLen) {
         delete data[key];
       }
     });
-  });
+  }
+
+  dataProxy.broadcastWatches();
 }

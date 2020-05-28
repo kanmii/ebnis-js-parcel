@@ -302,6 +302,7 @@ const purgeMatchingOfflineExperienceEffect: DefPurgeMatchingOfflineExperienceEff
 
   // istanbul ignore else
   if (ledger) {
+    const { persistor } = window.____ebnis;
     const { offlineExperienceId, newEntryClientId, entriesErrors } = ledger;
 
     replaceOrRemoveExperiencesInGetExperiencesMiniQuery({
@@ -315,7 +316,7 @@ const purgeMatchingOfflineExperienceEffect: DefPurgeMatchingOfflineExperienceEff
       "DataObjectErrorMeta:null",
     ]);
 
-    window.____ebnis.persistor.persist();
+    persistor.persist();
 
     const newEntryEdge = (entries.edges as EntryConnectionFragment_edges[]).find(
       (edge) => {
