@@ -21,7 +21,10 @@ import {
   getSyncingExperience,
   putOrRemoveSyncingExperience,
 } from "../NewExperience/new-experience.resolvers";
-import { replaceOrRemoveExperiencesInGetExperiencesMiniQuery } from "../../apollo/update-get-experiences-mini-query";
+import {
+  replaceOrRemoveExperiencesInGetExperiencesMiniQuery,
+  purgeExperiencesFromCache,
+} from "../../apollo/update-get-experiences-mini-query";
 import { EntryConnectionFragment_edges } from "../../graphql/apollo-types/EntryConnectionFragment";
 import {
   CreateEntryErrorFragment,
@@ -306,12 +309,18 @@ const purgeMatchingOfflineExperienceEffect: DefPurgeMatchingOfflineExperienceEff
     });
 
     putOrRemoveSyncingExperience(id);
+
+    purgeExperiencesFromCache([
+      offlineExperienceId,
+      "DataObjectErrorMeta:null",
+    ]);
+
     window.____ebnis.persistor.persist();
 
     const newEntryEdge = (entries.edges as EntryConnectionFragment_edges[]).find(
       (edge) => {
         const { id, clientId } = edge.node as EntryFragment;
-        return id !== clientId && clientId === newEntryClientId;
+        return !isOfflineId(id) && clientId === newEntryClientId;
       },
     );
 
@@ -422,7 +431,7 @@ type EntriesErrorsNotification = Readonly<{
 }>;
 
 export interface SyncEntriesErrors {
-  [offlineEntryId: string]: EntryErrorForNotification;
+  [offlineEntryClientId: string]: EntryErrorForNotification;
 }
 
 // [index/label, [errorKey, errorValue][]][]

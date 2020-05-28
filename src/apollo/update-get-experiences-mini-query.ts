@@ -234,3 +234,17 @@ export function replaceOrRemoveExperiencesInGetExperiencesMiniQuery(experiencesM
     data: { getExperiences: updatedExperienceConnection },
   });
 }
+
+export function purgeExperiencesFromCache(ids: string[]) {
+  const cache = window.____ebnis.cache as any;
+  const data = cache.data.data;
+  const dataKeys = Object.keys(data);
+
+  ids.forEach((id) => {
+    dataKeys.forEach((key) => {
+      if (key.includes(id)) {
+        delete data[key];
+      }
+    });
+  });
+}

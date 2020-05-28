@@ -228,9 +228,12 @@ async function syncOfflineExperienceEffect(
       return;
     }
 
+    await window.____ebnis.persistor.persist();
+
     const {
       experience: offlineExperience,
-      entry: offlineEntry,
+      entry: offlineEntry, // ID will change when experience synced
+      // successfully
     } = validResponse;
 
     const createExperienceInput = experienceToCreateInput(offlineExperience);
@@ -239,7 +242,6 @@ async function syncOfflineExperienceEffect(
       createExperienceInput,
       createExperiences,
       async (data) => {
-
         switch (data.key) {
           case "ExperienceSuccess":
             {
@@ -250,7 +252,7 @@ async function syncOfflineExperienceEffect(
               const syncingData = {
                 offlineExperienceId,
                 entriesErrors,
-                newEntryClientId: offlineEntry.id,
+                newEntryClientId: offlineEntry.clientId,
               } as SyncingExperience;
 
               removeUnsyncedExperience(offlineExperienceId);

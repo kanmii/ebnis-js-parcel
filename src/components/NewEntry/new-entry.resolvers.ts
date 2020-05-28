@@ -9,7 +9,11 @@ import {
   LocalResolverFn,
   MUTATION_NAME_createOfflineEntry,
 } from "../../apollo/resolvers";
-import { isOfflineId, makeOfflineId } from "../../utils/offlines";
+import {
+  isOfflineId,
+  makeOfflineEntryIdFromExperience,
+  makeOfflineDataObjectIdFromEntry,
+} from "../../utils/offlines";
 import { CreateDataObject } from "../../graphql/apollo-types/globalTypes";
 import gql from "graphql-tag";
 import { upsertExperienceWithEntry } from "./new-entry.injectables";
@@ -21,6 +25,8 @@ import {
   writeUnsyncedExperience,
 } from "../../apollo/unsynced-ledger";
 import { UnsyncedModifiedExperience } from "../../utils/unsynced-ledger.types";
+import { readExperienceFragment } from "../../apollo/read-experience-fragment";
+import { EntryConnectionFragment_edges } from "../../graphql/apollo-types/EntryConnectionFragment";
 
 export const CREATE_OFFLINE_ENTRY_MUTATION = gql`
   mutation CreateOfflineEntry(
@@ -58,13 +64,19 @@ const createOfflineEntryMutationResolver: LocalResolverFn<
   const { experienceId } = variables;
   const today = new Date();
   const timestamps = today.toJSON();
+  const experience = readExperienceFragment(experienceId);
 
-  const id = isOfflineId(experienceId)
-    ? experienceId + "e"
-    : makeOfflineId(experienceId);
+  if (!experience) {
+    throw new Error(`Experience with ID "${experienceId}" not found`);
+  }
+
+  const entryIndex = (experience.entries
+    .edges as EntryConnectionFragment_edges[]).length;
+
+  const id = makeOfflineEntryIdFromExperience(experienceId, entryIndex);
 
   const dataObjects = variables.dataObjects.map((dataObject, index) => {
-    const dataObjectId = `${id}--dd-${index}`;
+    const dataObjectId = makeOfflineDataObjectIdFromEntry(id, index);
 
     return {
       ...dataObject,
@@ -86,14 +98,14 @@ const createOfflineEntryMutationResolver: LocalResolverFn<
     updatedAt: timestamps,
   };
 
-  const experience = upsertExperienceWithEntry(
+  const updatedExperience = upsertExperienceWithEntry(
     entry,
-    experienceId,
+    experience,
   ) as ExperienceFragment;
 
   updateUnsynced(experienceId);
 
-  return { id, experience, entry, __typename: "Entry" };
+  return { id, experience: updatedExperience, entry, __typename: "Entry" };
 };
 
 export interface CreateOfflineEntryMutationVariables {
