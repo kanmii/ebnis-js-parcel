@@ -32,12 +32,12 @@ import {
 } from "./detail-experience.dom";
 import { isOfflineId } from "../../utils/offlines";
 import makeClassNames from "classnames";
-import { getSyncEntriesErrorsLedger } from "../../apollo/sync-entries-errors-ledger";
+import { getSyncEntriesErrorsLedger } from "../../apollo/unsynced-ledger";
 import { UnsyncableEntryError } from "../../utils/unsynced-ledger.types";
 
 export function DetailExperience(props: Props) {
   const { experience } = props;
-  const syncEntriesErrors = getSyncEntriesErrorsLedger();
+  const syncEntriesErrors = getSyncEntriesErrorsLedger(experience.id) || {};
   const [stateMachine, dispatch] = useReducer(reducer, props, initState);
   const entries = entryConnectionToNodes(experience.entries);
 

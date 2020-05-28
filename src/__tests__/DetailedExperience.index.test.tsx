@@ -23,8 +23,6 @@ jest.mock("../components/DetailExperience/detail-experience.component", () => {
   };
 });
 
-jest.mock("../apollo/sync-entries-errors-ledger");
-
 afterEach(() => {
   cleanup();
 });

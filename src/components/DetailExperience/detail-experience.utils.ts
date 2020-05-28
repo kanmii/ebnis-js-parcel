@@ -30,8 +30,11 @@ import {
   CreateEntryErrorFragment,
   CreateEntryErrorFragment_dataObjects,
 } from "../../graphql/apollo-types/CreateEntryErrorFragment";
-import { writeSyncEntriesErrorsLedger } from "../../apollo/sync-entries-errors-ledger";
-import { UnsyncableEntriesErrors, UnsyncableEntryError } from "../../utils/unsynced-ledger.types";
+import { writeSyncEntriesErrorsLedger } from "../../apollo/unsynced-ledger";
+import {
+  UnsyncableEntriesErrors,
+  UnsyncableEntryError,
+} from "../../utils/unsynced-ledger.types";
 
 export enum ActionType {
   TOGGLE_NEW_ENTRY_ACTIVE = "@detailed-experience/deactivate-new-entry",
@@ -340,8 +343,9 @@ type DefPurgeMatchingOfflineExperienceEffect = EffectDefinition<
 
 const putEntriesErrorsInLedgerEffect: DefPutEntriesErrorsInLedgerEffect["func"] = (
   ownArgs,
+  props,
 ) => {
-  writeSyncEntriesErrorsLedger(ownArgs);
+  writeSyncEntriesErrorsLedger(props.experience.id, ownArgs);
 };
 
 type DefPutEntriesErrorsInLedgerEffect = EffectDefinition<

@@ -21,7 +21,7 @@ import { CreateEntryErrorFragment } from "../graphql/apollo-types/CreateEntryErr
 import { getSyncingExperience } from "../components/NewExperience/new-experience.resolvers";
 import { replaceOrRemoveExperiencesInGetExperiencesMiniQuery } from "../apollo/update-get-experiences-mini-query";
 import { E2EWindowObject } from "../utils/types";
-import { getSyncEntriesErrorsLedger } from "../apollo/sync-entries-errors-ledger";
+import { getSyncEntriesErrorsLedger } from "../apollo/unsynced-ledger";
 
 jest.mock("../components/DetailExperience/detail-experience.injectables");
 const mockScrollDocumentToTop = scrollDocumentToTop as jest.Mock;
@@ -31,8 +31,6 @@ const mockGetSyncingExperience = getSyncingExperience as jest.Mock;
 
 jest.mock("../apollo/update-get-experiences-mini-query");
 const mockReplaceOrRemoveExperiencesInGetExperiencesMiniQuery = replaceOrRemoveExperiencesInGetExperiencesMiniQuery as jest.Mock;
-
-jest.mock("../apollo/sync-entries-errors-ledger");
 
 const mockNewEntryId = "aa";
 const mockActionType = ActionType;
@@ -76,7 +74,7 @@ jest.mock("../components/DetailExperience/detail-experience.lazy", () => {
   };
 });
 
-jest.mock("../apollo/sync-entries-errors-ledger");
+jest.mock("../apollo/unsynced-ledger");
 const mockGetSyncEntriesErrorsLedger = getSyncEntriesErrorsLedger as jest.Mock;
 
 const mockPersistFunc = jest.fn();
