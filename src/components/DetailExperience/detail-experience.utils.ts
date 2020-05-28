@@ -31,6 +31,7 @@ import {
   CreateEntryErrorFragment_dataObjects,
 } from "../../graphql/apollo-types/CreateEntryErrorFragment";
 import { writeSyncEntriesErrorsLedger } from "../../apollo/sync-entries-errors-ledger";
+import { UnsyncableEntriesErrors, UnsyncableEntryError } from "../../utils/unsynced-ledger.types";
 
 export enum ActionType {
   TOGGLE_NEW_ENTRY_ACTIVE = "@detailed-experience/deactivate-new-entry",
@@ -169,7 +170,7 @@ function handleOnNewEntryCreatedOrOfflineExperienceSynced(
 
   // istanbul ignore else:
   if (mayBeEntriesErrors) {
-    const values = {} as SyncEntriesErrors;
+    const values = {} as UnsyncableEntriesErrors;
 
     const entriesErrorsState = entriesErrors as Draft<
       EntriesErrorsNotification
@@ -196,7 +197,7 @@ function handleOnNewEntryCreatedOrOfflineExperienceSynced(
         ...otherErrors
       } = entryError;
 
-      const errors: EntryErrorForNotification = [];
+      const errors: UnsyncableEntryError = [];
 
       // istanbul ignore else:
       if (dataObjects) {
@@ -345,7 +346,7 @@ const putEntriesErrorsInLedgerEffect: DefPutEntriesErrorsInLedgerEffect["func"] 
 
 type DefPutEntriesErrorsInLedgerEffect = EffectDefinition<
   "putEntriesErrorsInLedgerEffect",
-  SyncEntriesErrors
+  UnsyncableEntriesErrors
 >;
 
 export const effectFunctions = {
@@ -426,17 +427,10 @@ type EntriesErrorsNotification = Readonly<{
   value: ActiveVal;
   active: {
     context: {
-      errors: SyncEntriesErrors;
+      errors: UnsyncableEntriesErrors;
     };
   };
 }>;
-
-export interface SyncEntriesErrors {
-  [offlineEntryClientId: string]: EntryErrorForNotification;
-}
-
-// [index/label, [errorKey, errorValue][]][]
-export type EntryErrorForNotification = [string | number, [string, string][]][];
 
 type NewEntryCreatedNotification = Readonly<{
   value: ActiveVal;

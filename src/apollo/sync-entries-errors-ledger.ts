@@ -1,7 +1,7 @@
 /* istanbul ignore file */
 import gql from "graphql-tag";
 import { ENTRIES_SYNC_ERRORS_LEDGER_CACHE_KEY } from "./resolvers";
-import { SyncEntriesErrors } from "../components/DetailExperience/detail-experience.utils";
+import {UnsyncableEntriesErrors} from "../utils/unsynced-ledger.types";
 
 const QUERY = gql`
   query {
@@ -24,7 +24,7 @@ export function removeSyncEntriesErrorsFromLedger(ids: string[]) {
 }
 
 export function writeSyncEntriesErrorsLedger(
-  newLedgerItems: SyncEntriesErrors = {},
+  newLedgerItems: UnsyncableEntriesErrors = {},
 ) {
   const { cache } = window.____ebnis;
   const ledger = { ...getSyncEntriesErrorsLedger(), ...newLedgerItems };
@@ -36,7 +36,7 @@ export function writeSyncEntriesErrorsLedger(
   });
 }
 
-export function getSyncEntriesErrorsLedger(): SyncEntriesErrors {
+export function getSyncEntriesErrorsLedger(): UnsyncableEntriesErrors {
   const { cache } = window.____ebnis;
 
   try {
@@ -49,7 +49,7 @@ export function getSyncEntriesErrorsLedger(): SyncEntriesErrors {
     return ledger ? JSON.parse(ledger) : {};
   } catch (error) {
     if (error.message.includes(ENTRIES_SYNC_ERRORS_LEDGER_CACHE_KEY)) {
-      return {} as SyncEntriesErrors;
+      return {} as UnsyncableEntriesErrors;
     }
 
     throw error;

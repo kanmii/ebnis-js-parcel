@@ -25,6 +25,14 @@ export interface UnsyncedModifiedExperience {
       [dataObjectId: string]: true;
     };
   };
+  entriesErrors?: UnsyncableEntriesErrors;
 }
+
+export interface UnsyncableEntriesErrors {
+  [entryClientId: string]: UnsyncableEntryError;
+}
+
+// [index/label, [errorKey, errorValue][]][]
+export type UnsyncableEntryError = [string | number, [string, string][]][];
 
 type IsNewOfflineExperience = true;

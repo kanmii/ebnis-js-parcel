@@ -14,7 +14,6 @@ import {
   formatDatetime,
   effectFunctions,
   StateMachine,
-  EntryErrorForNotification,
 } from "./detail-experience.utils";
 import { setUpRoutePage } from "../../utils/global-window";
 import { NewEntry } from "./detail-experience.lazy";
@@ -34,6 +33,7 @@ import {
 import { isOfflineId } from "../../utils/offlines";
 import makeClassNames from "classnames";
 import { getSyncEntriesErrorsLedger } from "../../apollo/sync-entries-errors-ledger";
+import { UnsyncableEntryError } from "../../utils/unsynced-ledger.types";
 
 export function DetailExperience(props: Props) {
   const { experience } = props;
@@ -275,7 +275,7 @@ function NewEntryNotification(props: {
 interface EntryProps {
   entry: EntryFragment;
   dataDefinitionIdToNameMap: DataDefinitionIdToNameMap;
-  entriesErrors: EntryErrorForNotification;
+  entriesErrors: UnsyncableEntryError;
 }
 
 interface DataDefinitionIdToNameMap {
