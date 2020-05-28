@@ -259,7 +259,7 @@ function NewEntryNotification(props: {
   }
 
   return (
-    <div className="notification is-danger">
+    <div className="notification is-success">
       <button
         id={newEntryCreatedNotificationCloseId}
         className="delete"
