@@ -44,13 +44,15 @@ export const CREATE_OFFLINE_ENTRY_MUTATION = gql`
   ${ENTRY_FRAGMENT}
 `;
 
+export interface CreateOfflineEntryMutationValid {
+  id: string;
+  entry: EntryFragment;
+  experience: ExperienceFragment;
+  __typename: "Entry";
+}
+
 interface CreateOfflineEntryMutationReturned {
-  createOfflineEntry: {
-    id: string;
-    entry: EntryFragment;
-    experience: ExperienceFragment;
-    __typename: "Entry";
-  };
+  createOfflineEntry: CreateOfflineEntryMutationValid | null;
 }
 
 export type CreateOfflineEntryResult = ExecutionResult<
@@ -67,7 +69,7 @@ const createOfflineEntryMutationResolver: LocalResolverFn<
   const experience = readExperienceFragment(experienceId);
 
   if (!experience) {
-    throw new Error(`Experience with ID "${experienceId}" not found`);
+    return null;
   }
 
   const entryIndex = (experience.entries
