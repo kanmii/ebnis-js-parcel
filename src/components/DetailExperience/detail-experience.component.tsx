@@ -174,11 +174,19 @@ function EntryComponent(props: EntryProps) {
 
         {entriesErrors && (
           <div>
-            <p>Did not sync because of errors</p>
+            <hr />
 
-            <button type="button" className="button is-small">
-              Edit
-            </button>
+            <p className="subtitle is-6">Did not sync because of errors</p>
+
+            <div
+              style={{
+                textAlign: "right",
+              }}
+            >
+              <button type="button" className="button is-small">
+                Edit
+              </button>
+            </div>
           </div>
         )}
       </div>
