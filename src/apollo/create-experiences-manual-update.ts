@@ -12,7 +12,6 @@ import {
   makeOfflineDataObjectIdFromEntry,
 } from "../utils/offlines";
 import { EntryFragment } from "../graphql/apollo-types/EntryFragment";
-import immer from "immer";
 import { DataObjectFragment } from "../graphql/apollo-types/DataObjectFragment";
 
 export function createExperiencesManualUpdate(
