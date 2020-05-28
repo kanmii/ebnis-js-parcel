@@ -459,9 +459,7 @@ type NotificationActive = Readonly<{
   }>;
 }>;
 
-export type CallerProps = RouteChildrenProps<DetailExperienceRouteMatch> & {
-  syncEntriesErrors: SyncEntriesErrors;
-};
+export type CallerProps = RouteChildrenProps<DetailExperienceRouteMatch>;
 
 export type Props = CallerProps & {
   experience: ExperienceFragment;

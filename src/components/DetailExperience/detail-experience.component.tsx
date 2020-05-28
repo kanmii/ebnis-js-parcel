@@ -33,9 +33,11 @@ import {
 } from "./detail-experience.dom";
 import { isOfflineId } from "../../utils/offlines";
 import makeClassNames from "classnames";
+import { getSyncEntriesErrorsLedger } from "../../apollo/sync-entries-errors-ledger";
 
 export function DetailExperience(props: Props) {
-  const { experience, syncEntriesErrors } = props;
+  const { experience } = props;
+  const syncEntriesErrors = getSyncEntriesErrorsLedger();
   const [stateMachine, dispatch] = useReducer(reducer, props, initState);
   const entries = entryConnectionToNodes(experience.entries);
 
