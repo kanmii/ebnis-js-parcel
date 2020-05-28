@@ -24,6 +24,6 @@ export function makeOfflineDataObjectIdFromEntry(
   entryId: string,
   index: number,
 ) {
-  const dataObjectId = `${entryId}--dd-${index}`;
+  const dataObjectId = `${entryId}--${index}`;
   return dataObjectId;
 }

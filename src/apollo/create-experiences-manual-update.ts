@@ -80,17 +80,32 @@ export function createExperiencesManualUpdate(
 
       let syncedIndex = 0;
 
+      const definitionsMap = experience.dataDefinitions.reduce(
+        (definitionsAcc, d) => {
+          const { id, clientId } = d;
+          definitionsAcc[clientId as string] = id;
+
+          return definitionsAcc;
+        },
+        {} as { [key: string]: string },
+      );
+
       offlineEntriesEdges.forEach((e, index) => {
         const edge = e as ExperienceFragment_entries_edges;
 
         if (entriesErrorsIndices.includes(index)) {
           const node = edge.node as EntryFragment;
-          const id = makeOfflineEntryIdFromExperience(experience.id, index);
+          const experienceId = experience.id;
+          const entryId = makeOfflineEntryIdFromExperience(experienceId, index);
 
           const dataObjects = (node.dataObjects as DataObjectFragment[]).map(
             (dataObject, index) => {
-              const id = makeOfflineDataObjectIdFromEntry(dataObject.id, index);
-              return { ...dataObject, id };
+              const id = makeOfflineDataObjectIdFromEntry(entryId, index);
+              return {
+                ...dataObject,
+                id,
+                definitionId: definitionsMap[dataObject.definitionId],
+              };
             },
           );
 
@@ -98,7 +113,8 @@ export function createExperiencesManualUpdate(
             ...edge,
             node: {
               ...node,
-              id,
+              id: entryId,
+              experienceId,
               dataObjects,
             },
           };
