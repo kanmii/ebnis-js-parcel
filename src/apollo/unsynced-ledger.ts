@@ -5,6 +5,7 @@ import {
   UnsyncedLedgerItem,
   UnsyncableEntriesErrors,
   UnsyncedModifiedExperience,
+  RemoveUnsyncableEntriesErrors,
 } from "../utils/unsynced-ledger.types";
 
 const UNSYNCED_LEDGER_QUERY = gql`
@@ -66,26 +67,9 @@ function getUnsyncedLedger() {
   return unsyncedLedger ? JSON.parse(unsyncedLedger) : {};
 }
 
-export function removeSyncEntriesErrorsFromLedger(
+export function putAndRemoveSyncEntriesErrorsLedger(
   experienceId: string,
-  clientIds: string[],
-) {
-  const entriesErrors = getSyncEntriesErrorsLedger(experienceId);
-
-  if (!entriesErrors) {
-    return;
-  }
-
-  clientIds.forEach((id) => {
-    delete entriesErrors[id];
-  });
-
-  writeSyncEntriesErrorsLedger(experienceId, entriesErrors);
-}
-
-export function writeSyncEntriesErrorsLedger(
-  experienceId: string,
-  newLedgerItems: UnsyncableEntriesErrors = {},
+  newLedgerItems: UnsyncableEntriesErrors | RemoveUnsyncableEntriesErrors = {},
 ) {
   const unsyncedExperience = (getUnsyncedExperience(experienceId) ||
     {}) as UnsyncedModifiedExperience;
@@ -93,7 +77,13 @@ export function writeSyncEntriesErrorsLedger(
   let entriesErrors = (unsyncedExperience.entriesErrors ||
     {}) as UnsyncableEntriesErrors;
 
-  entriesErrors = { ...entriesErrors, ...newLedgerItems };
+  Object.entries(newLedgerItems).forEach(([k, v]) => {
+    if (v === null) {
+      delete entriesErrors[k];
+    } else {
+      entriesErrors[k] = v;
+    }
+  });
 
   if (Object.keys(entriesErrors).length) {
     unsyncedExperience.entriesErrors = entriesErrors;

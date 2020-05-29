@@ -452,6 +452,121 @@ describe("component", () => {
     await wait(() => true);
     await waitForElement(getNotificationEl);
   });
+
+  it("connected/edit entry", async () => {
+    mockIsConnected.mockReturnValue(true);
+    mockUpdateExperiencesOnline.mockResolvedValue({
+      data: {
+        updateExperiences: {
+          __typename: "UpdateExperiencesSomeSuccess",
+          experiences: [
+            {
+              __typename: "UpdateExperienceSomeSuccess",
+              experience: {
+                newEntries: [
+                  {
+                    __typename: "CreateEntryErrors",
+                    errors: {
+                      dataObjects: [
+                        {
+                          meta: {
+                            index: 0,
+                          },
+                          clientId: "a",
+                          definitionId: null,
+                        },
+                      ],
+                    },
+                  },
+                ],
+              },
+            },
+          ],
+        },
+      },
+    } as UpdateExperiencesOnlineMutationResult);
+
+    const now = new Date();
+    const nowJson = now.toJSON();
+
+    const { ui } = makeComp({
+      props: {
+        clientId: "a",
+        experience: {
+          ...defaultExperience,
+          dataDefinitions: [
+            {
+              id: "1",
+              type: DataTypes.INTEGER,
+              name: "a",
+            },
+            {
+              id: "2",
+              type: DataTypes.DATE,
+              name: "b",
+            },
+          ] as DataDefinitionFragment[],
+          entries: {
+            edges: [
+              {
+                node: {
+                  id: "a",
+                  clientId: "a",
+                  dataObjects: [
+                    {
+                      id: "a1",
+                      data: `{"integer":1}`,
+                      definitionId: "1",
+                    },
+                    {
+                      id: "a2",
+                      data: `{"date":"${nowJson}"}`,
+                      definitionId: "2",
+                    },
+                  ],
+                },
+              },
+              {
+                node: {},
+              },
+            ],
+          },
+        } as ExperienceFragment,
+      },
+    });
+    render(ui);
+    const inputEl = document.getElementById("1") as HTMLInputElement;
+    expect(inputEl.value).toBe("1");
+    const submitEl = document.getElementById(submitBtnDomId) as HTMLElement;
+    fillField(inputEl, "2");
+    expect(getNotificationEl()).toBeNull();
+    expect(getFieldError()).toBeNull();
+
+    submitEl.click();
+    await waitForElement(getNotificationEl);
+    expect(getFieldError()).not.toBeNull();
+
+    expect(mockDetailedExperienceDispatch).not.toHaveBeenCalled();
+    getCloseComponentEl().click();
+    expect(mockDetailedExperienceDispatch).toHaveBeenCalled();
+    expect(
+      mockUpdateExperiencesOnline.mock.calls[0][0].variables.input[0]
+        .addEntries[0],
+    ).toEqual({
+      clientId: "a",
+      dataObjects: [
+        {
+          data: `{"integer":"2"}`,
+          definitionId: "1",
+        },
+        {
+          data: `{"date":"${toISODateString(now)}"}`,
+          definitionId: "2",
+        },
+      ],
+      experienceId: "1",
+    });
+  });
 });
 
 describe("reducer", () => {
@@ -478,7 +593,7 @@ describe("reducer", () => {
   it("sets decimal to default zero/connected/success", async () => {
     mockIsConnected.mockResolvedValue(true);
 
-    let state = initState(experience);
+    let state = initState(props);
 
     state = reducer(state, {
       type: ActionType.ON_FORM_FIELD_CHANGED,
@@ -527,7 +642,7 @@ describe("reducer", () => {
   it("connected/server newEntries empty", async () => {
     mockIsConnected.mockResolvedValue(true);
 
-    let state = initState(experience);
+    let state = initState(props);
 
     state = reducer(state, {
       type: ActionType.ON_SUBMIT,
@@ -562,7 +677,7 @@ describe("reducer", () => {
   });
 
   it("server field errors no data objects errors", async () => {
-    let state = initState(experience);
+    let state = initState(props);
 
     state = reducer(state, {
       type: ActionType.ON_CREATE_ENTRY_ERRORS,
@@ -583,7 +698,7 @@ describe("reducer", () => {
       id: experienceId,
     };
 
-    let state = initState(offlineExperience);
+    let state = initState(props);
 
     state = reducer(state, {
       type: ActionType.ON_SUBMIT,
@@ -626,7 +741,10 @@ describe("reducer", () => {
       },
     } as ExperienceFragment;
 
-    let state = initState(offlineExperience);
+    let state = initState({
+      ...props,
+      experience: offlineExperience,
+    });
 
     state = reducer(state, {
       type: ActionType.ON_SUBMIT,
@@ -704,7 +822,10 @@ describe("reducer", () => {
       },
     } as ExperienceFragment;
 
-    let state = initState(offlineExperience);
+    let state = initState({
+      ...props,
+      experience: offlineExperience,
+    });
 
     state = reducer(state, {
       type: ActionType.ON_SUBMIT,
@@ -750,7 +871,10 @@ describe("reducer", () => {
       id: experienceId,
     } as ExperienceFragment;
 
-    let state = initState(offlineExperience);
+    let state = initState({
+      ...props,
+      experience: offlineExperience,
+    });
 
     state = reducer(state, {
       type: ActionType.ON_SUBMIT,
@@ -795,7 +919,10 @@ describe("reducer", () => {
       id: experienceId,
     } as ExperienceFragment;
 
-    let state = initState(offlineExperience);
+    let state = initState({
+      ...props,
+      experience: offlineExperience,
+    });
 
     state = reducer(state, {
       type: ActionType.ON_SUBMIT,
@@ -830,7 +957,10 @@ describe("reducer", () => {
       id: experienceId,
     } as ExperienceFragment;
 
-    let state = initState(offlineExperience);
+    let state = initState({
+      ...props,
+      experience: offlineExperience,
+    });
 
     state = reducer(state, {
       type: ActionType.ON_SUBMIT,

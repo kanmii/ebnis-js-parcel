@@ -173,11 +173,18 @@ export const reducer: Reducer<StateMachine, Action> = (state, action) =>
 export const GENERIC_SERVER_ERROR = "Something went wrong - please try again.";
 
 const createEntryEffect: DefCreateEntryEffect["func"] = (
-  ownArgs,
+  { input },
   props,
   effectArgs,
 ) => {
-  const { input } = ownArgs;
+  const { clientId } = props;
+
+  if (clientId) {
+    input = {
+      ...input,
+      clientId,
+    };
+  }
 
   if (isConnected()) {
     const { experience } = props;
@@ -496,15 +503,27 @@ export const effectFunctions = {
 
 ////////////////////////// STATE UPDATE SECTION ////////////////////////////
 
-export function initState(experience: ExperienceFragment): StateMachine {
+export function initState(props: Props): StateMachine {
+  const { experience, clientId } = props;
+
   const dataDefinitions = experience.dataDefinitions as ExperienceFragment_dataDefinitions[];
 
+  const definitionIdToDataMap = mapDefinitionIdToDataHelper(
+    experience,
+    clientId,
+  );
+
   const formFields = dataDefinitions.reduce((acc, definition, index) => {
-    const value =
-      definition.type === DataTypes.DATE ||
-      definition.type === DataTypes.DATETIME
-        ? new Date()
-        : "";
+    const { id } = definition;
+    let value = definitionIdToDataMap[id];
+
+    if (value === undefined) {
+      value =
+        definition.type === DataTypes.DATE ||
+        definition.type === DataTypes.DATETIME
+          ? new Date()
+          : "";
+    }
 
     acc[index] = {
       context: { definition, value },
@@ -529,6 +548,48 @@ export function initState(experience: ExperienceFragment): StateMachine {
       },
     },
   };
+}
+
+function mapDefinitionIdToDataHelper(
+  experience: ExperienceFragment,
+  clientId?: string,
+) {
+  const result = {} as {
+    [dataDefinitionId: string]: FormObjVal;
+  };
+
+  if (!clientId) {
+    return result;
+  }
+
+  const edge = (experience.entries
+    .edges as EntryConnectionFragment_edges[]).find((e) => {
+    return (e.node as EntryFragment).clientId === clientId;
+  });
+
+  // istanbul ignore next:
+  if (!edge) {
+    return result;
+  }
+
+  const entryToEdit = edge.node as EntryFragment;
+
+  entryToEdit.dataObjects.forEach((d) => {
+    const { definitionId, data } = d as DataObjectFragment;
+    const json = JSON.parse(data);
+    const [type, stringData] = Object.entries(json)[0];
+    const typeUpper = type.toUpperCase();
+    const dataString = stringData as string;
+
+    const value =
+      typeUpper === DataTypes.DATE || typeUpper === DataTypes.DATETIME
+        ? new Date(dataString)
+        : dataString;
+
+    result[definitionId] = value;
+  });
+
+  return result;
 }
 
 function handleSubmissionAction(proxy: DraftState) {
@@ -748,6 +809,7 @@ function handleOnSyncOfflineExperienceErrors(
 
 export interface CallerProps extends DetailedExperienceChildDispatchProps {
   experience: ExperienceFragment;
+  clientId?: string;
 }
 
 export type Props = CallerProps &

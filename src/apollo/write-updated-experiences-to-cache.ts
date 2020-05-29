@@ -261,10 +261,8 @@ function newEntriesApplyUpdatesAndGetCleanUpData(
     const edges = proxy.entries.edges as EntryConnectionFragment_edges[];
 
     if (isOfflineEntrySynced) {
-      edges.forEach((e) => {
-        const edge = e as EntryConnectionFragment_edges;
+      edges.forEach((edge) => {
         const node = edge.node as EntryFragment;
-        // assumed that cached.id === cached.clientId === server.clientId
         const newEntry = offlineSyncedEntries[node.id];
         // istanbul ignore else
         if (newEntry) {

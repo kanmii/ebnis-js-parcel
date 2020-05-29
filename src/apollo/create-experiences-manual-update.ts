@@ -7,10 +7,6 @@ import {
 import { readExperienceFragment } from "./read-experience-fragment";
 import { writeExperienceFragmentToCache } from "./write-experience-fragment";
 import { insertExperiencesInGetExperiencesMiniQuery } from "./update-get-experiences-mini-query";
-import {
-  makeOfflineEntryIdFromExperience,
-  makeOfflineDataObjectIdFromEntry,
-} from "../utils/offlines";
 import { EntryFragment } from "../graphql/apollo-types/EntryFragment";
 import { DataObjectFragment } from "../graphql/apollo-types/DataObjectFragment";
 
@@ -96,14 +92,11 @@ export function createExperiencesManualUpdate(
         if (entriesErrorsIndices.includes(index)) {
           const node = edge.node as EntryFragment;
           const experienceId = experience.id;
-          const entryId = makeOfflineEntryIdFromExperience(experienceId, index);
 
           const dataObjects = (node.dataObjects as DataObjectFragment[]).map(
             (dataObject, index) => {
-              const id = makeOfflineDataObjectIdFromEntry(entryId, index);
               return {
                 ...dataObject,
-                id,
                 definitionId: definitionsMap[dataObject.definitionId],
               };
             },
@@ -113,7 +106,6 @@ export function createExperiencesManualUpdate(
             ...edge,
             node: {
               ...node,
-              id: entryId,
               experienceId,
               dataObjects,
             },

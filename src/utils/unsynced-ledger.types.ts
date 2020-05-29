@@ -32,6 +32,10 @@ export interface UnsyncableEntriesErrors {
   [entryClientId: string]: UnsyncableEntryError;
 }
 
+export interface RemoveUnsyncableEntriesErrors {
+  [entryClientId: string]: null;
+}
+
 // [index/label, [errorKey, errorValue][]][]
 export type UnsyncableEntryError = [string | number, [string, string][]][];
 

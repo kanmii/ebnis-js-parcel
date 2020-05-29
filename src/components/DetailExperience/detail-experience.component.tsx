@@ -14,6 +14,7 @@ import {
   formatDatetime,
   effectFunctions,
   StateMachine,
+  DispatchType,
 } from "./detail-experience.utils";
 import { setUpRoutePage } from "../../utils/global-window";
 import { NewEntry } from "./detail-experience.lazy";
@@ -103,6 +104,7 @@ export function DetailExperience(props: Props) {
             <NewEntry
               experience={experience}
               detailedExperienceDispatch={dispatch}
+              clientId={newEntryActiveState.active.context.clientId}
             />
           </Suspense>
         )}
@@ -132,6 +134,7 @@ export function DetailExperience(props: Props) {
                   entry={entry}
                   dataDefinitionIdToNameMap={dataDefinitionIdToNameMap}
                   entriesErrors={syncEntriesErrors[entry.clientId as string]}
+                  dispatch={dispatch}
                 />
               );
             })}
@@ -147,8 +150,8 @@ export function DetailExperience(props: Props) {
 }
 
 function EntryComponent(props: EntryProps) {
-  const { entry, dataDefinitionIdToNameMap, entriesErrors } = props;
-  const { updatedAt, dataObjects: dObjects, id: entryId } = entry;
+  const { entry, dataDefinitionIdToNameMap, entriesErrors, dispatch } = props;
+  const { updatedAt, dataObjects: dObjects, id: entryId, clientId } = entry;
   const dataObjects = dObjects as DataObjectFragment[];
   const isOffline = isOfflineId(entryId);
 
@@ -186,7 +189,16 @@ function EntryComponent(props: EntryProps) {
                 textAlign: "right",
               }}
             >
-              <button type="button" className="button is-small">
+              <button
+                type="button"
+                className="button is-small entry__edit"
+                onClick={() => {
+                  dispatch({
+                    type: ActionType.ON_EDIT_ENTRY,
+                    entryClientId: clientId as string,
+                  });
+                }}
+              >
                 Edit
               </button>
             </div>
@@ -287,6 +299,7 @@ interface EntryProps {
   entry: EntryFragment;
   dataDefinitionIdToNameMap: DataDefinitionIdToNameMap;
   entriesErrors: UnsyncableEntryError;
+  dispatch: DispatchType;
 }
 
 interface DataDefinitionIdToNameMap {

@@ -253,7 +253,7 @@ export function purgeExperiencesFromCache(ids: string[]) {
 
   dataKeys.forEach((key) => {
     for (const id of ids) {
-      if (key.includes(id)) {
+      if (key.startsWith(id)) {
         delete data[key];
         break;
       }

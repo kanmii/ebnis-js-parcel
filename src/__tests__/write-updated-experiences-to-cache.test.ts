@@ -212,7 +212,7 @@ test("new entries success", () => {
   } as ExperienceFragment);
 });
 
-test("synced entries success", () => {
+it("synced entries success", () => {
   mockReadExperienceFragment.mockReturnValue({
     entries: {
       edges: [

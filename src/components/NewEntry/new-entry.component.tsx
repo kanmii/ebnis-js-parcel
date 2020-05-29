@@ -43,7 +43,7 @@ import { useRunEffects } from "../../utils/use-run-effects";
 export function NewEntry(props: Props) {
   const { experience, detailedExperienceDispatch } = props;
 
-  const [stateMachine, dispatch] = useReducer(reducer, experience, initState);
+  const [stateMachine, dispatch] = useReducer(reducer, props, initState);
 
   const {
     states: { submission: submissionState, form },
