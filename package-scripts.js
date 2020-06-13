@@ -15,6 +15,7 @@ const distAbsPath = path.resolve(__dirname, `./${distFolderName}`);
 const reactScript = "react-app-rewired";
 
 const test = `env-cmd -e test yarn ${reactScript} test --runInBand`;
+const startServer = `yarn react-scripts start`;
 
 function buildFn(flag) {
   const reactBuild = `yarn ${reactScript} build`;
@@ -42,7 +43,6 @@ function buildFn(flag) {
 `;
 }
 
-const startServer = "yarn react-scripts start";
 
 module.exports = {
   scripts: {

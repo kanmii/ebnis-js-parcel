@@ -23,3 +23,6 @@ export const defaultExperience = {
   },
 } as ExperienceFragment;
 
+export function getParentFieldEl(childEl: HTMLElement) {
+  return childEl.closest(".field") as HTMLElement;
+}

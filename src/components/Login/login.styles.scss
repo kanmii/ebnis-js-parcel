@@ -1,3 +1,5 @@
+@import "../../styles/extensions";
+
 .login-component {
   display: flex;
   flex-direction: column;
@@ -22,6 +24,10 @@
       + .form__submit {
         margin-top: 20px;
       }
+    }
+
+    &__field--errors {
+      @extend %form-field-errors;
     }
   }
 

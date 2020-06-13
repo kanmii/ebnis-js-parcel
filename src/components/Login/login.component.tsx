@@ -1,5 +1,4 @@
 import React, {
-  useEffect,
   useReducer,
   useCallback,
   MouseEvent,
@@ -13,9 +12,9 @@ import {
   effectFunctions,
   reducer,
   initState,
-  StateValue,
   ActionType,
   CallerProps,
+  FormField,
 } from "./login.utils";
 import { FieldError } from "../../utils/common-errors";
 import FormCtrlError from "../FormCtrlError/form-ctrl-error.component";
@@ -34,6 +33,9 @@ import makeClassNames from "classnames";
 import { warningClassName, errorClassName } from "../../utils/utils.dom";
 import { EbnisAppContext } from "../../utils/app-context";
 import { setUpRoutePage } from "../../utils/global-window";
+import { StateValue, InputChangeEvent } from "../../utils/types";
+import { useRunEffects } from "../../utils/use-run-effects";
+import { formFieldErrorClass } from "../../utils/utils.dom";
 
 export function Login(props: Props) {
   const [stateMachine, dispatch] = useReducer(reducer, undefined, initState);
@@ -48,27 +50,11 @@ export function Login(props: Props) {
     effects: { general: generalEffects },
   } = stateMachine;
 
-  useEffect(() => {
-    if (generalEffects.value !== StateValue.hasEffects) {
-      return;
-    }
-
-    for (const { key, ownArgs } of generalEffects.hasEffects.context.effects) {
-      effectFunctions[key](
-        /* eslint-disable-next-line @typescript-eslint/no-explicit-any*/
-        ownArgs as any,
-        props,
-        { dispatch },
-      );
-    }
-
-    /* eslint-disable-next-line react-hooks/exhaustive-deps*/
-  }, [generalEffects]);
+  useRunEffects(generalEffects, effectFunctions, props, { dispatch });
 
   useLayoutEffect(() => {
     setUpRoutePage({
       title: LOGIN_PAGE_TITLE,
-      // rootClassName: "login-component",
     });
   }, []);
 
@@ -85,37 +71,23 @@ export function Login(props: Props) {
     });
   }, []);
 
-  let emailValue = "";
-  let emailErrors: null | FieldError = null;
+  const onEmailChanged = useCallback((e: InputChangeEvent) => {
+    const node = e.currentTarget;
+    dispatch({
+      type: ActionType.FORM_CHANGED,
+      value: node.value,
+      fieldName: "email",
+    });
+  }, []);
 
-  if (emailState.states.value === StateValue.changed) {
-    const {
-      context: { formValue },
-      states,
-    } = emailState.states.changed;
-
-    emailValue = formValue;
-
-    if (states.value === StateValue.invalid) {
-      emailErrors = states.invalid.context.errors;
-    }
-  }
-
-  let passwordValue = "";
-  let passwordErrors: null | FieldError = null;
-
-  if (passwordState.states.value === StateValue.changed) {
-    const {
-      context: { formValue },
-      states,
-    } = passwordState.states.changed;
-
-    passwordValue = formValue;
-
-    if (states.value === StateValue.invalid) {
-      passwordErrors = states.invalid.context.errors;
-    }
-  }
+  const onPasswordChanged = useCallback((e: InputChangeEvent) => {
+    const node = e.currentTarget;
+    dispatch({
+      type: ActionType.FORM_CHANGED,
+      value: node.value,
+      fieldName: "password",
+    });
+  }, []);
 
   let warningText = "";
 
@@ -153,77 +125,9 @@ export function Login(props: Props) {
           </div>
         )}
 
-        <div className="field">
-          <label htmlFor={emailInputId} className="label form__label">
-            Email
-          </label>
+        <Email state={emailState} onFieldChanged={onEmailChanged} />
 
-          <div className="control">
-            <input
-              className="input is-rounded"
-              type="text"
-              id={emailInputId}
-              value={emailValue}
-              onChange={(e) => {
-                const node = e.currentTarget;
-                dispatch({
-                  type: ActionType.FORM_CHANGED,
-                  value: node.value,
-                  fieldName: "email",
-                });
-              }}
-            />
-          </div>
-
-          {emailErrors && (
-            <FormCtrlError id={emailErrorId}>
-              {emailErrors.map(([errorLabel, errorText], index) => {
-                return (
-                  <div key={index}>
-                    <span>{errorLabel} </span>
-                    <span>{errorText}</span>
-                  </div>
-                );
-              })}
-            </FormCtrlError>
-          )}
-        </div>
-
-        <div className="field">
-          <label htmlFor={passwordInputId} className="label form__label">
-            Password
-          </label>
-
-          <div className="control">
-            <input
-              className="input is-rounded"
-              type="password"
-              id={passwordInputId}
-              value={passwordValue}
-              onChange={(e) => {
-                const node = e.currentTarget;
-                dispatch({
-                  type: ActionType.FORM_CHANGED,
-                  value: node.value,
-                  fieldName: "password",
-                });
-              }}
-            />
-          </div>
-
-          {passwordErrors && (
-            <FormCtrlError id={passwordErrorId}>
-              {passwordErrors.map(([errorLabel, errorText], index) => {
-                return (
-                  <div key={index}>
-                    <span>{errorLabel} </span>
-                    <span>{errorText}</span>
-                  </div>
-                );
-              })}
-            </FormCtrlError>
-          )}
-        </div>
+        <Password onFieldChanged={onPasswordChanged} state={passwordState} />
 
         <div className="form__submit">
           <button
@@ -261,6 +165,118 @@ export function Login(props: Props) {
   );
 }
 
+function Email(props: FieldComponentProps) {
+  const { state, onFieldChanged } = props;
+
+  let emailValue = "";
+  let emailErrors: null | FieldError = null;
+
+  if (state.states.value === StateValue.changed) {
+    const {
+      context: { formValue },
+      states,
+    } = state.states.changed;
+    emailValue = formValue;
+
+    if (states.value === StateValue.invalid) {
+      emailErrors = states.invalid.context.errors;
+    }
+  }
+
+  return (
+    <div
+      className={makeClassNames({
+        "field form__field": true,
+        [formFieldErrorClass]: !!emailErrors,
+      })}
+    >
+      <label htmlFor={emailInputId} className="label form__label">
+        Email
+      </label>
+
+      <div className="control">
+        <input
+          className="input is-rounded"
+          type="text"
+          id={emailInputId}
+          value={emailValue}
+          onChange={onFieldChanged}
+          autoComplete="off"
+        />
+      </div>
+
+      {emailErrors && (
+        <FormCtrlError id={emailErrorId}>
+          {emailErrors.map(([errorLabel, errorText], index) => {
+            return (
+              <div key={index}>
+                <span>{errorLabel} </span>
+                <span>{errorText}</span>
+              </div>
+            );
+          })}
+        </FormCtrlError>
+      )}
+    </div>
+  );
+}
+
+function Password(props: FieldComponentProps) {
+  const { state, onFieldChanged } = props;
+
+  let passwordValue = "";
+  let passwordErrors: null | FieldError = null;
+
+  if (state.states.value === StateValue.changed) {
+    const {
+      context: { formValue },
+      states,
+    } = state.states.changed;
+    passwordValue = formValue;
+
+    if (states.value === StateValue.invalid) {
+      passwordErrors = states.invalid.context.errors;
+    }
+  }
+
+  return (
+    <div
+      className={makeClassNames({
+        "field form__field": true,
+        [formFieldErrorClass]: !!passwordErrors,
+      })}
+    >
+      <label htmlFor={passwordInputId} className="label form__label">
+        Password
+      </label>
+
+      <div className="control">
+        <input
+          className="input is-rounded"
+          type="password"
+          id={passwordInputId}
+          value={passwordValue}
+          onChange={onFieldChanged}
+          autoComplete="off"
+        />
+      </div>
+
+      {passwordErrors && (
+        <FormCtrlError id={passwordErrorId}>
+          {passwordErrors.map(([errorLabel, errorText], index) => {
+            return (
+              <div key={index}>
+                <span>{errorLabel} </span>
+                <span>{errorText}</span>
+              </div>
+            );
+          })}
+        </FormCtrlError>
+      )}
+    </div>
+  );
+}
+
 // istanbul ignore next:
 export default (props: CallerProps) => {
   const [login] = useLoginMutation();
@@ -271,3 +287,8 @@ export default (props: CallerProps) => {
 
   return <Login {...props} login={login} persistor={persistor} cache={cache} />;
 };
+
+interface FieldComponentProps {
+  state: FormField;
+  onFieldChanged: (e: InputChangeEvent) => void;
+}

@@ -35,6 +35,8 @@ import { LoginMutationResult } from "../utils/user.gql.types";
 import { AppPersistor } from "../utils/app-context";
 import { windowChangeUrl } from "../utils/global-window";
 import { manageUserAuthentication } from "../utils/manage-user-auth";
+import { formFieldErrorClass } from "../utils/utils.dom";
+import { getParentFieldEl } from "../tests.utils";
 
 jest.mock("../components/Header/header.component", () => () => null);
 
@@ -86,13 +88,13 @@ describe("components", () => {
     closeNotification(notificationEl);
     expect(getNotification()).toBeNull();
 
-    const emailInput = getEmailInput();
+    const emailInputEl = getEmailInput();
     const invalidEmailVal = "a@b.";
-    fillField(emailInput, invalidEmailVal);
+    fillField(emailInputEl, invalidEmailVal);
 
-    const passwordInput = getPasswordInput();
+    const passwordInputEl = getPasswordInput();
     const invalidPasswordVal = "pa";
-    fillField(passwordInput, invalidPasswordVal);
+    fillField(passwordInputEl, invalidPasswordVal);
 
     expect(getEmailErrorEl()).toBeNull();
     expect(getPasswordErrorEl()).toBeNull();
@@ -105,16 +107,31 @@ describe("components", () => {
     expect(getEmailErrorEl()).not.toBeNull();
     expect(getPasswordErrorEl()).not.toBeNull();
 
+    const emailInputParentFieldEl = getParentFieldEl(emailInputEl);
+    const passwordInputParentFieldEl = getParentFieldEl(passwordInputEl);
+
+    expect(emailInputParentFieldEl.classList).toContain(formFieldErrorClass);
+    expect(passwordInputParentFieldEl.classList).toContain(formFieldErrorClass);
+
     // clicking reset clears errors and warnings
     getReset().click();
     expect(getNotification()).toBeNull();
     expect(getEmailErrorEl()).toBeNull();
     expect(getPasswordErrorEl()).toBeNull();
 
+    expect(emailInputParentFieldEl.classList).not.toContain(
+      formFieldErrorClass,
+    );
+
+    expect(passwordInputParentFieldEl.classList).not.toContain(
+      formFieldErrorClass,
+    );
+
     const validEmailVal = "a@b.com";
     const validPasswordVal = "123456";
-    fillField(emailInput, validEmailVal);
-    fillField(passwordInput, validPasswordVal);
+
+    fillField(emailInputEl, validEmailVal);
+    fillField(passwordInputEl, validPasswordVal);
 
     mockLoginFn.mockResolvedValueOnce({
       data: {

@@ -80,6 +80,7 @@ export type HasEffectsVal = "hasEffects";
 export type ActiveVal = "active";
 export type InActiveVal = "inactive";
 export type SubmissionVal = "submitting";
+export type SuccessVal = "success";
 export type CommonErrorsVal = "commonErrors";
 export type WarningVal = "warning";
 export type ValidVal = "valid";

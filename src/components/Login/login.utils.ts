@@ -17,6 +17,25 @@ import { EbnisContextProps } from "../../utils/app-context";
 import { windowChangeUrl, ChangeUrlType } from "../../utils/global-window";
 import { MY_URL } from "../../utils/urls";
 import { manageUserAuthentication } from "../../utils/manage-user-auth";
+import {
+  StateValue,
+  InActiveVal,
+  CommonErrorsVal,
+  WarningVal,
+  ValidVal,
+  InvalidVal,
+  InitialVal,
+  UnChangedVal,
+  ChangedVal,
+  SubmissionVal,
+  SuccessVal,
+} from "../../utils/types";
+import {
+  GenericGeneralEffect,
+  getGeneralEffects,
+  GenericEffectDefinition,
+  GenericHasEffect,
+} from "../../utils/effects";
 
 export enum ActionType {
   SUBMISSION = "@login/submission",
@@ -27,21 +46,6 @@ export enum ActionType {
   RESET_FORM_FIELDS = "@login/reset-form-fields",
   SERVER_FIELD_ERRORS = "@login/server-field-errors",
 }
-
-export const StateValue = {
-  noEffect: "noEffect" as NoEffectVal,
-  hasEffects: "hasEffects" as HasEffectsVal,
-  inactive: "inactive" as InActiveVal,
-  unchanged: "unchanged" as UnChangedVal,
-  commonErrors: "commonErrors" as CommonErrorsVal,
-  warning: "warning" as WarningVal,
-  active: "active" as ActiveVal,
-  submitting: "submitting" as SubmittingVal,
-  changed: "changed" as ChangedVal,
-  valid: "valid" as ValidVal,
-  invalid: "invalid" as InvalidVal,
-  initial: "initial" as InitialVal,
-};
 
 export const reducer: Reducer<StateMachine, Action> = (state, action) =>
   wrapReducer(
@@ -58,7 +62,7 @@ export const reducer: Reducer<StateMachine, Action> = (state, action) =>
             break;
 
           case ActionType.SUBMISSION:
-            handleSubmittingAction(proxy);
+            handleSubmissionAction(proxy);
             break;
 
           case ActionType.ON_COMMON_ERROR:
@@ -80,26 +84,6 @@ export const reducer: Reducer<StateMachine, Action> = (state, action) =>
   );
 
 ////////////////////////// EFFECTS SECTION /////////////////////////
-
-function getGeneralEffects(proxy: DraftState) {
-  const generalEffects = proxy.effects.general as EffectState;
-  generalEffects.value = StateValue.hasEffects;
-  let effects: EffectsList = [];
-
-  // istanbul ignore next: trivial
-  if (!generalEffects.hasEffects) {
-    generalEffects.hasEffects = {
-      context: {
-        effects,
-      },
-    };
-  } else {
-    // istanbul ignore next: trivial
-    effects = generalEffects.hasEffects.context.effects;
-  }
-
-  return effects;
-}
 
 const scrollToTopEffect: DefScrollToTopEffect["func"] = () => {
   scrollIntoView("");
@@ -225,7 +209,7 @@ function handleFormChangedAction(
   } = proxy;
 
   const field = fields[fieldName] as FormField;
-  const state = field.states as ChangedState;
+  const state = field.states as Draft<ChangedState>;
   state.value = StateValue.changed;
   state.changed = state.changed || {
     context: { formValue: text },
@@ -237,12 +221,12 @@ function handleFormChangedAction(
   state.changed.context.formValue = text;
 }
 
-function handleSubmittingAction(proxy: DraftState) {
+function handleSubmissionAction(proxy: DraftState) {
   const {
     states: { submission },
   } = proxy;
-  const effects = getGeneralEffects(proxy);
 
+  const effects = getGeneralEffects<EffectType, DraftState>(proxy);
   submission.value = StateValue.inactive;
 
   const input = validateForm(proxy);
@@ -283,7 +267,7 @@ function validateForm(proxy: DraftState): FormInput {
   } = fields;
 
   const submissionErrorState = submission as SubmissionCommonErrors;
-  const submissionWarningState = submission as SubmissionWarning;
+  const submissionWarningState = submission as Draft<SubmissionWarning>;
 
   const input = {} as FormInput;
   let formUpdated = false;
@@ -347,7 +331,7 @@ function validateForm(proxy: DraftState): FormInput {
 }
 
 function validateFormPutFieldErrorHelper(
-  submissionErrorState: SubmissionCommonErrors,
+  submissionErrorState: Draft<SubmissionCommonErrors>,
   fieldState: ChangedState["changed"]["states"],
   errors: FieldError,
 ) {
@@ -359,7 +343,7 @@ function validateFormPutFieldErrorHelper(
     },
   };
 
-  const validityState = fieldState as FieldInValid;
+  const validityState = fieldState as Draft<FieldInValid>;
   validityState.value = StateValue.invalid;
   validityState.invalid = {
     context: {
@@ -418,21 +402,19 @@ function handleResetFormFieldsAction(proxy: DraftState) {
 
 type DraftState = Draft<StateMachine>;
 
-export interface StateMachine {
-  readonly states: {
-    readonly submission: Submission;
-    readonly form: {
-      readonly validity: FormValidity;
-      readonly fields: {
-        readonly email: FormField;
-        readonly password: FormField;
-      };
-    };
-  };
-  readonly effects: {
-    readonly general: EffectState | { value: NoEffectVal };
-  };
-}
+export type StateMachine = Readonly<GenericGeneralEffect<EffectType>> &
+  Readonly<{
+    states: Readonly<{
+      submission: Submission;
+      form: Readonly<{
+        validity: FormValidity;
+        fields: Readonly<{
+          email: FormField;
+          password: FormField;
+        }>;
+      }>;
+    }>;
+  }>;
 
 export type FormValidity = { value: InitialVal } | FormInValid;
 
@@ -447,80 +429,74 @@ interface FormInValid {
 
 ////////////////////////// STRINGY TYPES SECTION ///////////
 
-////////////////////////// END STRINGY TYPES SECTION /////////
-
-type NoEffectVal = "noEffect";
-type HasEffectsVal = "hasEffects";
-type InActiveVal = "inactive";
-type SubmittingVal = "submitting";
-type CommonErrorsVal = "commonErrors";
-type WarningVal = "warning";
-type ValidVal = "valid";
-type InvalidVal = "invalid";
-type InitialVal = "initial";
-type UnChangedVal = "unchanged";
-type ChangedVal = "changed";
-type ActiveVal = "active";
-type SuccessVal = "success";
-////////////////////////// END STRINGY TYPES SECTION /////////
-
 type Submission =
-  | {
+  | Readonly<{
       value: InActiveVal;
-    }
+    }>
   | Submitting
   | SubmissionSuccess
   | SubmissionCommonErrors
   | SubmissionWarning;
 
-interface Submitting {
-  value: SubmittingVal;
-}
+type Submitting = Readonly<{
+  value: SubmissionVal;
+}>;
 
-interface SubmissionSuccess {
+type SubmissionSuccess = Readonly<{
   value: SuccessVal;
-}
+}>;
 
-export interface SubmissionCommonErrors {
+export type SubmissionCommonErrors = Readonly<{
   value: CommonErrorsVal;
-  commonErrors: {
+  commonErrors: Readonly<{
     context: {
       errors: string;
     };
-  };
-}
+  }>;
+}>;
 
-interface SubmissionWarning {
+type SubmissionWarning = Readonly<{
   value: WarningVal;
-  warning: {
-    context: {
+  warning: Readonly<{
+    context: Readonly<{
       warning: string;
-    };
-  };
-}
+    }>;
+  }>;
+}>;
 
-type FormField<FormValue = string> = {
-  states: { value: UnChangedVal } | ChangedState<FormValue>;
-};
+export type FormField<FormValue = string> = Readonly<{
+  states:
+    | Readonly<{
+        value: UnChangedVal;
+      }>
+    | ChangedState<FormValue>;
+}>;
 
-interface ChangedState<FormValue = string> {
+type ChangedState<FormValue = string> = Readonly<{
   value: ChangedVal;
-  changed: {
-    context: {
+  changed: Readonly<{
+    context: Readonly<{
       formValue: FormValue;
-    };
-    states: { value: InitialVal } | { value: ValidVal } | FieldInValid;
-  };
-}
+    }>;
+    states:
+      | Readonly<{
+          value: InitialVal;
+        }>
+      | Readonly<{
+          value: ValidVal;
+        }>
+      | FieldInValid;
+  }>;
+}>;
 
-interface FieldInValid {
+type FieldInValid = Readonly<{
   value: InvalidVal;
-  invalid: {
+  invalid: Readonly<{
     context: {
       errors: FieldError;
     };
-  };
-}
+  }>;
+}>;
 
 export type Action =
   | {
@@ -563,29 +539,14 @@ export interface EffectArgs {
   dispatch: Dispatch<Action>;
 }
 
-interface EffectDefinition<
+type EffectDefinition<
   Key extends keyof typeof effectFunctions,
   OwnArgs = {}
-> {
-  key: Key;
-  ownArgs: OwnArgs;
-  func?: (
-    ownArgs: OwnArgs,
-    effectArgs: Props,
-    lastArgs: EffectArgs,
-  ) => void | Promise<void | (() => void)> | (() => void);
-}
+> = GenericEffectDefinition<EffectArgs, Props, Key, OwnArgs>;
 
-export interface EffectState {
-  value: HasEffectsVal;
-  hasEffects: {
-    context: {
-      effects: EffectsList;
-    };
-  };
-}
-
-type EffectsList = (DefLoginEffect | DefScrollToTopEffect)[];
+type EffectType = DefLoginEffect | DefScrollToTopEffect;
+export type EffectState = GenericHasEffect<EffectType>;
+type EffectList = EffectType[];
 
 interface FormInput {
   email: string;

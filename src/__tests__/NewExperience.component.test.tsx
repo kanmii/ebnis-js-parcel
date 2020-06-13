@@ -43,6 +43,8 @@ import { scrollIntoView } from "../utils/scroll-into-view";
 import { CreateExperiences_createExperiences_CreateExperienceErrors_errors } from "../graphql/apollo-types/CreateExperiences";
 import { CreateExperienceOfflineMutationResult } from "../components/NewExperience/new-experience.resolvers";
 import { E2EWindowObject } from "../utils/types";
+import { formFieldErrorClass } from "../utils/utils.dom";
+import { getParentFieldEl} from '../tests.utils'
 
 jest.mock("../components/NewExperience/new-experience.injectables");
 
@@ -82,7 +84,6 @@ afterEach(() => {
   jest.resetAllMocks();
 });
 
-const formFieldErrorClass = "form__field--errors";
 const formControlHiddenClass = "form__control--hidden";
 const descriptionToggleClassName = "form__label-description-toggle";
 const descriptionHideClass = "form__label-description-hide";
@@ -687,9 +688,6 @@ function getTitleInputEl() {
   return document.getElementById(titleInputDomId) as HTMLInputElement;
 }
 
-function getParentFieldEl(childEl: HTMLElement) {
-  return childEl.closest(".field") as HTMLElement;
-}
 
 function getFieldErrorEl(container: HTMLElement) {
   return container
