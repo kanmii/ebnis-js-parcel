@@ -12,6 +12,7 @@ import {
   LOGIN_URL,
   MY_URL,
   EXPERIENCE_DETAIL_URL,
+  SIGN_UP_URL,
 } from "../../utils/urls";
 import AuthenticationRequired from "../AuthenticationRequired/authentication-required.component";
 
@@ -20,6 +21,7 @@ const My = lazy(() => import("../My/my.index"));
 const DetailExperience = lazy(() =>
   import("../DetailExperience/detail-experience.index"),
 );
+const SignUp = lazy(() => import("../SignUp/sign-up.component"));
 
 export function AppInner({ obj }: { obj: E2EWindowObject }) {
   const { client, cache, persistor, observable } = obj;
@@ -54,6 +56,8 @@ export function AppInner({ obj }: { obj: E2EWindowObject }) {
                 <Route exact={true} path={ROOT_URL} component={Login} />
 
                 <Route exact={true} path={LOGIN_URL} component={Login} />
+
+                <Route exact={true} path={SIGN_UP_URL} component={SignUp} />
 
                 <Route component={Login} />
               </Switch>

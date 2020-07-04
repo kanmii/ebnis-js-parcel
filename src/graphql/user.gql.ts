@@ -9,6 +9,14 @@ export const USER_FRAGMENT = gql`
   }
 `;
 
+const REGISTER_USER_ERROR = gql`
+  fragment RegisterUserErrorFragment on RegisterUserError {
+    email
+    password
+    passwordConfirmation
+  }
+`;
+
 export const REGISTER_USER_MUTATION = gql`
   mutation RegisterUserMutation($input: RegisterUserInput!) {
     registerUser(input: $input) {
@@ -20,14 +28,13 @@ export const REGISTER_USER_MUTATION = gql`
       }
       ... on RegisterUserErrors {
         errors {
-          email
-          password
-          passwordConfirmation
+          ...RegisterUserErrorFragment
         }
       }
     }
   }
   ${USER_FRAGMENT}
+  ${REGISTER_USER_ERROR}
 `;
 
 export const LOGIN_MUTATION = gql`

@@ -34,6 +34,7 @@ import makeClassNames from "classnames";
 import { warningClassName, errorClassName } from "../../utils/utils.dom";
 import { EbnisAppContext } from "../../utils/app-context";
 import { setUpRoutePage } from "../../utils/global-window";
+import { SIGN_UP_URL } from "../../utils/urls";
 
 export function Login(props: Props) {
   const [stateMachine, dispatch] = useReducer(reducer, undefined, initState);
@@ -129,10 +130,10 @@ export function Login(props: Props) {
   }
 
   return (
-    <>
+    <div className="login-component">
       <Header />
 
-      <form onSubmit={onSubmit} className="login-component form">
+      <form onSubmit={onSubmit} className="form">
         <div className="form__caption">Login with email</div>
 
         {(warningText || errorText) && (
@@ -164,6 +165,7 @@ export function Login(props: Props) {
               type="text"
               id={emailInputId}
               value={emailValue}
+              autoComplete="off"
               onChange={(e) => {
                 const node = e.currentTarget;
                 dispatch({
@@ -252,12 +254,12 @@ export function Login(props: Props) {
 
         <div className="other-auth">
           <div>Don&apos;t have an account?</div>
-          <a href="/" className="other-auth__other-link">
-            Sign Up
+          <a href={SIGN_UP_URL} className="other-auth__other-link">
+            Sign Up!
           </a>
         </div>
       </form>
-    </>
+    </div>
   );
 }
 

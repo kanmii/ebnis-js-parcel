@@ -1,5 +1,5 @@
 import { ApolloError } from "apollo-client";
-import { CommonError } from "./types";
+import { CommonError, CommonErrorsVal } from "./types";
 
 export function parseStringError(error: string | Error): string {
   if (error instanceof ApolloError) {
@@ -26,6 +26,15 @@ export const NO_CONNECTION_ERROR =
 export interface StringyErrorPayload {
   error: CommonError;
 }
+
+export type CommonErrorsState = Readonly<{
+  value: CommonErrorsVal;
+  commonErrors: Readonly<{
+    context: {
+      errors: string;
+    };
+  }>;
+}>;
 
 type ErrorField = string;
 type ErrorText = string;
