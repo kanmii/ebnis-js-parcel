@@ -24,7 +24,7 @@
     "fuzzysort": "^1.1.4",
     "graphql": "14.5.8",
     "graphql-tag": "^2.10.3",
-    "immer": "^6.0.3",
+    "immer": "^8.0.1",
     "lodash": "^4.17.15",
     "phoenix": "^1.4.16",
     "react": "^16.12.0",
